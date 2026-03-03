@@ -1,0 +1,42 @@
+{
+  "stops": [
+    { "name": "Civic Centre", "lat": -33.9249, "lon": 18.4241 },
+    { "name": "Cape Town Station", "lat": -33.9250, "lon": 18.4240 },
+    { "name": "Gardens", "lat": -33.9353, "lon": 18.4148 },
+    { "name": "Sea Point", "lat": -33.9156, "lon": 18.3877 },
+    { "name": "Century City", "lat": -33.8920, "lon": 18.5110 },
+    { "name": "Table View", "lat": -33.8269, "lon": 18.4909 },
+    { "name": "Dunoon", "lat": -33.8642, "lon": 18.5366 },
+    { "name": "Melkbosstrand", "lat": -33.7250, "lon": 18.4450 },
+    { "name": "Atlantis", "lat": -33.5667, "lon": 18.4833 },
+    { "name": "Hout Bay", "lat": -34.0436, "lon": 18.3489 }
+  ],
+  "routes": [
+    { "code": "101", "name": "Vredehoek - Gardens - Civic Centre (clockwise)" },
+    { "code": "102", "name": "Salt River Rail - Walmer Estate - Civic Centre" },
+    { "code": "105", "name": "Sea Point - Fresnaye - Civic Centre" },
+    { "code": "106", "name": "Camps Bay (clockwise) - Civic Centre" },
+    { "code": "107", "name": "Camps Bay (anticlockwise) - Civic Centre" },
+    { "code": "109", "name": "Hout Bay - Imizamo Yethu - Sea Point" },
+    { "code": "213", "name": "Sunningdale - Parklands - Table View - Sunningdale (clockwise)" },
+    { "code": "216", "name": "Big Bay - Wood Drive - Wood" },
+    { "code": "D05", "name": "Dunoon - Parklands - Table View - Civic Centre" },
+    { "code": "T02", "name": "Civic Centre - Table View - Atlantis" }
+  ],
+  "passPrices": {
+    "day1": 90,
+    "day3": 210,
+    "day7": 300,
+    "monthly": 1000
+  },
+  "moverFareBands": [
+    { "min": 0, "max": 5, "peak": 13.5, "saver": 10.5 },
+    { "min": 5, "max": 10, "peak": 18.5, "saver": 13.5 },
+    { "min": 10, "max": 20, "peak": 23.5, "saver": 18.5 },
+    { "min": 20, "max": 30, "peak": 25.5, "saver": 21.5 },
+    { "min": 30, "max": 40, "peak": 27.5, "saver": 23.5 },
+    { "min": 40, "max": 50, "peak": 31.5, "saver": 28.5 },
+    { "min": 50, "max": 60, "peak": 36.5, "saver": 31.5 },
+    { "min": 60, "max": 9999, "peak": 39.5, "saver": 33.5 }
+  ]
+}

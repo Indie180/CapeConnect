@@ -1,0 +1,7061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Download Network Timetables</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    :root{
+      --ink:var(--text-main);
+      --paper:var(--bg-main);
+      --paper-2:var(--bg-card);
+      --muted:var(--text-muted);
+      --accent:var(--brand-primary);
+      --accent-2:var(--brand-success);
+      --deep:var(--header-bg);
+      --ring:0 0 0 3px rgba(37,99,235,0.2);
+      --shadow:var(--shadow);
+      --border:var(--border-input);
+    }
+    body.bus-ga{
+      --accent:var(--ga-yellow);
+      --accent-2:var(--ga-green);
+      --deep:#007A33;
+      --ring:0 0 0 3px rgba(245,200,76,0.25);
+    }
+    body.bus-myciti{
+      --accent:var(--myciti-blue);
+      --accent-2:var(--myciti-blue);
+      --deep:var(--myciti-red);
+      --ring:0 0 0 3px rgba(28,143,196,0.25);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Montserrat", "Trebuchet MS", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 360px at 10% -10%, rgba(245,176,0,0.18), transparent 65%),
+        radial-gradient(700px 300px at 110% 10%, rgba(15,138,61,0.16), transparent 60%),
+        var(--paper);
+    }
+    .wrap{max-width:1180px;margin:24px auto;padding:18px}
+    h1{margin:6px 0 8px;font-size:28px;letter-spacing:0.4px}
+    .controls{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:14px;
+      align-items:center;
+    }
+    .search{
+      width:100%;
+      min-width:240px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      outline:none;
+      background:var(--paper-2);
+      transition:border .2s, box-shadow .2s;
+    }
+    .search:focus{border-color:var(--accent);box-shadow:var(--ring)}
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--paper-2);
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:0.2px;
+      border:1px solid var(--border);
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .chip:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(2,6,23,0.08)}
+    .chip.active{
+      background:var(--deep);
+      color:#fff;
+      border-color:transparent;
+    }
+    .results-bar{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      background:var(--paper-2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      box-shadow:0 8px 18px rgba(2,6,23,0.06);
+    }
+    .pill{
+      background:linear-gradient(135deg, var(--accent), #ffcc4d);
+      color:#1a1a1a;
+      padding:6px 12px;
+      border-radius:999px;
+      font-weight:900;
+      letter-spacing:0.3px;
+    }
+    .results-container{
+      height:560px;
+      overflow:auto;
+      margin-top:14px;
+      padding:6px;
+    }
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .card{
+      background:var(--paper-2);
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(120deg, rgba(245,176,0,0.08), transparent 40%);
+      pointer-events:none;
+    }
+    .card h3{margin:0 0 6px;font-size:14px;letter-spacing:0.6px;text-transform:uppercase}
+    .card p{margin:0;color:var(--muted);font-size:13px}
+    .actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .btn{
+      border:none;cursor:pointer;border-radius:12px;padding:10px 12px;font-weight:800;
+      background:var(--deep);color:#fff;transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,6,23,0.18)}
+    .btn.secondary{background:linear-gradient(135deg, #111827, #0b1220)}
+    .btn.ghost{
+      background:transparent;
+      color:var(--deep);
+      border:1px solid var(--border);
+    }
+
+    .modal{
+      position:fixed;inset:0;background:rgba(2,6,23,0.55);
+      display:flex;align-items:center;justify-content:center;
+      visibility:hidden;opacity:0;transition:opacity .18s; z-index:50;
+      padding:18px;
+    }
+    .modal.show{visibility:visible;opacity:1}
+    .modal-card{
+      background:var(--paper-2);
+      border-radius:16px;
+      width:100%;
+      max-width:760px;
+      box-shadow:0 24px 60px rgba(2,6,23,0.35);
+      padding:16px;
+      border:1px solid var(--border);
+    }
+    .modal-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .modal-sub{color:var(--muted)}
+    .preview{
+      height:280px;margin-top:10px;background:#f1efe9;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;color:var(--muted);padding:12px;
+      text-align:center;
+    }
+    @media(max-width:980px){
+      .controls{grid-template-columns:1fr}
+      .chips{justify-content:flex-start}
+      .grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:560px){.grid{grid-template-columns:1fr}}
+
+    /* MyCiti layout (only shown for MyCiti) */
+    .myciti-shell{display:none}
+    body.bus-myciti .myciti-shell{display:block}
+    body.bus-myciti .ga-shell{display:none}
+
+    .myciti-header{
+      background:#1c8fc4;
+      color:#fff;
+      padding:18px;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:0.3px;
+    }
+    .myciti-tabs{
+      display:flex;
+      gap:2px;
+      background:#e5e7eb;
+      margin:18px auto 0;
+      max-width:820px;
+    }
+    .myciti-tab{
+      flex:1;
+      padding:12px 16px;
+      background:#f3f4f6;
+      border:none;
+      cursor:pointer;
+      font-weight:800;
+      color:#0b1220;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .myciti-tab.active{
+      background:#1c8fc4;
+      color:#fff;
+    }
+    .myciti-search{
+      max-width:820px;
+      margin:14px auto 0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid #e5e7eb;
+    }
+    .myciti-search input{
+      width:100%;
+      border:none;
+      outline:none;
+      font-size:14px;
+      background:transparent;
+    }
+    .myciti-list{
+      max-width:820px;
+      margin:12px auto 0;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+    }
+    .myciti-row{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      border-top:1px solid #fff;
+    }
+    .myciti-cell{
+      padding:12px 16px;
+      border-right:1px solid #fff;
+      color:#0b67b2;
+      font-weight:600;
+      background:#f3f4f6;
+    }
+    .myciti-cell:last-child{border-right:none}
+    .myciti-cell.button{
+      cursor:pointer;
+    }
+    .myciti-cell.button:hover{
+      background:#e9eef4;
+    }
+    .myciti-cell .route-badge{
+      display:inline-grid;
+      place-items:center;
+      min-width:36px;
+      height:24px;
+      padding:0 6px;
+      margin-right:10px;
+      border-radius:2px;
+      font-weight:800;
+      font-size:12px;
+      color:#0b1220;
+      background:#ffd34f;
+    }
+    .myciti-detail{
+      display:none;
+    }
+    .myciti-detail.active{
+      display:block;
+    }
+    .myciti-detail .topbar{
+      background:#1aa6d8;
+      color:#fff;
+      height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      letter-spacing:.5px;
+      font-weight:600;
+    }
+    .myciti-detail .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding:18px 18px 48px;
+    }
+    .myciti-detail .back{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:#7a8691;
+      text-decoration:none;
+      font-size:12px;
+      margin:6px 0 18px;
+      text-transform:uppercase;
+      letter-spacing:.3px;
+      cursor:pointer;
+    }
+    .myciti-detail .back .chev{
+      width:26px;height:26px;border-radius:50%;
+      display:grid;place-items:center;
+      color:#1aa6d8;
+    }
+    .myciti-detail .back:hover{color:#55606a}
+    .myciti-detail .back:hover .chev{background:#eef8fd}
+    .myciti-detail .card{
+      border:1px solid #e6e9ee;
+      border-radius:3px;
+      overflow:hidden;
+      background:#fff;
+      display:block;
+    }
+    .myciti-detail .stopbar{
+      background:#8f8f8f;
+      color:#fff;
+      height:58px;
+      display:flex;
+      align-items:center;
+      padding:0 18px;
+      gap:14px;
+    }
+    .myciti-detail .stop-icon{
+      width:28px;height:28px;border-radius:50%;
+      background:rgba(0,0,0,.15);
+      display:grid;place-items:center;
+      border:1px solid rgba(255,255,255,.25);
+    }
+    .myciti-detail .stop-name{
+      font-weight:600;
+      font-size:14px;
+    }
+    .myciti-detail .filters{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr 160px;
+      gap:0;
+      border-bottom:1px solid #e6e9ee;
+      background:#fff;
+      min-height:68px;
+      align-items:stretch;
+    }
+    .myciti-detail .fcell{
+      padding:14px 18px;
+      border-right:1px solid #e6e9ee;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .myciti-detail .fcell:last-child{border-right:none;padding:0}
+    .myciti-detail .flabel{
+      font-size:11px;
+      color:#9aa5b1;
+      text-transform:uppercase;
+      letter-spacing:.35px;
+      min-width:70px;
+    }
+    .myciti-detail .select{
+      position:relative;
+      flex:1;
+      min-width:0;
+    }
+    .myciti-detail .select-btn{
+      width:100%;
+      border:none;
+      background:transparent;
+      padding:6px 26px 6px 0;
+      text-align:left;
+      color:#1a73b8;
+      font-size:12px;
+      cursor:pointer;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .myciti-detail .select-btn:focus{outline:none}
+    .myciti-detail .caret{
+      position:absolute;
+      right:4px; top:50%;
+      transform:translateY(-50%);
+      width:16px;height:16px;
+      color:#87929c;
+      pointer-events:none;
+    }
+    .myciti-detail .menu{
+      position:absolute;
+      left:-6px;
+      top:34px;
+      width:220px;
+      background:#fff;
+      border:1px solid #e6e9ee;
+      border-radius:2px;
+      box-shadow:0 8px 22px rgba(0,0,0,.08);
+      padding:6px 0;
+      display:none;
+      z-index:30;
+    }
+    .myciti-detail .menu.open{display:block}
+    .myciti-detail .opt{
+      padding:10px 14px;
+      font-size:12px;
+      cursor:pointer;
+      color:#2f3a45;
+    }
+    .myciti-detail .opt:hover{background:#f2f4f7}
+    .myciti-detail .opt.active{
+      background:#6f6f6f;
+      color:#fff;
+    }
+    .myciti-detail .filter-btn{
+      height:100%;
+      width:100%;
+      background:#1aa6d8;
+      border:none;
+      color:#fff;
+      font-weight:700;
+      letter-spacing:.4px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .myciti-detail .filter-btn:hover{background:#118bb7}
+    .myciti-detail .list{background:#fff}
+    .myciti-detail .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:0;
+      border-top:1px solid #e6e9ee;
+      min-height:56px;
+      align-items:center;
+    }
+    .myciti-detail .row:first-child{border-top:none}
+    .myciti-detail .left, .myciti-detail .right{
+      padding:0 18px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+    .myciti-detail .left{border-right:1px solid #e6e9ee}
+    .myciti-detail .time{
+      width:64px;
+      color:#66717c;
+      font-size:12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .myciti-detail .live{
+      color:#35b24a;
+      font-size:12px;
+      font-weight:600;
+    }
+    .myciti-detail .badge{
+      min-width:34px;
+      height:22px;
+      background:#f3c316;
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      font-size:12px;
+      color:#000;
+      border-radius:2px;
+    }
+    .myciti-detail .route-link{
+      color:#1a73b8;
+      font-size:12px;
+      text-decoration:none;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .myciti-detail .route-link:hover{text-decoration:underline}
+    @media (max-width: 920px){
+      .myciti-detail .filters{grid-template-columns: 1fr; }
+      .myciti-detail .fcell{border-right:none;border-bottom:1px solid #e6e9ee}
+      .myciti-detail .fcell:last-child{border-bottom:none}
+      .myciti-detail .menu{width:min(92vw, 320px)}
+      .myciti-detail .row{grid-template-columns:1fr}
+      .myciti-detail .left{border-right:none;border-bottom:1px solid #e6e9ee}
+    }
+    @media(max-width:760px){
+      .myciti-row{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:520px){
+      .myciti-row{grid-template-columns:1fr}
+    }
+
+    /* Footer */
+    .site-footer{
+      margin-top:32px;
+      background:#0b5ea8;
+      color:#ffffff;
+      padding:40px 20px 24px;
+    }
+    .footer-container{
+      max-width:1180px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap:32px;
+    }
+    .footer-brand .logo{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:#ffffff;
+      font-weight:900;
+      font-size:22px;
+      margin-bottom:12px;
+      text-decoration:none;
+    }
+    .footer-brand p{
+      color:rgba(255,255,255,0.85);
+      line-height:1.6;
+      margin-bottom:18px;
+    }
+    .footer-column h4{
+      margin:0 0 14px;
+      font-size:16px;
+      font-weight:800;
+    }
+    .footer-links{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:grid;
+      gap:8px;
+    }
+    .footer-links a{
+      color:rgba(255,255,255,0.9);
+      text-decoration:none;
+    }
+    .footer-links a:hover{
+      text-decoration:underline;
+    }
+    body.bus-ga .helpline-myciti{display:none}
+    body.bus-myciti .helpline-ga{display:none}
+    .social-links{
+      display:flex;
+      gap:10px;
+    }
+    .social-btn{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,255,255,0.12);
+      color:#ffffff;
+      text-decoration:none;
+    }
+    .footer-bottom{
+      max-width:1180px;
+      margin:28px auto 0;
+      border-top:1px solid rgba(255,255,255,0.15);
+      padding-top:14px;
+      color:rgba(255,255,255,0.7);
+      font-size:12px;
+      text-align:center;
+    }
+    @media (max-width: 900px){
+      .footer-container{grid-template-columns:1fr 1fr;}
+    }
+    @media (max-width: 640px){
+      .footer-container{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="dashboard.html" class="logo">
+        <img class="logo-img" id="nav-logo-img" src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
+        <span class="logo-text" id="nav-logo-text">CapeConnect</span>
+      </a>
+      <nav class="nav-links" id="main-nav">
+        <a href="dashboard.html" data-link="dashboard">Dashboard</a>
+        <a href="timetable.html" data-link="timetable">Timetable & Routes</a>
+        <a href="#" data-link="calculator" id="calc-link">Calculator</a>
+        <a href="#" data-link="booking" id="booking-link">Book Ticket</a>
+        <a href="#" data-link="help">Help</a>
+      </nav>
+      <div class="nav-btns">
+        <button class="theme-toggle" aria-label="Toggle theme" onclick="App.toggleTheme()" title="Toggle Theme">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Golden Arrow layout -->
+  <div class="wrap ga-shell">
+    <h1>Download Network Timetables</h1>
+
+    <div class="controls">
+      <input id="searchInput" class="search" placeholder="Search route or suburb (e.g. Bellville)" aria-label="Search timetables" />
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="results-bar">
+      <div>Results for <strong id="currentLetter">A</strong></div>
+      <div id="countPill" class="pill">0</div>
+    </div>
+
+    <div class="results-container">
+      <div class="grid" id="grid"></div>
+    </div>
+
+  </div>
+
+  <!-- MyCiti layout -->
+  <div class="myciti-shell">
+    <div class="myciti-header">ROUTE, STOP &amp; STATION TIMETABLES</div>
+    <div class="wrap">
+      <div id="mycitiListView">
+      <div class="myciti-tabs">
+        <button class="myciti-tab active" id="tab-stops" type="button">
+          <i class="fa-regular fa-circle"></i> STATIONS / STOPS
+        </button>
+        <button class="myciti-tab" id="tab-routes" type="button">
+          <i class="fa-solid fa-route"></i> ROUTES
+        </button>
+      </div>
+      <div class="myciti-search">
+        <i class="fa-solid fa-magnifying-glass" style="color:#6b7280" aria-hidden="true"></i>
+        <input id="mycitiSearch" placeholder="Search by station / stop name" aria-label="Search MyCiTi stations or routes" />
+      </div>
+      <div id="mycitiList" class="myciti-list"></div>
+      </div>
+
+      <div id="mycitiDetail" class="myciti-detail">
+        <header class="topbar">STOP TIMETABLES</header>
+        <main class="wrap">
+          <a class="back" id="mycitiBack">
+            <span class="chev" aria-hidden="true">‹</span>
+            BACK TO ROUTE, STOP &amp; STATION TIMETABLES
+          </a>
+
+          <section class="card">
+            <div class="stopbar">
+              <div class="stop-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 16h12M7 16v2m10-2v2M6 7h12v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="stop-name" id="stopName">Abbas</div>
+            </div>
+
+            <div class="filters">
+              <div class="fcell">
+                <div class="flabel">ROUTE:</div>
+                <div class="select" data-select="route">
+                  <button class="select-btn" type="button" aria-haspopup="listbox" aria-expanded="false">All Routes</button>
+                  <span class="caret" aria-hidden="true">▾</span>
+                  <div class="menu" role="listbox">
+                    <div class="opt active" data-value="all">All Routes</div>
+                    <div class="opt" data-value="216">216</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fcell">
+                <div class="flabel">DIRECTION:</div>
+                <div class="select" data-select="direction">
+                  <button class="select-btn" type="button" aria-haspopup="listbox" aria-expanded="false">All Directions</button>
+                  <span class="caret" aria-hidden="true">▾</span>
+                  <div class="menu" role="listbox">
+                    <div class="opt active" data-value="all">All Directions</div>
+                    <div class="opt" data-value="216 Big Bay">216 Big Bay</div>
+                    <div class="opt" data-value="216 Wood">216 Wood</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fcell">
+                <div class="flabel">DAY:</div>
+                <div class="select" data-select="day">
+                  <button class="select-btn" type="button" aria-haspopup="listbox" aria-expanded="false">Today</button>
+                  <span class="caret" aria-hidden="true">▾</span>
+                  <div class="menu" role="listbox">
+                    <div class="opt active" data-value="Today">Today</div>
+                    <div class="opt" data-value="Monday">Monday</div>
+                    <div class="opt" data-value="Tuesday">Tuesday</div>
+                    <div class="opt" data-value="Wednesday">Wednesday</div>
+                    <div class="opt" data-value="Thursday">Thursday</div>
+                    <div class="opt" data-value="Friday">Friday</div>
+                    <div class="opt" data-value="Saturday">Saturday</div>
+                    <div class="opt" data-value="Sunday">Sunday</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fcell">
+                <button class="filter-btn" id="applyFilter" type="button" title="Apply Filter">FILTER</button>
+              </div>
+            </div>
+
+            <div class="list" id="timetableList"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+    <div class="modal-card" tabindex="-1">
+      <div class="modal-top">
+        <div>
+          <h3 id="modalTitle" style="margin:0"></h3>
+          <div id="modalSub" class="modal-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="closeModal" class="btn ghost" type="button">Close</button>
+          <a id="modalDownload" class="btn secondary" href="#" style="text-decoration:none;display:inline-block">Download PDF</a>
+        </div>
+      </div>
+      <div id="modalPreview" class="preview">Preview</div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span aria-hidden="true">🚌</span> CapeConnect
+        </a>
+        <p>Your reliable partner for bus transportation in Cape Town. Making commuting easier since 2023.</p>
+        <div class="social-links">
+          <a class="social-btn" href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a class="social-btn" href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a class="social-btn" href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a class="social-btn" href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-column">
+        <h4>Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h4>Services</h4>
+        <ul class="footer-links">
+          <li><a href="#">MyCiTi Bus</a></li>
+          <li><a href="#">Golden Arrow</a></li>
+          <li><a href="#">School Transport</a></li>
+          <li><a href="#">Tourist Passes</a></li>
+          <li><a href="#">Corporate Solutions</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h4>Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Refund Policy</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column" id="helpline-column">
+        <h4 id="helpline-title">Helpline</h4>
+        <ul class="footer-links" id="helpline-list"></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 CapeConnect. All rights reserved.</div>
+  </footer>
+
+  <script src="js/data-service.js"></script>
+  <script>
+  (function(){
+    function getSelectedBus(){
+      try { return JSON.parse(localStorage.getItem('selectedBus')); } catch { return null; }
+    }
+    const selectedBus = getSelectedBus();
+    if(selectedBus){
+      document.body.classList.remove('bus-ga','bus-myciti');
+      document.body.classList.add(`bus-${selectedBus}`);
+      if (selectedBus === 'ga') {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+
+    const chipOrder = ['All', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W'];
+
+    const searchInput = document.getElementById('searchInput');
+    const chipsEl = document.getElementById('chips');
+    const grid = document.getElementById('grid');
+    const currentLetterEl = document.getElementById('currentLetter');
+    const countPill = document.getElementById('countPill');
+
+    const modal = document.getElementById('modal');
+    const modalCard = modal.querySelector('.modal-card');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSub = document.getElementById('modalSub');
+    const modalPreview = document.getElementById('modalPreview');
+    const closeModal = document.getElementById('closeModal');
+    const modalDownload = document.getElementById('modalDownload');
+    let lastModalFocus = null;
+    let releaseModalTrap = null;
+
+    function getFocusableElements(root){
+      return Array.from(root.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true');
+    }
+
+    function trapFocus(root, onClose){
+      function handleKeydown(ev){
+        if(ev.key === 'Escape'){
+          ev.preventDefault();
+          if(onClose) onClose();
+          return;
+        }
+        if(ev.key !== 'Tab') return;
+        const focusable = getFocusableElements(root);
+        if(!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if(ev.shiftKey && document.activeElement === first){
+          ev.preventDefault();
+          last.focus();
+        }else if(!ev.shiftKey && document.activeElement === last){
+          ev.preventDefault();
+          first.focus();
+        }
+      }
+      root.addEventListener('keydown', handleKeydown);
+      return () => root.removeEventListener('keydown', handleKeydown);
+    }
+
+    function openModalDialog(){
+      lastModalFocus = document.activeElement;
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden','false');
+      if(modalCard) modalCard.focus();
+      releaseModalTrap = trapFocus(modal, closeModalDialog);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModalDialog(){
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden','true');
+      if(releaseModalTrap){
+        releaseModalTrap();
+        releaseModalTrap = null;
+      }
+      document.body.style.overflow = '';
+      if(lastModalFocus) lastModalFocus.focus();
+    }
+
+    // ✅ MERGED: Your original RAW_DATA + the second list appended at the bottom
+    const RAW_DATA = String.raw`
+AIRPORT IND-BELLVILLE
+Timetable Number - 004401
+
+AIRPORT IND-BELLVILLE
+Timetable Number - 004402
+
+AIRPORT IND-BLUEDOWNS
+Timetable Number - 012901
+
+AIRPORT IND-BLUEDOWNS
+Timetable Number - 012902
+
+AIRPORT IND-CAPE TOWN
+Timetable Number - 012002
+
+AIRPORT IND-CAPE TOWN
+Timetable Number - 012001
+
+AIRPORT IND-DELFT
+Timetable Number - 012901
+
+AIRPORT IND-DELFT
+Timetable Number - 012902
+
+AIRPORT IND-KHAYELITSHA
+Timetable Number - 014001
+
+AIRPORT IND-KHAYELITSHA
+Timetable Number - 014002
+
+AIRPORT IND-MOWBRAY
+Timetable Number - 012002
+
+AIRPORT IND-MOWBRAY
+Timetable Number - 012001
+
+AIRPORT IND-NYANGA
+Timetable Number - 014001
+
+AIRPORT IND-NYANGA
+Timetable Number - 014002
+
+AIRPORT IND-NYANGA
+Timetable Number - 004401
+
+AIRPORT IND-NYANGA
+Timetable Number - 004402
+
+AIRPORT IND-TOWN CENTRE
+Timetable Number - 009401
+
+AIRPORT IND-TOWN CENTRE
+Timetable Number - 009402
+
+ALEXANDRA HOSP-ELECTRIC CITY
+Timetable Number - 021001
+
+ALEXANDRA HOSP-ELECTRIC CITY
+Timetable Number - 021002
+
+ALEXANDRA HOSP-MANDALAY
+Timetable Number - 004801
+
+ALEXANDRA HOSP-MANDALAY
+Timetable Number - 004802
+
+ALEXANDRA HOSP-TOWN CENTRE
+Timetable Number - 004801
+
+ALEXANDRA HOSP-TOWN CENTRE
+Timetable Number - 004802
+
+ARTSCAPE-FIRGROVE
+Timetable Number - 021101
+
+ARTSCAPE-FIRGROVE
+Timetable Number - 021102
+
+ATHLONE IND-EPPING IND
+Timetable Number - 019701
+
+ATHLONE IND-EPPING IND
+Timetable Number - 019702
+
+ATHLONE IND-STEENBERG
+Timetable Number - 019701
+
+ATHLONE IND-STEENBERG
+Timetable Number - 019702
+
+ATLANTIS-BELLVILLE
+Timetable Number - 010502
+
+ATLANTIS-BELLVILLE
+Timetable Number - 010504
+
+ATLANTIS-BELLVILLE
+Timetable Number - 010501
+
+ATLANTIS-BELLVILLE
+Timetable Number - 010503
+
+ATLANTIS-CAMBRIDGE
+Timetable Number - 014402
+
+ATLANTIS-CAPE TOWN
+Timetable Number - 000402
+
+ATLANTIS-CAPE TOWN
+Timetable Number - 000401
+
+ATLANTIS-DURBANVILLE
+Timetable Number - 010502
+
+ATLANTIS-DURBANVILLE
+Timetable Number - 010504
+
+ATLANTIS-DURBANVILLE
+Timetable Number - 010501
+
+ATLANTIS-DURBANVILLE
+Timetable Number - 010503
+
+ATLANTIS-EPPING IND
+Timetable Number - 010702
+
+ATLANTIS-EPPING IND
+Timetable Number - 010701
+
+ATLANTIS-HANOVER PARK
+Timetable Number - 003902
+
+ATLANTIS-HANOVER PARK
+Timetable Number - 003901
+
+ATLANTIS-KILLARNEY
+Timetable Number - 014402
+
+ATLANTIS-KILLARNEY
+Timetable Number - 000402
+
+ATLANTIS-KILLARNEY
+Timetable Number - 000401
+
+ATLANTIS-KILLARNEY
+Timetable Number - 010502
+
+ATLANTIS-KILLARNEY
+Timetable Number - 017501
+
+ATLANTIS-KILLARNEY
+Timetable Number - 017502
+
+ATLANTIS-KILLARNEY
+Timetable Number - 003902
+
+ATLANTIS-KILLARNEY
+Timetable Number - 010504
+
+ATLANTIS-KILLARNEY
+Timetable Number - 003901
+
+ATLANTIS-KILLARNEY
+Timetable Number - 010501
+
+ATLANTIS-KILLARNEY
+Timetable Number - 010503
+
+ATLANTIS-MAMRE
+Timetable Number - 010702
+
+ATLANTIS-MAMRE
+Timetable Number - 010502
+
+ATLANTIS-MAMRE
+Timetable Number - 010701
+
+ATLANTIS-MAMRE
+Timetable Number - 010504
+
+ATLANTIS-MAMRE
+Timetable Number - 010501
+
+ATLANTIS-MAMRE
+Timetable Number - 010503
+
+ATLANTIS-MONTAGUE GDNS
+Timetable Number - 014402
+
+ATLANTIS-STRANDFONTEIN
+Timetable Number - 017501
+
+ATLANTIS-STRANDFONTEIN
+Timetable Number - 017502
+
+ATLAS GDNS-BLAAUWBERG
+Timetable Number - 016801
+
+ATLAS GDNS-BLAAUWBERG
+Timetable Number - 016802
+
+ATLAS GDNS-DU NOON
+Timetable Number - 016801
+
+ATLAS GDNS-DU NOON
+Timetable Number - 016802
+
+ATLAS GDNS-KILLARNEY
+Timetable Number - 016801
+
+ATLAS GDNS-KILLARNEY
+Timetable Number - 016802
+
+AZ BERMAN DR-CAPE TOWN
+Timetable Number - 014501
+
+AZ BERMAN DR-FREEWAY
+Timetable Number - 014501
+
+BEACON VALLEY-CLAREMONT
+Timetable Number - 006401
+
+BEACON VALLEY-CLAREMONT
+Timetable Number - 006402
+
+BEACON VALLEY-TAFELSIG
+Timetable Number - 006401
+
+BEACON VALLEY-TAFELSIG
+Timetable Number - 006402
+
+BEACON VALLEY-TOWN CENTRE
+Timetable Number - 018501
+
+BELHAR-CAPE TOWN
+Timetable Number - 003001
+
+BELHAR-CAPE TOWN
+Timetable Number - 003002
+
+BELHAR-DELFT
+Timetable Number - 003001
+
+BELHAR-DELFT
+Timetable Number - 003002
+
+BELHAR-MOWBRAY
+Timetable Number - 003001
+
+BELHAR-MOWBRAY
+Timetable Number - 003002
+
+BELLVILLE-AIRPORT IND
+Timetable Number - 004401
+
+BELLVILLE-AIRPORT IND
+Timetable Number - 004402
+
+BELLVILLE-ATLANTIS
+Timetable Number - 010502
+
+BELLVILLE-ATLANTIS
+Timetable Number - 010504
+
+BELLVILLE-ATLANTIS
+Timetable Number - 010501
+
+BELLVILLE-ATLANTIS
+Timetable Number - 010503
+
+BELLVILLE-BISHOP LAVIS
+Timetable Number - 012601
+
+BELLVILLE-BISHOP LAVIS
+Timetable Number - 012602
+
+BELLVILLE-BLUEDOWNS
+Timetable Number - 007502
+
+BELLVILLE-BLUEDOWNS
+Timetable Number - 007501
+
+BELLVILLE-CAPE TOWN
+Timetable Number - 000702
+
+BELLVILLE-CAPE TOWN
+Timetable Number - 000102
+
+BELLVILLE-CAPE TOWN
+Timetable Number - 000701
+
+BELLVILLE-CAPE TOWN
+Timetable Number - 000101
+
+BELLVILLE-DELFT
+Timetable Number - 009901
+
+BELLVILLE-DELFT
+Timetable Number - 009902
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 009901
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 002402
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 010502
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 002401
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 008502
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 013301
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 002502
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 007502
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 008501
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 003601
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 003602
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 010504
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 002501
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 007501
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 009902
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 010501
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 010503
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 012601
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 012602
+
+BELLVILLE-DURBANVILLE
+Timetable Number - 013302
+
+BELLVILLE-ELSIES RIVER
+Timetable Number - 000102
+
+BELLVILLE-ELSIES RIVER
+Timetable Number - 000101
+
+BELLVILLE-EVERSDAL
+Timetable Number - 002502
+
+BELLVILLE-EVERSDAL
+Timetable Number - 002501
+
+BELLVILLE-HANOVER PARK
+Timetable Number - 003601
+
+BELLVILLE-HANOVER PARK
+Timetable Number - 003602
+
+BELLVILLE-HARARE
+Timetable Number - 006201
+
+BELLVILLE-HARARE
+Timetable Number - 006202
+
+BELLVILLE-KENRIDGE
+Timetable Number - 005001
+
+BELLVILLE-KENRIDGE
+Timetable Number - 005002
+
+BELLVILLE-KHAYELITSHA
+Timetable Number - 006201
+
+BELLVILLE-KHAYELITSHA
+Timetable Number - 006202
+
+BELLVILLE-KHAYELITSHA
+Timetable Number - 006301
+
+BELLVILLE-KHAYELITSHA
+Timetable Number - 006302
+
+BELLVILLE-KILLARNEY
+Timetable Number - 010502
+
+BELLVILLE-KILLARNEY
+Timetable Number - 010504
+
+BELLVILLE-KILLARNEY
+Timetable Number - 010501
+
+BELLVILLE-KILLARNEY
+Timetable Number - 010503
+
+BELLVILLE-LANGA
+Timetable Number - 012601
+
+BELLVILLE-LANGA
+Timetable Number - 012602
+
+BELLVILLE-MAKHAZA
+Timetable Number - 006301
+
+BELLVILLE-MAKHAZA
+Timetable Number - 006302
+
+BELLVILLE-MAMRE
+Timetable Number - 010502
+
+BELLVILLE-MAMRE
+Timetable Number - 010504
+
+BELLVILLE-MAMRE
+Timetable Number - 010501
+
+BELLVILLE-MAMRE
+Timetable Number - 010503
+
+BELLVILLE-MOWBRAY
+Timetable Number - 002301
+
+BELLVILLE-MOWBRAY
+Timetable Number - 002302
+
+BELLVILLE-NYANGA
+Timetable Number - 004401
+
+BELLVILLE-NYANGA
+Timetable Number - 004402
+
+BELLVILLE-PAARL
+Timetable Number - 000702
+
+BELLVILLE-PAARL
+Timetable Number - 000701
+
+BELLVILLE-PHILIPPI EAST SAP
+Timetable Number - 013301
+
+BELLVILLE-PHILIPPI EAST SAP
+Timetable Number - 013302
+
+BELLVILLE-SCOTTSDENE
+Timetable Number - 002402
+
+BELLVILLE-SCOTTSDENE
+Timetable Number - 002401
+
+BELLVILLE-STRAND
+Timetable Number - 021301
+
+BELLVILLE-STRAND
+Timetable Number - 021302
+
+BELLVILLE-TOWN CENTRE
+Timetable Number - 008502
+
+BELLVILLE-TOWN CENTRE
+Timetable Number - 008501
+
+BELLVILLE-TYGER VALLEY
+Timetable Number - 002502
+
+BELLVILLE-TYGER VALLEY
+Timetable Number - 002501
+
+BELLVILLE-WELLINGTON
+Timetable Number - 000702
+
+BELLVILLE-WELLINGTON
+Timetable Number - 000701
+
+BISHOP LAVIS-BELLVILLE
+Timetable Number - 012601
+
+BISHOP LAVIS-BELLVILLE
+Timetable Number - 012602
+
+BISHOP LAVIS-DURBANVILLE
+Timetable Number - 012601
+
+BISHOP LAVIS-DURBANVILLE
+Timetable Number - 012602
+
+BISHOP LAVIS-LANGA
+Timetable Number - 012601
+
+BISHOP LAVIS-LANGA
+Timetable Number - 012602
+
+BISHOPSCOURT-CLAREMONT
+Timetable Number - 002802
+
+BISHOPSCOURT-CONSTANTIA
+Timetable Number - 002802
+
+BISHOPSCOURT-WYNBERG
+Timetable Number - 002802
+
+BLAAUWBERG-ATLAS GDNS
+Timetable Number - 016801
+
+BLAAUWBERG-ATLAS GDNS
+Timetable Number - 016802
+
+BLAAUWBERG-CAPE TOWN
+Timetable Number - 000202
+
+BLAAUWBERG-CAPE TOWN
+Timetable Number - 000201
+
+BLAAUWBERG-DU NOON
+Timetable Number - 016801
+
+BLAAUWBERG-DU NOON
+Timetable Number - 016802
+
+BLAAUWBERG-KILLARNEY
+Timetable Number - 000202
+
+BLAAUWBERG-KILLARNEY
+Timetable Number - 000201
+
+BLAAUWBERG-KILLARNEY
+Timetable Number - 016801
+
+BLAAUWBERG-KILLARNEY
+Timetable Number - 016802
+
+BLAAUWBERG-KOEBERG RD
+Timetable Number - 000202
+
+BLAAUWBERG-KOEBERG RD
+Timetable Number - 000201
+
+BLAAUWBERG RIDGE-HARARE
+Timetable Number - 006601
+
+BLAAUWBERG RIDGE-HARARE
+Timetable Number - 006602
+
+BLAAUWBERG RIDGE-HARARE
+Timetable Number - 006603
+
+BLAAUWBERG RIDGE-HARARE
+Timetable Number - 006604
+
+BLAAUWBERG RIDGE-KILLARNEY
+Timetable Number - 006601
+
+BLAAUWBERG RIDGE-KILLARNEY
+Timetable Number - 006602
+
+BLAAUWBERG RIDGE-KILLARNEY
+Timetable Number - 006603
+
+BLAAUWBERG RIDGE-KILLARNEY
+Timetable Number - 006604
+
+BLOUBERG-CAPE TOWN
+Timetable Number - 001601
+
+BLOUBERG-CAPE TOWN
+Timetable Number - 001602
+
+BLOUBERG-KOEBERG
+Timetable Number - 001601
+
+BLOUBERG-KOEBERG
+Timetable Number - 001602
+
+BLOUBERG-MELKBOS
+Timetable Number - 001601
+
+BLOUBERG-MELKBOS
+Timetable Number - 001602
+
+BLUEDOWNS-AIRPORT IND
+Timetable Number - 012901
+
+BLUEDOWNS-AIRPORT IND
+Timetable Number - 012902
+
+BLUEDOWNS-BELLVILLE
+Timetable Number - 007502
+
+BLUEDOWNS-BELLVILLE
+Timetable Number - 007501
+
+BLUEDOWNS-CAPE TOWN
+Timetable Number - 009801
+
+BLUEDOWNS-CAPE TOWN
+Timetable Number - 009802
+
+BLUEDOWNS-CLAREMONT
+Timetable Number - 013101
+
+BLUEDOWNS-CLAREMONT
+Timetable Number - 013102
+
+BLUEDOWNS-DELFT
+Timetable Number - 007301
+
+BLUEDOWNS-DELFT
+Timetable Number - 010901
+
+BLUEDOWNS-DELFT
+Timetable Number - 010902
+
+BLUEDOWNS-DELFT
+Timetable Number - 012901
+
+BLUEDOWNS-DELFT
+Timetable Number - 012902
+
+BLUEDOWNS-DELFT
+Timetable Number - 014801
+
+BLUEDOWNS-DELFT
+Timetable Number - 007001
+
+BLUEDOWNS-DELFT
+Timetable Number - 007002
+
+BLUEDOWNS-DELFT
+Timetable Number - 014701
+
+BLUEDOWNS-DELFT
+Timetable Number - 019201
+
+BLUEDOWNS-DELFT
+Timetable Number - 019202
+
+BLUEDOWNS-DELFT
+Timetable Number - 007302
+
+BLUEDOWNS-DELFT
+Timetable Number - 014702
+
+BLUEDOWNS-DELFT
+Timetable Number - 014802
+
+BLUEDOWNS-DURBANVILLE
+Timetable Number - 007502
+
+BLUEDOWNS-DURBANVILLE
+Timetable Number - 007501
+
+BLUEDOWNS-ELSIES RIVER
+Timetable Number - 007001
+
+BLUEDOWNS-ELSIES RIVER
+Timetable Number - 007002
+
+BLUEDOWNS-EPPING IND
+Timetable Number - 013002
+
+BLUEDOWNS-EPPING IND
+Timetable Number - 013001
+
+BLUEDOWNS-KILLARNEY
+Timetable Number - 007601
+
+BLUEDOWNS-KILLARNEY
+Timetable Number - 007602
+
+BLUEDOWNS-KOEBERG STN
+Timetable Number - 007301
+
+BLUEDOWNS-KOEBERG STN
+Timetable Number - 007302
+
+BLUEDOWNS-MOWBRAY
+Timetable Number - 009801
+
+BLUEDOWNS-MOWBRAY
+Timetable Number - 009802
+
+BLUEDOWNS-PANORAMA
+Timetable Number - 007001
+
+BLUEDOWNS-PANORAMA
+Timetable Number - 007002
+
+BLUEDOWNS-SIMONSTOWN
+Timetable Number - 012701
+
+BLUEDOWNS-SIMONSTOWN
+Timetable Number - 012702
+
+BLUEDOWNS-SOMERSET WEST
+Timetable Number - 014701
+
+BLUEDOWNS-SOMERSET WEST
+Timetable Number - 014702
+
+BLUEDOWNS-STRAND
+Timetable Number - 014701
+
+BLUEDOWNS-STRAND
+Timetable Number - 014702
+
+BLUEDOWNS-TOWN CENTRE
+Timetable Number - 007202
+
+BLUEDOWNS-TOWN CENTRE
+Timetable Number - 007201
+
+BLUEDOWNS-TYGERBERG
+Timetable Number - 007101
+
+BLUEDOWNS-TYGERBERG
+Timetable Number - 007102
+
+BLUEDOWNS-VALKENBERG HOSP
+Timetable Number - 019201
+
+BLUEDOWNS-VALKENBERG HOSP
+Timetable Number - 019202
+
+BLUEDOWNS-WYNBERG
+Timetable Number - 014801
+
+BLUEDOWNS-WYNBERG
+Timetable Number - 014802
+
+BONTEHEUWEL-CAPE TOWN
+Timetable Number - 002701
+
+BONTEHEUWEL-CAPE TOWN
+Timetable Number - 002702
+
+BONTEHEUWEL-ELSIES RIVER
+Timetable Number - 002202
+
+BONTEHEUWEL-ELSIES RIVER
+Timetable Number - 002201
+
+BONTEHEUWEL-HEIDEVELD
+Timetable Number - 010302
+
+BONTEHEUWEL-HEIDEVELD
+Timetable Number - 010301
+
+BONTEHEUWEL-KILLARNEY
+Timetable Number - 017702
+
+BONTEHEUWEL-KILLARNEY
+Timetable Number - 017701
+
+BONTEHEUWEL-MAITLAND
+Timetable Number - 010302
+
+BONTEHEUWEL-MAITLAND
+Timetable Number - 010301
+
+BONTEHEUWEL-MOWBRAY
+Timetable Number - 002701
+
+BONTEHEUWEL-MOWBRAY
+Timetable Number - 002702
+
+BONTEHEUWEL-MUTUAL
+Timetable Number - 010302
+
+BONTEHEUWEL-MUTUAL
+Timetable Number - 010301
+
+BONTEHEUWEL-TYGERBERG STN
+Timetable Number - 002202
+
+BONTEHEUWEL-TYGERBERG STN
+Timetable Number - 002201
+
+BONTEHEUWEL-WYNBERG
+Timetable Number - 019602
+
+BONTEHEUWEL-WYNBERG
+Timetable Number - 019601
+
+BOYSTOWN-NYANGA
+Timetable Number - 003502
+
+BOYSTOWN-PHILIPPI
+Timetable Number - 003502
+
+BRIDGETOWN-CAPE TOWN
+Timetable Number - 002901
+
+BRIDGETOWN-CAPE TOWN
+Timetable Number - 002902
+
+BRIDGETOWN-HEIDEVELD
+Timetable Number - 002901
+
+BRIDGETOWN-HEIDEVELD
+Timetable Number - 002902
+
+BRIDGETOWN-MOWBRAY
+Timetable Number - 002901
+
+BRIDGETOWN-MOWBRAY
+Timetable Number - 002902
+
+BUSY CORNER-CLAREMONT
+Timetable Number - 005202
+
+BUSY CORNER-CLAREMONT
+Timetable Number - 005201
+
+CAMBRIDGE-ATLANTIS
+Timetable Number - 014402
+
+CAMBRIDGE-KILLARNEY
+Timetable Number - 014402
+
+CAMBRIDGE-KOEBERG POWER STN
+Timetable Number - 017901
+
+CAMBRIDGE-MONTAGUE GDNS
+Timetable Number - 014402
+
+CAPE GATE-CLAREMONT
+Timetable Number - 021601
+
+CAPE GATE-TOWN CENTRE
+Timetable Number - 001901
+
+CAPE GATE-TOWN CENTRE
+Timetable Number - 001902
+
+CAPE TOWN-AIRPORT IND
+Timetable Number - 012002
+
+CAPE TOWN-AIRPORT IND
+Timetable Number - 012001
+
+CAPE TOWN-ATLANTIS
+Timetable Number - 000402
+
+CAPE TOWN-ATLANTIS
+Timetable Number - 000401
+
+CAPE TOWN-BELHAR
+Timetable Number - 003001
+
+CAPE TOWN-BELHAR
+Timetable Number - 003002
+
+CAPE TOWN-BELLVILLE
+Timetable Number - 000702
+
+CAPE TOWN-BELLVILLE
+Timetable Number - 000102
+
+CAPE TOWN-BELLVILLE
+Timetable Number - 000701
+
+CAPE TOWN-BELLVILLE
+Timetable Number - 000101
+
+CAPE TOWN-BLAAUWBERG
+Timetable Number - 000202
+
+CAPE TOWN-BLAAUWBERG
+Timetable Number - 000201
+
+CAPE TOWN-BLOUBERG
+Timetable Number - 001601
+
+CAPE TOWN-BLOUBERG
+Timetable Number - 001602
+
+CAPE TOWN-BLUEDOWNS
+Timetable Number - 009801
+
+CAPE TOWN-BLUEDOWNS
+Timetable Number - 009802
+
+CAPE TOWN-BONTEHEUWEL
+Timetable Number - 002701
+
+CAPE TOWN-BONTEHEUWEL
+Timetable Number - 002702
+
+CAPE TOWN-BRIDGETOWN
+Timetable Number - 002901
+
+CAPE TOWN-BRIDGETOWN
+Timetable Number - 002902
+
+CAPE TOWN-CHATSWORTH
+Timetable Number - 013402
+
+CAPE TOWN-CHATSWORTH
+Timetable Number - 013401
+
+CAPE TOWN-COLORADO PARK
+Timetable Number - 011901
+
+CAPE TOWN-DARLING
+Timetable Number - 001101
+
+CAPE TOWN-DARLING
+Timetable Number - 001102
+
+CAPE TOWN-DASSENBERG
+Timetable Number - 013402
+
+CAPE TOWN-DASSENBERG
+Timetable Number - 013401
+
+CAPE TOWN-DELFT
+Timetable Number - 003001
+
+CAPE TOWN-DELFT
+Timetable Number - 003002
+
+CAPE TOWN-DURBANVILLE
+Timetable Number - 001504
+
+CAPE TOWN-DURBANVILLE
+Timetable Number - 001501
+
+CAPE TOWN-DURBANVILLE
+Timetable Number - 001502
+
+CAPE TOWN-DURBANVILLE
+Timetable Number - 001503
+
+CAPE TOWN-EDGEMEAD
+Timetable Number - 000501
+
+CAPE TOWN-EDGEMEAD
+Timetable Number - 000502
+
+CAPE TOWN-ELSIES RIVER
+Timetable Number - 011301
+
+CAPE TOWN-ELSIES RIVER
+Timetable Number - 000102
+
+CAPE TOWN-ELSIES RIVER
+Timetable Number - 000101
+
+CAPE TOWN-ELSIES RIVER
+Timetable Number - 011302
+
+CAPE TOWN-ENKANINI
+Timetable Number - 021501
+
+CAPE TOWN-ENKANINI
+Timetable Number - 021502
+
+CAPE TOWN-FISANTEKRAAL
+Timetable Number - 001504
+
+CAPE TOWN-FISANTEKRAAL
+Timetable Number - 001501
+
+CAPE TOWN-FISANTEKRAAL
+Timetable Number - 001502
+
+CAPE TOWN-FISANTEKRAAL
+Timetable Number - 001503
+
+CAPE TOWN-HANOVER PARK
+Timetable Number - 003301
+
+CAPE TOWN-HANOVER PARK
+Timetable Number - 003302
+
+CAPE TOWN-HARARE
+Timetable Number - 014201
+
+CAPE TOWN-HARARE
+Timetable Number - 014202
+
+CAPE TOWN-HEIDEVELD
+Timetable Number - 002901
+
+CAPE TOWN-HEIDEVELD
+Timetable Number - 002902
+
+CAPE TOWN-KAPTEINSKLIP
+Timetable Number - 021401
+
+CAPE TOWN-KAPTEINSKLIP
+Timetable Number - 021402
+
+CAPE TOWN-KENRIDGE
+Timetable Number - 018302
+
+CAPE TOWN-KENRIDGE
+Timetable Number - 018301
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 013402
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 013502
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 000402
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 001101
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 001102
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 000202
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 000401
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 001201
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 001202
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 013401
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 013501
+
+CAPE TOWN-KILLARNEY
+Timetable Number - 000201
+
+CAPE TOWN-KOEBERG
+Timetable Number - 001601
+
+CAPE TOWN-KOEBERG
+Timetable Number - 001602
+
+CAPE TOWN-KOEBERG RD
+Timetable Number - 000202
+
+CAPE TOWN-KOEBERG RD
+Timetable Number - 000201
+
+CAPE TOWN-KRAAIFONTEIN
+Timetable Number - 001504
+
+CAPE TOWN-KRAAIFONTEIN
+Timetable Number - 001501
+
+CAPE TOWN-KRAAIFONTEIN
+Timetable Number - 001502
+
+CAPE TOWN-KRAAIFONTEIN
+Timetable Number - 001503
+
+CAPE TOWN-LEAGUES
+Timetable Number - 011901
+
+CAPE TOWN-LOTUS RIVER
+Timetable Number - 016401
+
+CAPE TOWN-LOTUS RIVER
+Timetable Number - 016402
+
+CAPE TOWN-MAITLAND
+Timetable Number - 001002
+
+CAPE TOWN-MAITLAND
+Timetable Number - 001001
+
+CAPE TOWN-MAKHAZA
+Timetable Number - 014301
+
+CAPE TOWN-MAKHAZA
+Timetable Number - 014302
+
+CAPE TOWN-MALMESBURY
+Timetable Number - 013502
+
+CAPE TOWN-MALMESBURY
+Timetable Number - 013501
+
+CAPE TOWN-MAMRE
+Timetable Number - 001201
+
+CAPE TOWN-MAMRE
+Timetable Number - 001202
+
+CAPE TOWN-MANDALAY
+Timetable Number - 007902
+
+CAPE TOWN-MANDALAY
+Timetable Number - 007901
+
+CAPE TOWN-MANENBERG
+Timetable Number - 003101
+
+CAPE TOWN-MANENBERG
+Timetable Number - 003102
+
+CAPE TOWN-MELKBOS
+Timetable Number - 001601
+
+CAPE TOWN-MELKBOS
+Timetable Number - 001602
+
+CAPE TOWN-MERRYDALE
+Timetable Number - 007801
+
+CAPE TOWN-MERRYDALE
+Timetable Number - 007802
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 012002
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003301
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003302
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 012001
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 002901
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 002902
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 011301
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 002701
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 007701
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 007702
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 013701
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 002702
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003001
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003002
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003101
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 003102
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 004301
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 004302
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 007801
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 007802
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 009801
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 009802
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 011302
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 013702
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 014201
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 014202
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 014301
+
+CAPE TOWN-MOWBRAY
+Timetable Number - 014302
+
+CAPE TOWN-NORTHPINE
+Timetable Number - 001504
+
+CAPE TOWN-NORTHPINE
+Timetable Number - 001501
+
+CAPE TOWN-NORTHPINE
+Timetable Number - 001502
+
+CAPE TOWN-NORTHPINE
+Timetable Number - 001503
+
+CAPE TOWN-NYANGA
+Timetable Number - 004301
+
+CAPE TOWN-NYANGA
+Timetable Number - 004302
+
+CAPE TOWN-OCEAN VIEW
+Timetable Number - 000801
+
+CAPE TOWN-OCEAN VIEW
+Timetable Number - 000802
+
+CAPE TOWN-PAARL
+Timetable Number - 000702
+
+CAPE TOWN-PAARL
+Timetable Number - 000701
+
+CAPE TOWN-PELLA
+Timetable Number - 001201
+
+CAPE TOWN-PELLA
+Timetable Number - 001202
+
+CAPE TOWN-PHILIPPI EAST SAP
+Timetable Number - 013701
+
+CAPE TOWN-PHILIPPI EAST SAP
+Timetable Number - 013702
+
+CAPE TOWN-RETREAT
+Timetable Number - 000801
+
+CAPE TOWN-RETREAT
+Timetable Number - 000802
+
+CAPE TOWN-RICHWOOD
+Timetable Number - 000501
+
+CAPE TOWN-RICHWOOD
+Timetable Number - 000502
+
+CAPE TOWN-ROCKLANDS
+Timetable Number - 007701
+
+CAPE TOWN-ROCKLANDS
+Timetable Number - 007702
+
+CAPE TOWN-SEA POINT
+Timetable Number - 000601
+
+CAPE TOWN-SEA POINT
+Timetable Number - 000602
+
+CAPE TOWN-SOMERSET WEST
+Timetable Number - 019301
+
+CAPE TOWN-SOMERSET WEST
+Timetable Number - 019302
+
+CAPE TOWN-STEENBERG
+Timetable Number - 016401
+
+CAPE TOWN-STEENBERG
+Timetable Number - 016402
+
+CAPE TOWN-STEENBERG
+Timetable Number - 000801
+
+CAPE TOWN-STEENBERG
+Timetable Number - 000802
+
+CAPE TOWN-STELLENBOSCH
+Timetable Number - 000301
+
+CAPE TOWN-STELLENBOSCH
+Timetable Number - 000302
+
+CAPE TOWN-STRAND
+Timetable Number - 019301
+
+CAPE TOWN-STRAND
+Timetable Number - 019302
+
+CAPE TOWN-STRANDFONTEIN
+Timetable Number - 008001
+
+CAPE TOWN-STRANDFONTEIN
+Timetable Number - 008002
+
+CAPE TOWN-SUMMER GREENS
+Timetable Number - 000501
+
+CAPE TOWN-SUMMER GREENS
+Timetable Number - 000502
+
+CAPE TOWN-TOWN CENTRE
+Timetable Number - 007701
+
+CAPE TOWN-TOWN CENTRE
+Timetable Number - 007702
+
+CAPE TOWN-TOWN CENTRE
+Timetable Number - 007801
+
+CAPE TOWN-TOWN CENTRE
+Timetable Number - 007802
+
+CAPE TOWN-WELGEMOED
+Timetable Number - 018302
+
+CAPE TOWN-WELGEMOED
+Timetable Number - 018301
+
+CAPE TOWN-WELLINGTON
+Timetable Number - 000702
+
+CAPE TOWN-WELLINGTON
+Timetable Number - 000701
+
+CENTURY CITY-KHAYELITSHA
+Timetable Number - 006601
+
+CENTURY CITY-KHAYELITSHA
+Timetable Number - 006602
+
+CENTURY CITY-KHAYELITSHA
+Timetable Number - 006603
+
+CENTURY CITY-KHAYELITSHA
+Timetable Number - 006604
+
+CENTURY CITY-TOWN CENTRE
+Timetable Number - 017401
+
+CENTURY CITY-TOWN CENTRE
+Timetable Number - 017402
+
+CHATSWORTH-CAPE TOWN
+Timetable Number - 013402
+
+CHATSWORTH-CAPE TOWN
+Timetable Number - 013401
+
+CHATSWORTH-DASSENBERG
+Timetable Number - 013402
+
+CHATSWORTH-DASSENBERG
+Timetable Number - 013401
+
+CHATSWORTH-KILLARNEY
+Timetable Number - 013402
+
+CHATSWORTH-KILLARNEY
+Timetable Number - 013401
+
+CHATSWORTH-MALMESBURY
+Timetable Number - 021202
+
+CHATSWORTH-MALMESBURY
+Timetable Number - 021201
+
+CHATSWORTH-TYGERBERG HOSP
+Timetable Number - 021202
+
+CHATSWORTH-TYGERBERG HOSP
+Timetable Number - 021201
+
+CHATSWORTH-UWC
+Timetable Number - 021202
+
+CHATSWORTH-UWC
+Timetable Number - 021201
+
+CLAREMONT-BEACON VALLEY
+Timetable Number - 006401
+
+CLAREMONT-BEACON VALLEY
+Timetable Number - 006402
+
+CLAREMONT-BISHOPSCOURT
+Timetable Number - 002802
+
+CLAREMONT-BLUEDOWNS
+Timetable Number - 013101
+
+CLAREMONT-BLUEDOWNS
+Timetable Number - 013102
+
+CLAREMONT-BUSY CORNER
+Timetable Number - 005202
+
+CLAREMONT-BUSY CORNER
+Timetable Number - 005201
+
+CLAREMONT-CONSTANTIA
+Timetable Number - 002802
+
+CLAREMONT-DELFT
+Timetable Number - 007402
+
+CLAREMONT-DELFT
+Timetable Number - 007401
+
+CLAREMONT-HANOVER PARK
+Timetable Number - 003701
+
+CLAREMONT-HANOVER PARK
+Timetable Number - 003702
+
+CLAREMONT-KHAYELITSHA
+Timetable Number - 006701
+
+CLAREMONT-KHAYELITSHA
+Timetable Number - 006702
+
+CLAREMONT-MANDALAY
+Timetable Number - 016001
+
+CLAREMONT-MANDALAY
+Timetable Number - 016002
+
+CLAREMONT-MANENBERG
+Timetable Number - 003701
+
+CLAREMONT-MANENBERG
+Timetable Number - 003702
+
+CLAREMONT-MERRYDALE
+Timetable Number - 008201
+
+CLAREMONT-MERRYDALE
+Timetable Number - 008202
+
+CLAREMONT-NYANGA
+Timetable Number - 005901
+
+CLAREMONT-NYANGA
+Timetable Number - 005902
+
+CLAREMONT-PHILIPPI EAST SAP
+Timetable Number - 018701
+
+CLAREMONT-PHILIPPI EAST SAP
+Timetable Number - 018702
+
+CLAREMONT-ROCKLANDS
+Timetable Number - 008101
+
+CLAREMONT-ROCKLANDS
+Timetable Number - 008102
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 005901
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 005902
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 006701
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 006702
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 011501
+
+CLAREMONT-RONDEBOSCH
+Timetable Number - 011502
+
+CLAREMONT-STRANDFONTEIN
+Timetable Number - 012102
+
+CLAREMONT-STRANDFONTEIN
+Timetable Number - 012101
+
+CLAREMONT-TAFELSIG
+Timetable Number - 006401
+
+CLAREMONT-TAFELSIG
+Timetable Number - 006402
+
+CLAREMONT-TOWN CENTRE
+Timetable Number - 008101
+
+CLAREMONT-TOWN CENTRE
+Timetable Number - 008102
+
+CLAREMONT-TOWN CENTRE
+Timetable Number - 008201
+
+CLAREMONT-TOWN CENTRE
+Timetable Number - 008202
+
+CLAREMONT-WYNBERG
+Timetable Number - 002802
+
+COLORADO PARK-CAPE TOWN
+Timetable Number - 011901
+
+COLORADO PARK-LEAGUES
+Timetable Number - 011901
+
+CONSTANTIA-BISHOPSCOURT
+Timetable Number - 002802
+
+CONSTANTIA-CLAREMONT
+Timetable Number - 002802
+
+CONSTANTIA-WYNBERG
+Timetable Number - 002802
+
+DA GAMA PARK-FISH HOEK
+Timetable Number - 019001
+
+DA GAMA PARK-MURDOCH VALLEY
+Timetable Number - 018901
+
+DA GAMA PARK-MURDOCH VALLEY
+Timetable Number - 018902
+
+DA GAMA PARK-PERDEKLOOF
+Timetable Number - 019001
+
+DA GAMA PARK-SIMONSTOWN
+Timetable Number - 019001
+
+DARLING-CAPE TOWN
+Timetable Number - 001101
+
+DARLING-CAPE TOWN
+Timetable Number - 001102
+
+DARLING-KILLARNEY
+Timetable Number - 001101
+
+DARLING-KILLARNEY
+Timetable Number - 001102
+
+DASSENBERG-CAPE TOWN
+Timetable Number - 013402
+
+DASSENBERG-CAPE TOWN
+Timetable Number - 013401
+
+DASSENBERG-CHATSWORTH
+Timetable Number - 013402
+
+DASSENBERG-CHATSWORTH
+Timetable Number - 013401
+
+DASSENBERG-KILLARNEY
+Timetable Number - 013402
+
+DASSENBERG-KILLARNEY
+Timetable Number - 013401
+
+DELFT-AIRPORT IND
+Timetable Number - 012901
+
+DELFT-AIRPORT IND
+Timetable Number - 012902
+
+DELFT-BELHAR
+Timetable Number - 003001
+
+DELFT-BELHAR
+Timetable Number - 003002
+
+DELFT-BELLVILLE
+Timetable Number - 009901
+
+DELFT-BELLVILLE
+Timetable Number - 009902
+
+DELFT-BLUEDOWNS
+Timetable Number - 007301
+
+DELFT-BLUEDOWNS
+Timetable Number - 010901
+
+DELFT-BLUEDOWNS
+Timetable Number - 010902
+
+DELFT-BLUEDOWNS
+Timetable Number - 012901
+
+DELFT-BLUEDOWNS
+Timetable Number - 012902
+
+DELFT-BLUEDOWNS
+Timetable Number - 007001
+
+DELFT-BLUEDOWNS
+Timetable Number - 007002
+
+DELFT-BLUEDOWNS
+Timetable Number - 014701
+
+DELFT-BLUEDOWNS
+Timetable Number - 019201
+
+DELFT-BLUEDOWNS
+Timetable Number - 019202
+
+DELFT-BLUEDOWNS
+Timetable Number - 007302
+
+DELFT-BLUEDOWNS
+Timetable Number - 014702
+
+DELFT-CAPE TOWN
+Timetable Number - 003001
+
+DELFT-CAPE TOWN
+Timetable Number - 003002
+
+DELFT-CLAREMONT
+Timetable Number - 007402
+
+DELFT-CLAREMONT
+Timetable Number - 007401
+
+DELFT-DURBANVILLE
+Timetable Number - 009901
+
+DELFT-DURBANVILLE
+Timetable Number - 009902
+
+DELFT-ELSIES RIVER
+Timetable Number - 007001
+
+DELFT-ELSIES RIVER
+Timetable Number - 007002
+
+DELFT-EPPING IND
+Timetable Number - 011201
+
+DELFT-EPPING IND
+Timetable Number - 011202
+
+DELFT-HANOVER PARK
+Timetable Number - 013601
+
+DELFT-HANOVER PARK
+Timetable Number - 013602
+
+DELFT-KILLARNEY
+Timetable Number - 017202
+
+DELFT-KILLARNEY
+Timetable Number - 017201
+
+DELFT-KOEBERG STN
+Timetable Number - 007301
+
+DELFT-KOEBERG STN
+Timetable Number - 007302
+
+DELFT-MOWBRAY
+Timetable Number - 003001
+
+DELFT-MOWBRAY
+Timetable Number - 003002
+
+DELFT-PANORAMA
+Timetable Number - 007001
+
+DELFT-PANORAMA
+Timetable Number - 007002
+
+DELFT-SOMERSET WEST
+Timetable Number - 014701
+
+DELFT-SOMERSET WEST
+Timetable Number - 014702
+
+DELFT-STRAND
+Timetable Number - 014701
+
+DELFT-STRAND
+Timetable Number - 014702
+
+DELFT-TOWN CENTRE
+Timetable Number - 009601
+
+DELFT-TOWN CENTRE
+Timetable Number - 009602
+
+DELFT-TYGERBERG
+Timetable Number - 019501
+
+DELFT-VALKENBERG HOSP
+Timetable Number - 019201
+
+DELFT-VALKENBERG HOSP
+Timetable Number - 019202
+
+DELFT-WYNBERG
+Timetable Number - 014801
+
+DELFT-WYNBERG
+Timetable Number - 014802
+
+DIEP RIVER-PLUMSTEAD
+Timetable Number - 008701
+
+DIEP RIVER-PLUMSTEAD
+Timetable Number - 008702
+
+DIEP RIVER-TOWN CENTRE
+Timetable Number - 008701
+
+DIEP RIVER-TOWN CENTRE
+Timetable Number - 008702
+
+DU NOON-ATLAS GDNS
+Timetable Number - 016801
+
+DU NOON-ATLAS GDNS
+Timetable Number - 016802
+
+DU NOON-BLAAUWBERG
+Timetable Number - 016801
+
+DU NOON-BLAAUWBERG
+Timetable Number - 016802
+
+DU NOON-KILLARNEY
+Timetable Number - 016801
+
+DU NOON-KILLARNEY
+Timetable Number - 016802
+
+DURBANVILLE-ATLANTIS
+Timetable Number - 010502
+
+DURBANVILLE-ATLANTIS
+Timetable Number - 010504
+
+DURBANVILLE-ATLANTIS
+Timetable Number - 010501
+
+DURBANVILLE-ATLANTIS
+Timetable Number - 010503
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 009901
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 002402
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 010502
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 002401
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 008502
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 013301
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 002502
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 007502
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 008501
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 003601
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 003602
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 010504
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 002501
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 007501
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 009902
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 010501
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 010503
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 012601
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 012602
+
+DURBANVILLE-BELLVILLE
+Timetable Number - 013302
+
+DURBANVILLE-BISHOP LAVIS
+Timetable Number - 012601
+
+DURBANVILLE-BISHOP LAVIS
+Timetable Number - 012602
+
+DURBANVILLE-BLUEDOWNS
+Timetable Number - 007502
+
+DURBANVILLE-BLUEDOWNS
+Timetable Number - 007501
+
+DURBANVILLE-CAPE TOWN
+Timetable Number - 001504
+
+DURBANVILLE-CAPE TOWN
+Timetable Number - 001501
+
+DURBANVILLE-CAPE TOWN
+Timetable Number - 001502
+
+DURBANVILLE-CAPE TOWN
+Timetable Number - 001503
+
+DURBANVILLE-DELFT
+Timetable Number - 009901
+
+DURBANVILLE-DELFT
+Timetable Number - 009902
+
+DURBANVILLE-ESCOM
+Timetable Number - 013902
+
+DURBANVILLE-ESCOM
+Timetable Number - 013901
+
+DURBANVILLE-EVERSDAL
+Timetable Number - 002502
+
+DURBANVILLE-EVERSDAL
+Timetable Number - 002501
+
+DURBANVILLE-FISANTEKRAAL
+Timetable Number - 001504
+
+DURBANVILLE-FISANTEKRAAL
+Timetable Number - 001501
+
+DURBANVILLE-FISANTEKRAAL
+Timetable Number - 001502
+
+DURBANVILLE-FISANTEKRAAL
+Timetable Number - 001503
+
+DURBANVILLE-HANOVER PARK
+Timetable Number - 003601
+
+DURBANVILLE-HANOVER PARK
+Timetable Number - 003602
+
+DURBANVILLE-KHAYELITSHA
+Timetable Number - 018101
+
+DURBANVILLE-KHAYELITSHA
+Timetable Number - 018102
+
+DURBANVILLE-KILLARNEY
+Timetable Number - 010502
+
+DURBANVILLE-KILLARNEY
+Timetable Number - 010504
+
+DURBANVILLE-KILLARNEY
+Timetable Number - 010501
+
+DURBANVILLE-KILLARNEY
+Timetable Number - 010503
+
+DURBANVILLE-LANGA
+Timetable Number - 012601
+
+DURBANVILLE-LANGA
+Timetable Number - 012602
+
+DURBANVILLE-NYANGA
+Timetable Number - 013902
+
+DURBANVILLE-NYANGA
+Timetable Number - 013901
+
+DURBANVILLE-PHILIPPI EAST SAP
+Timetable Number - 013301
+
+DURBANVILLE-PHILIPPI EAST SAP
+Timetable Number - 013302
+
+DURBANVILLE-SCOTTSDENE
+Timetable Number - 002402
+
+DURBANVILLE-SCOTTSDENE
+Timetable Number - 002401
+
+DURBANVILLE-TOWN CENTRE
+Timetable Number - 008502
+
+DURBANVILLE-TOWN CENTRE
+Timetable Number - 008501
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 002502
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 013902
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 013901
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 002501
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 018101
+
+DURBANVILLE-TYGER VALLEY
+Timetable Number - 018102
+
+EDGEMEAD-CAPE TOWN
+Timetable Number - 000501
+
+EDGEMEAD-CAPE TOWN
+Timetable Number - 000502
+
+EDGEMEAD-RICHWOOD
+Timetable Number - 000501
+
+EDGEMEAD-RICHWOOD
+Timetable Number - 000502
+
+EDGEMEAD-SUMMER GREENS
+Timetable Number - 000501
+
+EDGEMEAD-SUMMER GREENS
+Timetable Number - 000502
+
+ELECTRIC CITY-ALEXANDRA HOSP
+Timetable Number - 021001
+
+ELECTRIC CITY-ALEXANDRA HOSP
+Timetable Number - 021002
+
+ELSIES RIVER-BELLVILLE
+Timetable Number - 000102
+
+ELSIES RIVER-BELLVILLE
+Timetable Number - 000101
+
+ELSIES RIVER-BLUEDOWNS
+Timetable Number - 007001
+
+ELSIES RIVER-BLUEDOWNS
+Timetable Number - 007002
+
+ELSIES RIVER-BONTEHEUWEL
+Timetable Number - 002202
+
+ELSIES RIVER-BONTEHEUWEL
+Timetable Number - 002201
+
+ELSIES RIVER-CAPE TOWN
+Timetable Number - 011301
+
+ELSIES RIVER-CAPE TOWN
+Timetable Number - 000102
+
+ELSIES RIVER-CAPE TOWN
+Timetable Number - 000101
+
+ELSIES RIVER-CAPE TOWN
+Timetable Number - 011302
+
+ELSIES RIVER-DELFT
+Timetable Number - 007001
+
+ELSIES RIVER-DELFT
+Timetable Number - 007002
+
+ELSIES RIVER-EPPING IND
+Timetable Number - 011402
+
+ELSIES RIVER-EPPING IND
+Timetable Number - 011401
+
+ELSIES RIVER-HANOVER PARK
+Timetable Number - 003402
+
+ELSIES RIVER-HANOVER PARK
+Timetable Number - 003401
+
+ELSIES RIVER-KILLARNEY
+Timetable Number - 002101
+
+ELSIES RIVER-KILLARNEY
+Timetable Number - 002102
+
+ELSIES RIVER-MOWBRAY
+Timetable Number - 011301
+
+ELSIES RIVER-MOWBRAY
+Timetable Number - 011302
+
+ELSIES RIVER-NETREG
+Timetable Number - 002101
+
+ELSIES RIVER-NETREG
+Timetable Number - 002102
+
+ELSIES RIVER-PANORAMA
+Timetable Number - 007001
+
+ELSIES RIVER-PANORAMA
+Timetable Number - 007002
+
+ELSIES RIVER-RETREAT
+Timetable Number - 003402
+
+ELSIES RIVER-RETREAT
+Timetable Number - 003401
+
+ELSIES RIVER-TYGERBERG HOSP
+Timetable Number - 011402
+
+ELSIES RIVER-TYGERBERG HOSP
+Timetable Number - 011401
+
+ELSIES RIVER-TYGERBERG STN
+Timetable Number - 002202
+
+ELSIES RIVER-TYGERBERG STN
+Timetable Number - 002201
+
+ENKANINI-CAPE TOWN
+Timetable Number - 021501
+
+ENKANINI-CAPE TOWN
+Timetable Number - 021502
+
+ENKANINI-KILLARNEY
+Timetable Number - 006601
+
+ENKANINI-KILLARNEY
+Timetable Number - 006602
+
+ENKANINI-KILLARNEY
+Timetable Number - 006603
+
+ENKANINI-KILLARNEY
+Timetable Number - 006604
+
+EPPING-KHAYELITSHA
+Timetable Number - 009701
+
+EPPING-KHAYELITSHA
+Timetable Number - 009702
+
+EPPING-METRO
+Timetable Number - 009701
+
+EPPING-METRO
+Timetable Number - 009702
+
+EPPING-MUTUAL
+Timetable Number - 009301
+
+EPPING-MUTUAL
+Timetable Number - 009302
+
+EPPING-NDABENI
+Timetable Number - 009301
+
+EPPING-NDABENI
+Timetable Number - 009302
+
+EPPING-NYANGA
+Timetable Number - 009701
+
+EPPING-NYANGA
+Timetable Number - 009702
+
+EPPING-TOWN CENTRE
+Timetable Number - 009301
+
+EPPING-TOWN CENTRE
+Timetable Number - 009302
+
+EPPING IND-ATHLONE IND
+Timetable Number - 019701
+
+EPPING IND-ATHLONE IND
+Timetable Number - 019702
+
+EPPING IND-ATLANTIS
+Timetable Number - 010702
+
+EPPING IND-ATLANTIS
+Timetable Number - 010701
+
+EPPING IND-BLUEDOWNS
+Timetable Number - 013002
+
+EPPING IND-BLUEDOWNS
+Timetable Number - 013001
+
+EPPING IND-DELFT
+Timetable Number - 011201
+
+EPPING IND-DELFT
+Timetable Number - 011202
+
+EPPING IND-ELSIES RIVER
+Timetable Number - 011402
+
+EPPING IND-ELSIES RIVER
+Timetable Number - 011401
+
+EPPING IND-HANOVER PARK
+Timetable Number - 010601
+
+EPPING IND-HANOVER PARK
+Timetable Number - 010602
+
+EPPING IND-HEIDEVELD
+Timetable Number - 016301
+
+EPPING IND-HEIDEVELD
+Timetable Number - 016302
+
+EPPING IND-MAMRE
+Timetable Number - 010702
+
+EPPING IND-MAMRE
+Timetable Number - 010701
+
+EPPING IND-MANENBERG
+Timetable Number - 016301
+
+EPPING IND-MANENBERG
+Timetable Number - 016302
+
+EPPING IND-MOWBRAY
+Timetable Number - 002602
+
+EPPING IND-MOWBRAY
+Timetable Number - 002601
+
+EPPING IND-STEENBERG
+Timetable Number - 019701
+
+EPPING IND-STEENBERG
+Timetable Number - 019702
+
+EPPING IND-TYGERBERG HOSP
+Timetable Number - 011402
+
+EPPING IND-TYGERBERG HOSP
+Timetable Number - 011401
+
+ESCOM-DURBANVILLE
+Timetable Number - 013902
+
+ESCOM-DURBANVILLE
+Timetable Number - 013901
+
+ESCOM-NYANGA
+Timetable Number - 013902
+
+ESCOM-NYANGA
+Timetable Number - 013901
+
+ESCOM-TYGER VALLEY
+Timetable Number - 013902
+
+ESCOM-TYGER VALLEY
+Timetable Number - 013901
+
+EVERSDAL-BELLVILLE
+Timetable Number - 002502
+
+EVERSDAL-BELLVILLE
+Timetable Number - 002501
+
+EVERSDAL-DURBANVILLE
+Timetable Number - 002502
+
+EVERSDAL-DURBANVILLE
+Timetable Number - 002501
+
+EVERSDAL-TYGER VALLEY
+Timetable Number - 002502
+
+EVERSDAL-TYGER VALLEY
+Timetable Number - 002501
+
+FIRGROVE-ARTSCAPE
+Timetable Number - 021101
+
+FIRGROVE-ARTSCAPE
+Timetable Number - 021102
+
+FISANTEKRAAL-CAPE TOWN
+Timetable Number - 001504
+
+FISANTEKRAAL-CAPE TOWN
+Timetable Number - 001501
+
+FISANTEKRAAL-CAPE TOWN
+Timetable Number - 001502
+
+FISANTEKRAAL-CAPE TOWN
+Timetable Number - 001503
+
+FISANTEKRAAL-DURBANVILLE
+Timetable Number - 001504
+
+FISANTEKRAAL-DURBANVILLE
+Timetable Number - 001501
+
+FISANTEKRAAL-DURBANVILLE
+Timetable Number - 001502
+
+FISANTEKRAAL-DURBANVILLE
+Timetable Number - 001503
+
+FISH HOEK-DA GAMA PARK
+Timetable Number - 019001
+
+FISH HOEK-NOORD HOEK
+Timetable Number - 005401
+
+FISH HOEK-NOORD HOEK
+Timetable Number - 005402
+
+FISH HOEK-OCEAN VIEW
+Timetable Number - 005301
+
+FISH HOEK-OCEAN VIEW
+Timetable Number - 005302
+
+FISH HOEK-OCEAN VIEW
+Timetable Number - 005401
+
+FISH HOEK-OCEAN VIEW
+Timetable Number - 005402
+
+FISH HOEK-PERDEKLOOF
+Timetable Number - 019001
+
+FISH HOEK-SIMONSTOWN
+Timetable Number - 005301
+
+FISH HOEK-SIMONSTOWN
+Timetable Number - 005302
+
+FISH HOEK-SIMONSTOWN
+Timetable Number - 005401
+
+FISH HOEK-SIMONSTOWN
+Timetable Number - 005402
+
+FISH HOEK-SIMONSTOWN
+Timetable Number - 019001
+
+FISH HOEK SCHOOLS-DA GAMA PARK
+Timetable Number - 018901
+
+FISH HOEK SCHOOLS-DA GAMA PARK
+Timetable Number - 018902
+
+FISH HOEK SCHOOLS-MURDOCH VALLEY
+Timetable Number - 018901
+
+FISH HOEK SCHOOLS-MURDOCH VALLEY
+Timetable Number - 018902
+
+FISH HOEK SCHOOLS-NOORDHOEK
+Timetable Number - 018901
+
+FISH HOEK SCHOOLS-NOORDHOEK
+Timetable Number - 018902
+
+FISH HOEK SCHOOLS-OCEAN VIEW
+Timetable Number - 018901
+
+FISH HOEK SCHOOLS-OCEAN VIEW
+Timetable Number - 018902
+
+FREEWAY-CAPE TOWN
+Timetable Number - 014501
+
+HANOVER PARK-ATLANTIS
+Timetable Number - 003902
+
+HANOVER PARK-ATLANTIS
+Timetable Number - 003901
+
+HANOVER PARK-BELLVILLE
+Timetable Number - 003601
+
+HANOVER PARK-BELLVILLE
+Timetable Number - 003602
+
+HANOVER PARK-CAPE TOWN
+Timetable Number - 003301
+
+HANOVER PARK-CAPE TOWN
+Timetable Number - 003302
+
+HANOVER PARK-CLAREMONT
+Timetable Number - 003701
+
+HANOVER PARK-CLAREMONT
+Timetable Number - 003702
+
+HANOVER PARK-DELFT
+Timetable Number - 013601
+
+HANOVER PARK-DELFT
+Timetable Number - 013602
+
+HANOVER PARK-DURBANVILLE
+Timetable Number - 003601
+
+HANOVER PARK-DURBANVILLE
+Timetable Number - 003602
+
+HANOVER PARK-ELSIES RIVER
+Timetable Number - 003402
+
+HANOVER PARK-ELSIES RIVER
+Timetable Number - 003401
+
+HANOVER PARK-EPPING IND
+Timetable Number - 010601
+
+HANOVER PARK-EPPING IND
+Timetable Number - 010602
+
+HANOVER PARK-KENILWORTH CENTRE
+Timetable Number - 008302
+
+HANOVER PARK-KILLARNEY
+Timetable Number - 003902
+
+HANOVER PARK-KILLARNEY
+Timetable Number - 003901
+
+HANOVER PARK-MAITLAND
+Timetable Number - 004102
+
+HANOVER PARK-MAITLAND
+Timetable Number - 004101
+
+HANOVER PARK-MANENBERG
+Timetable Number - 003801
+
+HANOVER PARK-MANENBERG
+Timetable Number - 003701
+
+HANOVER PARK-MANENBERG
+Timetable Number - 004102
+
+HANOVER PARK-MANENBERG
+Timetable Number - 003702
+
+HANOVER PARK-MANENBERG
+Timetable Number - 003802
+
+HANOVER PARK-MANENBERG
+Timetable Number - 004101
+
+HANOVER PARK-METRO
+Timetable Number - 010202
+
+HANOVER PARK-METRO
+Timetable Number - 010201
+
+HANOVER PARK-MOWBRAY
+Timetable Number - 003301
+
+HANOVER PARK-MOWBRAY
+Timetable Number - 003302
+
+HANOVER PARK-RETREAT
+Timetable Number - 003402
+
+HANOVER PARK-RETREAT
+Timetable Number - 003401
+
+HANOVER PARK-TOWN CENTRE
+Timetable Number - 008302
+
+HANOVER PARK-TYGERBERG
+Timetable Number - 011601
+
+HANOVER PARK-TYGERBERG
+Timetable Number - 011602
+
+HANOVER PARK-WYNBERG
+Timetable Number - 003801
+
+HANOVER PARK-WYNBERG
+Timetable Number - 003802
+
+HARARE-BELLVILLE
+Timetable Number - 006201
+
+HARARE-BELLVILLE
+Timetable Number - 006202
+
+HARARE-CAPE TOWN
+Timetable Number - 014201
+
+HARARE-CAPE TOWN
+Timetable Number - 014202
+
+HARARE-KHAYELITSHA
+Timetable Number - 006201
+
+HARARE-KHAYELITSHA
+Timetable Number - 006202
+
+HARARE-KHAYELITSHA S A P
+Timetable Number - 006901
+
+HARARE-KHAYELITSHA S A P
+Timetable Number - 006902
+
+HARARE-MAKHAZA
+Timetable Number - 006901
+
+HARARE-MAKHAZA
+Timetable Number - 006902
+
+HARARE-MOWBRAY
+Timetable Number - 014201
+
+HARARE-MOWBRAY
+Timetable Number - 014202
+
+HEATHFIELD SCHOOLS-RETREAT
+Timetable Number - 015401
+
+HEATHFIELD SCHOOLS-STEENBERG
+Timetable Number - 015401
+
+HEIDEVELD-BONTEHEUWEL
+Timetable Number - 010302
+
+HEIDEVELD-BONTEHEUWEL
+Timetable Number - 010301
+
+HEIDEVELD-BRIDGETOWN
+Timetable Number - 002901
+
+HEIDEVELD-BRIDGETOWN
+Timetable Number - 002902
+
+HEIDEVELD-CAPE TOWN
+Timetable Number - 002901
+
+HEIDEVELD-CAPE TOWN
+Timetable Number - 002902
+
+HEIDEVELD-EPPING IND
+Timetable Number - 016301
+
+HEIDEVELD-EPPING IND
+Timetable Number - 016302
+
+HEIDEVELD-KILLARNEY
+Timetable Number - 016701
+
+HEIDEVELD-MAITLAND
+Timetable Number - 010302
+
+HEIDEVELD-MAITLAND
+Timetable Number - 010301
+
+HEIDEVELD-MANENBERG
+Timetable Number - 016301
+
+HEIDEVELD-MANENBERG
+Timetable Number - 016302
+
+HEIDEVELD-MOWBRAY
+Timetable Number - 002901
+
+HEIDEVELD-MOWBRAY
+Timetable Number - 002902
+
+HEIDEVELD-MUTUAL
+Timetable Number - 010302
+
+HEIDEVELD-MUTUAL
+Timetable Number - 010301
+
+HELDERBERG-MACASSAR
+Timetable Number - 017102
+
+HELDERBERG-MACASSAR
+Timetable Number - 017101
+
+HELDERBERG-SOMERSET WEST
+Timetable Number - 017102
+
+HELDERBERG-SOMERSET WEST
+Timetable Number - 017101
+
+HOUT BAY-KHAYELITSHA
+Timetable Number - 003201
+
+HOUT BAY-KHAYELITSHA
+Timetable Number - 003202
+
+HOUT BAY-PHILIPPI EAST SAP
+Timetable Number - 013201
+
+HOUT BAY-PHILIPPI EAST SAP
+Timetable Number - 013202
+
+HOUT BAY-WYNBERG
+Timetable Number - 013201
+
+HOUT BAY-WYNBERG
+Timetable Number - 013202
+
+HOUT BAY-WYNBERG
+Timetable Number - 003201
+
+HOUT BAY-WYNBERG
+Timetable Number - 003202
+
+KAPTEINSKLIP-CAPE TOWN
+Timetable Number - 021401
+
+KAPTEINSKLIP-CAPE TOWN
+Timetable Number - 021402
+
+KARL BREMER HOSP-SOMERSET WEST
+Timetable Number - 005501
+
+KARL BREMER HOSP-SOMERSET WEST
+Timetable Number - 005502
+
+KARL BREMER HOSP-TYGERBERG
+Timetable Number - 005501
+
+KARL BREMER HOSP-TYGERBERG
+Timetable Number - 005502
+
+KENILWORTH CENTRE-HANOVER PARK
+Timetable Number - 008302
+
+KENILWORTH CENTRE-TOWN CENTRE
+Timetable Number - 008302
+
+KENRIDGE-BELLVILLE
+Timetable Number - 005001
+
+KENRIDGE-BELLVILLE
+Timetable Number - 005002
+
+KENRIDGE-CAPE TOWN
+Timetable Number - 018302
+
+KENRIDGE-CAPE TOWN
+Timetable Number - 018301
+
+KENRIDGE-WELGEMOED
+Timetable Number - 018302
+
+KENRIDGE-WELGEMOED
+Timetable Number - 018301
+
+KHAYELITSHA-AIRPORT IND
+Timetable Number - 014001
+
+KHAYELITSHA-AIRPORT IND
+Timetable Number - 014002
+
+KHAYELITSHA-BELLVILLE
+Timetable Number - 006201
+
+KHAYELITSHA-BELLVILLE
+Timetable Number - 006202
+
+KHAYELITSHA-BELLVILLE
+Timetable Number - 006301
+
+KHAYELITSHA-BELLVILLE
+Timetable Number - 006302
+
+KHAYELITSHA-CENTURY CITY
+Timetable Number - 006601
+
+KHAYELITSHA-CENTURY CITY
+Timetable Number - 006602
+
+KHAYELITSHA-CENTURY CITY
+Timetable Number - 006603
+
+KHAYELITSHA-CENTURY CITY
+Timetable Number - 006604
+
+KHAYELITSHA-CLAREMONT
+Timetable Number - 006701
+
+KHAYELITSHA-CLAREMONT
+Timetable Number - 006702
+
+KHAYELITSHA-DURBANVILLE
+Timetable Number - 018101
+
+KHAYELITSHA-DURBANVILLE
+Timetable Number - 018102
+
+KHAYELITSHA-ENKANINI
+Timetable Number - 006601
+
+KHAYELITSHA-ENKANINI
+Timetable Number - 006602
+
+KHAYELITSHA-ENKANINI
+Timetable Number - 006603
+
+KHAYELITSHA-ENKANINI
+Timetable Number - 006604
+
+KHAYELITSHA-EPPING
+Timetable Number - 009701
+
+KHAYELITSHA-EPPING
+Timetable Number - 009702
+
+KHAYELITSHA-HARARE
+Timetable Number - 006201
+
+KHAYELITSHA-HARARE
+Timetable Number - 006202
+
+KHAYELITSHA-HOUT BAY
+Timetable Number - 003201
+
+KHAYELITSHA-HOUT BAY
+Timetable Number - 003202
+
+KHAYELITSHA-KILLARNEY
+Timetable Number - 006601
+
+KHAYELITSHA-KILLARNEY
+Timetable Number - 006602
+
+KHAYELITSHA-KILLARNEY
+Timetable Number - 006603
+
+KHAYELITSHA-KILLARNEY
+Timetable Number - 006604
+
+KHAYELITSHA-KRAAIFONTEIN
+Timetable Number - 012201
+
+KHAYELITSHA-KRAAIFONTEIN
+Timetable Number - 012202
+
+KHAYELITSHA-KUILS RIVER
+Timetable Number - 004701
+
+KHAYELITSHA-KUILS RIVER
+Timetable Number - 004702
+
+KHAYELITSHA-LANGA
+Timetable Number - 006501
+
+KHAYELITSHA-LANGA
+Timetable Number - 006502
+
+KHAYELITSHA-MAITLAND SCHOOLS
+Timetable Number - 016901
+
+KHAYELITSHA-MAITLAND SCHOOLS
+Timetable Number - 016902
+
+KHAYELITSHA-MAKHAZA
+Timetable Number - 006301
+
+KHAYELITSHA-MAKHAZA
+Timetable Number - 006302
+
+KHAYELITSHA-METRO
+Timetable Number - 009701
+
+KHAYELITSHA-METRO
+Timetable Number - 009702
+
+KHAYELITSHA-MFULENI
+Timetable Number - 004701
+
+KHAYELITSHA-MFULENI
+Timetable Number - 004702
+
+KHAYELITSHA-MITCHELLS PLAIN SCHOOLS
+Timetable Number - 01560.
+
+KHAYELITSHA-NYANGA
+Timetable Number - 001801
+
+KHAYELITSHA-NYANGA
+Timetable Number - 001802
+
+KHAYELITSHA-NYANGA
+Timetable Number - 014001
+
+KHAYELITSHA-NYANGA
+Timetable Number - 005801
+
+KHAYELITSHA-NYANGA
+Timetable Number - 005802
+
+KHAYELITSHA-NYANGA
+Timetable Number - 006501
+
+KHAYELITSHA-NYANGA
+Timetable Number - 014002
+
+KHAYELITSHA-NYANGA
+Timetable Number - 004701
+
+KHAYELITSHA-NYANGA
+Timetable Number - 004702
+
+KHAYELITSHA-NYANGA
+Timetable Number - 006502
+
+KHAYELITSHA-NYANGA
+Timetable Number - 009701
+
+KHAYELITSHA-NYANGA
+Timetable Number - 009702
+
+KHAYELITSHA-NYANGA
+Timetable Number - 016901
+
+KHAYELITSHA-NYANGA
+Timetable Number - 016902
+
+KHAYELITSHA-PANORAMA
+Timetable Number - 004504
+
+KHAYELITSHA-PANORAMA
+Timetable Number - 004503
+
+KHAYELITSHA-PANORAMA
+Timetable Number - 004501
+
+KHAYELITSHA-PANORAMA
+Timetable Number - 004502
+
+KHAYELITSHA-RONDEBOSCH
+Timetable Number - 006701
+
+KHAYELITSHA-RONDEBOSCH
+Timetable Number - 006702
+
+KHAYELITSHA-SIMONSTOWN
+Timetable Number - 001801
+
+KHAYELITSHA-SIMONSTOWN
+Timetable Number - 001802
+
+KHAYELITSHA-SOMERSET WEST
+Timetable Number - 005801
+
+KHAYELITSHA-SOMERSET WEST
+Timetable Number - 005802
+
+KHAYELITSHA-TYGER VALLEY
+Timetable Number - 018101
+
+KHAYELITSHA-TYGER VALLEY
+Timetable Number - 018102
+
+KHAYELITSHA-TYGERBERG
+Timetable Number - 004601
+
+KHAYELITSHA-TYGERBERG
+Timetable Number - 004602
+
+KHAYELITSHA-WYNBERG
+Timetable Number - 003201
+
+KHAYELITSHA-WYNBERG
+Timetable Number - 003202
+
+KHAYELITSHA-WYNBERG
+Timetable Number - 006802
+
+KHAYELITSHA-WYNBERG
+Timetable Number - 006801
+
+KHAYELITSHA S A P-HARARE
+Timetable Number - 006901
+
+KHAYELITSHA S A P-HARARE
+Timetable Number - 006902
+
+KHAYELITSHA S A P-MAKHAZA
+Timetable Number - 006901
+
+KHAYELITSHA S A P-MAKHAZA
+Timetable Number - 006902
+
+KILLARNEY-ATLANTIS
+Timetable Number - 014402
+
+KILLARNEY-ATLANTIS
+Timetable Number - 000402
+
+KILLARNEY-ATLANTIS
+Timetable Number - 000401
+
+KILLARNEY-ATLANTIS
+Timetable Number - 010502
+
+KILLARNEY-ATLANTIS
+Timetable Number - 017501
+
+KILLARNEY-ATLANTIS
+Timetable Number - 017502
+
+KILLARNEY-ATLANTIS
+Timetable Number - 003902
+
+KILLARNEY-ATLANTIS
+Timetable Number - 010504
+
+KILLARNEY-ATLANTIS
+Timetable Number - 003901
+
+KILLARNEY-ATLANTIS
+Timetable Number - 010501
+
+KILLARNEY-ATLANTIS
+Timetable Number - 010503
+
+KILLARNEY-ATLAS GDNS
+Timetable Number - 016801
+
+KILLARNEY-ATLAS GDNS
+Timetable Number - 016802
+
+KILLARNEY-BELLVILLE
+Timetable Number - 010502
+
+KILLARNEY-BELLVILLE
+Timetable Number - 010504
+
+KILLARNEY-BELLVILLE
+Timetable Number - 010501
+
+KILLARNEY-BELLVILLE
+Timetable Number - 010503
+
+KILLARNEY-BLAAUWBERG
+Timetable Number - 000202
+
+KILLARNEY-BLAAUWBERG
+Timetable Number - 000201
+
+KILLARNEY-BLAAUWBERG
+Timetable Number - 016801
+
+KILLARNEY-BLAAUWBERG
+Timetable Number - 016802
+
+KILLARNEY-BLUEDOWNS
+Timetable Number - 007601
+
+KILLARNEY-BLUEDOWNS
+Timetable Number - 007602
+
+KILLARNEY-BONTEHEUWEL
+Timetable Number - 017702
+
+KILLARNEY-BONTEHEUWEL
+Timetable Number - 017701
+
+KILLARNEY-CAMBRIDGE
+Timetable Number - 014402
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 013402
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 013502
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 000402
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 001101
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 001102
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 000202
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 000401
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 001201
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 001202
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 013401
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 013501
+
+KILLARNEY-CAPE TOWN
+Timetable Number - 000201
+
+KILLARNEY-CHATSWORTH
+Timetable Number - 013402
+
+KILLARNEY-CHATSWORTH
+Timetable Number - 013401
+
+KILLARNEY-DARLING
+Timetable Number - 001101
+
+KILLARNEY-DARLING
+Timetable Number - 001102
+
+KILLARNEY-DASSENBERG
+Timetable Number - 013402
+
+KILLARNEY-DASSENBERG
+Timetable Number - 013401
+
+KILLARNEY-DELFT
+Timetable Number - 017202
+
+KILLARNEY-DELFT
+Timetable Number - 017201
+
+KILLARNEY-DU NOON
+Timetable Number - 016801
+
+KILLARNEY-DU NOON
+Timetable Number - 016802
+
+KILLARNEY-DURBANVILLE
+Timetable Number - 010502
+
+KILLARNEY-DURBANVILLE
+Timetable Number - 010504
+
+KILLARNEY-DURBANVILLE
+Timetable Number - 010501
+
+KILLARNEY-DURBANVILLE
+Timetable Number - 010503
+
+KILLARNEY-ELSIES RIVER
+Timetable Number - 002101
+
+KILLARNEY-ELSIES RIVER
+Timetable Number - 002102
+
+KILLARNEY-HANOVER PARK
+Timetable Number - 003902
+
+KILLARNEY-HANOVER PARK
+Timetable Number - 003901
+
+KILLARNEY-HARARE
+Timetable Number - 006601
+
+KILLARNEY-HARARE
+Timetable Number - 006602
+
+KILLARNEY-HARARE
+Timetable Number - 006603
+
+KILLARNEY-HARARE
+Timetable Number - 006604
+
+KILLARNEY-HEIDEVELD
+Timetable Number - 016701
+
+KILLARNEY-KOEBERG RD
+Timetable Number - 000202
+
+KILLARNEY-KOEBERG RD
+Timetable Number - 000201
+
+KILLARNEY-LANGA
+Timetable Number - 010801
+
+KILLARNEY-LANGA
+Timetable Number - 010802
+
+KILLARNEY-MALMESBURY
+Timetable Number - 013502
+
+KILLARNEY-MALMESBURY
+Timetable Number - 013501
+
+KILLARNEY-MAMRE
+Timetable Number - 001201
+
+KILLARNEY-MAMRE
+Timetable Number - 001202
+
+KILLARNEY-MAMRE
+Timetable Number - 010502
+
+KILLARNEY-MAMRE
+Timetable Number - 010504
+
+KILLARNEY-MAMRE
+Timetable Number - 010501
+
+KILLARNEY-MAMRE
+Timetable Number - 010503
+
+KILLARNEY-MANENBERG
+Timetable Number - 004001
+
+KILLARNEY-MANENBERG
+Timetable Number - 004002
+
+KILLARNEY-MONTAGUE GDNS
+Timetable Number - 014402
+
+KILLARNEY-MOWBRAY
+Timetable Number - 018401
+
+KILLARNEY-MOWBRAY
+Timetable Number - 018402
+
+KILLARNEY-NETREG
+Timetable Number - 002101
+
+KILLARNEY-NETREG
+Timetable Number - 002102
+
+KILLARNEY-NYANGA
+Timetable Number - 010401
+
+KILLARNEY-NYANGA
+Timetable Number - 010402
+
+KILLARNEY-PELLA
+Timetable Number - 001201
+
+KILLARNEY-PELLA
+Timetable Number - 001202
+
+KILLARNEY-PHILIPPI
+Timetable Number - 010401
+
+KILLARNEY-PHILIPPI
+Timetable Number - 010402
+
+KILLARNEY-RAVENSMEAD
+Timetable Number - 015701
+
+KILLARNEY-RAVENSMEAD
+Timetable Number - 015702
+
+KILLARNEY-STRANDFONTEIN
+Timetable Number - 017501
+
+KILLARNEY-STRANDFONTEIN
+Timetable Number - 017502
+
+KILLARNEY-TOWN CENTRE
+Timetable Number - 009102
+
+KILLARNEY-TOWN CENTRE
+Timetable Number - 009101
+
+KILLARNEY-TYGERBERG
+Timetable Number - 015701
+
+KILLARNEY-TYGERBERG
+Timetable Number - 015702
+
+KOEBERG-BLOUBERG
+Timetable Number - 001601
+
+KOEBERG-BLOUBERG
+Timetable Number - 001602
+
+KOEBERG-CAPE TOWN
+Timetable Number - 001601
+
+KOEBERG-CAPE TOWN
+Timetable Number - 001602
+
+KOEBERG-MELKBOS
+Timetable Number - 001601
+
+KOEBERG-MELKBOS
+Timetable Number - 001602
+
+KOEBERG RD-BLAAUWBERG
+Timetable Number - 000202
+
+KOEBERG RD-BLAAUWBERG
+Timetable Number - 000201
+
+KOEBERG RD-CAPE TOWN
+Timetable Number - 000202
+
+KOEBERG RD-CAPE TOWN
+Timetable Number - 000201
+
+KOEBERG RD-KILLARNEY
+Timetable Number - 000202
+
+KOEBERG RD-KILLARNEY
+Timetable Number - 000201
+
+KOEBERG STN-BLUEDOWNS
+Timetable Number - 007301
+
+KOEBERG STN-BLUEDOWNS
+Timetable Number - 007302
+
+KOEBERG STN-DELFT
+Timetable Number - 007301
+
+KOEBERG STN-DELFT
+Timetable Number - 007302
+
+KOEBERG STN-MAITLAND
+Timetable Number - 009201
+
+KOEBERG STN-MAITLAND
+Timetable Number - 009202
+
+KOEBERG STN-TOWN CENTRE
+Timetable Number - 009201
+
+KOEBERG STN-TOWN CENTRE
+Timetable Number - 009202
+
+KRAAIFONTEIN-CAPE TOWN
+Timetable Number - 001504
+
+KRAAIFONTEIN-CAPE TOWN
+Timetable Number - 001501
+
+KRAAIFONTEIN-CAPE TOWN
+Timetable Number - 001502
+
+KRAAIFONTEIN-CAPE TOWN
+Timetable Number - 001503
+
+KRAAIFONTEIN-KHAYELITSHA
+Timetable Number - 012201
+
+KRAAIFONTEIN-KHAYELITSHA
+Timetable Number - 012202
+
+KRAAIFONTEIN-NORTHPINE
+Timetable Number - 001504
+
+KRAAIFONTEIN-NORTHPINE
+Timetable Number - 001501
+
+KRAAIFONTEIN-NORTHPINE
+Timetable Number - 001502
+
+KRAAIFONTEIN-NORTHPINE
+Timetable Number - 001503
+
+KUILS RIVER-KHAYELITSHA
+Timetable Number - 004701
+
+KUILS RIVER-KHAYELITSHA
+Timetable Number - 004702
+
+KUILS RIVER-MFULENI
+Timetable Number - 004701
+
+KUILS RIVER-MFULENI
+Timetable Number - 004702
+
+KUILS RIVER-NYANGA
+Timetable Number - 004701
+
+KUILS RIVER-NYANGA
+Timetable Number - 004702
+
+LANGA-BELLVILLE
+Timetable Number - 012601
+
+LANGA-BELLVILLE
+Timetable Number - 012602
+
+LANGA-BISHOP LAVIS
+Timetable Number - 012601
+
+LANGA-BISHOP LAVIS
+Timetable Number - 012602
+
+LANGA-DURBANVILLE
+Timetable Number - 012601
+
+LANGA-DURBANVILLE
+Timetable Number - 012602
+
+LANGA-KHAYELITSHA
+Timetable Number - 006501
+
+LANGA-KHAYELITSHA
+Timetable Number - 006502
+
+LANGA-KILLARNEY
+Timetable Number - 010801
+
+LANGA-KILLARNEY
+Timetable Number - 010802
+
+LANGA-NYANGA
+Timetable Number - 006501
+
+LANGA-NYANGA
+Timetable Number - 006502
+
+LEAGUES-CAPE TOWN
+Timetable Number - 011901
+
+LEAGUES-COLORADO PARK
+Timetable Number - 011901
+
+LEAGUES-TOWN CENTRE
+Timetable Number - 005702
+
+LEAGUES-WESTGATE MALL
+Timetable Number - 005702
+
+LENTEGEUR HOSP-TOWN CENTRE
+Timetable Number - 009001
+
+LOTUS RIVER-CAPE TOWN
+Timetable Number - 016401
+
+LOTUS RIVER-CAPE TOWN
+Timetable Number - 016402
+
+LOTUS RIVER-SIMONSTOWN
+Timetable Number - 015101
+
+LOTUS RIVER-STEENBERG
+Timetable Number - 016401
+
+LOTUS RIVER-STEENBERG
+Timetable Number - 016402
+
+LWANDLE-MACASSAR
+Timetable Number - 005602
+
+LWANDLE-MACASSAR
+Timetable Number - 005601
+
+LWANDLE-SOMERSET WEST
+Timetable Number - 005602
+
+LWANDLE-SOMERSET WEST
+Timetable Number - 005601
+
+LWANDLE-STRAND
+Timetable Number - 005602
+
+LWANDLE-STRAND
+Timetable Number - 005601
+
+MACASSAR-HELDERBERG
+Timetable Number - 017102
+
+MACASSAR-HELDERBERG
+Timetable Number - 017101
+
+MACASSAR-LWANDLE
+Timetable Number - 005602
+
+MACASSAR-LWANDLE
+Timetable Number - 005601
+
+MACASSAR-SOMERSET WEST
+Timetable Number - 017102
+
+MACASSAR-SOMERSET WEST
+Timetable Number - 005602
+
+MACASSAR-SOMERSET WEST
+Timetable Number - 005601
+
+MACASSAR-SOMERSET WEST
+Timetable Number - 017101
+
+MACASSAR-STRAND
+Timetable Number - 005602
+
+MACASSAR-STRAND
+Timetable Number - 005601
+
+MAITLAND-BONTEHEUWEL
+Timetable Number - 010302
+
+MAITLAND-BONTEHEUWEL
+Timetable Number - 010301
+
+MAITLAND-CAPE TOWN
+Timetable Number - 001002
+
+MAITLAND-CAPE TOWN
+Timetable Number - 001001
+
+MAITLAND-HANOVER PARK
+Timetable Number - 004102
+
+MAITLAND-HANOVER PARK
+Timetable Number - 004101
+
+MAITLAND-HEIDEVELD
+Timetable Number - 010302
+
+MAITLAND-HEIDEVELD
+Timetable Number - 010301
+
+MAITLAND-KOEBERG STN
+Timetable Number - 009201
+
+MAITLAND-KOEBERG STN
+Timetable Number - 009202
+
+MAITLAND-MANENBERG
+Timetable Number - 004102
+
+MAITLAND-MANENBERG
+Timetable Number - 004101
+
+MAITLAND-MUTUAL
+Timetable Number - 010302
+
+MAITLAND-MUTUAL
+Timetable Number - 010301
+
+MAITLAND-TOWN CENTRE
+Timetable Number - 009201
+
+MAITLAND-TOWN CENTRE
+Timetable Number - 009202
+
+MAITLAND SCHOOLS-KHAYELITSHA
+Timetable Number - 016901
+
+MAITLAND SCHOOLS-KHAYELITSHA
+Timetable Number - 016902
+
+MAITLAND SCHOOLS-NYANGA
+Timetable Number - 016901
+
+MAITLAND SCHOOLS-NYANGA
+Timetable Number - 016902
+
+MAKHAZA-BELLVILLE
+Timetable Number - 006301
+
+MAKHAZA-BELLVILLE
+Timetable Number - 006302
+
+MAKHAZA-CAPE TOWN
+Timetable Number - 014301
+
+MAKHAZA-CAPE TOWN
+Timetable Number - 014302
+
+MAKHAZA-HARARE
+Timetable Number - 006901
+
+MAKHAZA-HARARE
+Timetable Number - 006902
+
+MAKHAZA-KHAYELITSHA
+Timetable Number - 006301
+
+MAKHAZA-KHAYELITSHA
+Timetable Number - 006302
+
+MAKHAZA-KHAYELITSHA S A P
+Timetable Number - 006901
+
+MAKHAZA-KHAYELITSHA S A P
+Timetable Number - 006902
+
+MAKHAZA-MOWBRAY
+Timetable Number - 014301
+
+MAKHAZA-MOWBRAY
+Timetable Number - 014302
+
+MALMESBURY-CAPE TOWN
+Timetable Number - 013502
+
+MALMESBURY-CAPE TOWN
+Timetable Number - 013501
+
+MALMESBURY-CHATSWORTH
+Timetable Number - 021202
+
+MALMESBURY-CHATSWORTH
+Timetable Number - 021201
+
+MALMESBURY-KILLARNEY
+Timetable Number - 013502
+
+MALMESBURY-KILLARNEY
+Timetable Number - 013501
+
+MALMESBURY-TYGERBERG HOSP
+Timetable Number - 021202
+
+MALMESBURY-TYGERBERG HOSP
+Timetable Number - 021201
+
+MALMESBURY-UWC
+Timetable Number - 021202
+
+MALMESBURY-UWC
+Timetable Number - 021201
+
+MAMRE-ATLANTIS
+Timetable Number - 010702
+
+MAMRE-ATLANTIS
+Timetable Number - 010502
+
+MAMRE-ATLANTIS
+Timetable Number - 010701
+
+MAMRE-ATLANTIS
+Timetable Number - 010504
+
+MAMRE-ATLANTIS
+Timetable Number - 010501
+
+MAMRE-ATLANTIS
+Timetable Number - 010503
+
+MAMRE-BELLVILLE
+Timetable Number - 010502
+
+MAMRE-BELLVILLE
+Timetable Number - 010504
+
+MAMRE-BELLVILLE
+Timetable Number - 010501
+
+MAMRE-BELLVILLE
+Timetable Number - 010503
+
+MAMRE-CAPE TOWN
+Timetable Number - 001201
+
+MAMRE-CAPE TOWN
+Timetable Number - 001202
+
+MAMRE-EPPING IND
+Timetable Number - 010702
+
+MAMRE-EPPING IND
+Timetable Number - 010701
+
+MAMRE-KILLARNEY
+Timetable Number - 001201
+
+MAMRE-KILLARNEY
+Timetable Number - 001202
+
+MAMRE-KILLARNEY
+Timetable Number - 010502
+
+MAMRE-KILLARNEY
+Timetable Number - 010504
+
+MAMRE-KILLARNEY
+Timetable Number - 010501
+
+MAMRE-KILLARNEY
+Timetable Number - 010503
+
+MAMRE-PELLA
+Timetable Number - 001201
+
+MAMRE-PELLA
+Timetable Number - 001202
+
+MANDALAY-ALEXANDRA HOSP
+Timetable Number - 004801
+
+MANDALAY-ALEXANDRA HOSP
+Timetable Number - 004802
+
+MANDALAY-CAPE TOWN
+Timetable Number - 007902
+
+MANDALAY-CAPE TOWN
+Timetable Number - 007901
+
+MANDALAY-CLAREMONT
+Timetable Number - 016001
+
+MANDALAY-CLAREMONT
+Timetable Number - 016002
+
+MANDALAY-TOWN CENTRE
+Timetable Number - 014901
+
+MANDALAY-TOWN CENTRE
+Timetable Number - 004801
+
+MANDALAY-TOWN CENTRE
+Timetable Number - 004802
+
+MANENBERG-CAPE TOWN
+Timetable Number - 003101
+
+MANENBERG-CAPE TOWN
+Timetable Number - 003102
+
+MANENBERG-CLAREMONT
+Timetable Number - 003701
+
+MANENBERG-CLAREMONT
+Timetable Number - 003702
+
+MANENBERG-EPPING IND
+Timetable Number - 016301
+
+MANENBERG-EPPING IND
+Timetable Number - 016302
+
+MANENBERG-HANOVER PARK
+Timetable Number - 003801
+
+MANENBERG-HANOVER PARK
+Timetable Number - 003701
+
+MANENBERG-HANOVER PARK
+Timetable Number - 004102
+
+MANENBERG-HANOVER PARK
+Timetable Number - 003702
+
+MANENBERG-HANOVER PARK
+Timetable Number - 003802
+
+MANENBERG-HANOVER PARK
+Timetable Number - 004101
+
+MANENBERG-HEIDEVELD
+Timetable Number - 016301
+
+MANENBERG-HEIDEVELD
+Timetable Number - 016302
+
+MANENBERG-KILLARNEY
+Timetable Number - 004001
+
+MANENBERG-KILLARNEY
+Timetable Number - 004002
+
+MANENBERG-MAITLAND
+Timetable Number - 004102
+
+MANENBERG-MAITLAND
+Timetable Number - 004101
+
+MANENBERG-MOWBRAY
+Timetable Number - 003101
+
+MANENBERG-MOWBRAY
+Timetable Number - 003102
+
+MANENBERG-WYNBERG
+Timetable Number - 003801
+
+MANENBERG-WYNBERG
+Timetable Number - 003802
+
+MELKBOS-BLOUBERG
+Timetable Number - 001601
+
+MELKBOS-BLOUBERG
+Timetable Number - 001602
+
+MELKBOS-CAPE TOWN
+Timetable Number - 001601
+
+MELKBOS-CAPE TOWN
+Timetable Number - 001602
+
+MELKBOS-KOEBERG
+Timetable Number - 001601
+
+MELKBOS-KOEBERG
+Timetable Number - 001602
+
+MERRYDALE-CAPE TOWN
+Timetable Number - 007801
+
+MERRYDALE-CAPE TOWN
+Timetable Number - 007802
+
+MERRYDALE-CLAREMONT
+Timetable Number - 008201
+
+MERRYDALE-CLAREMONT
+Timetable Number - 008202
+
+MERRYDALE-MOWBRAY
+Timetable Number - 007801
+
+MERRYDALE-MOWBRAY
+Timetable Number - 007802
+
+MERRYDALE-TOWN CENTRE
+Timetable Number - 008201
+
+MERRYDALE-TOWN CENTRE
+Timetable Number - 008202
+
+MERRYDALE-TOWN CENTRE
+Timetable Number - 007801
+
+MERRYDALE-TOWN CENTRE
+Timetable Number - 007802
+
+METRO-EPPING
+Timetable Number - 009701
+
+METRO-EPPING
+Timetable Number - 009702
+
+METRO-HANOVER PARK
+Timetable Number - 010202
+
+METRO-HANOVER PARK
+Timetable Number - 010201
+
+METRO-KHAYELITSHA
+Timetable Number - 009701
+
+METRO-KHAYELITSHA
+Timetable Number - 009702
+
+METRO-NYANGA
+Timetable Number - 009701
+
+METRO-NYANGA
+Timetable Number - 009702
+
+METRO-TOWN CENTRE
+Timetable Number - 018601
+
+METRO-TOWN CENTRE
+Timetable Number - 018602
+
+MFULENI-KHAYELITSHA
+Timetable Number - 004701
+
+MFULENI-KHAYELITSHA
+Timetable Number - 004702
+
+MFULENI-KUILS RIVER
+Timetable Number - 004701
+
+MFULENI-KUILS RIVER
+Timetable Number - 004702
+
+MFULENI-NYANGA
+Timetable Number - 004701
+
+MFULENI-NYANGA
+Timetable Number - 004702
+
+MITCHELLS PLAIN SCHOOLS-KHAYELITSHA
+Timetable Number - 01560.
+
+MONTAGUE GDNS-ATLANTIS
+Timetable Number - 014402
+
+MONTAGUE GDNS-CAMBRIDGE
+Timetable Number - 014402
+
+MONTAGUE GDNS-KILLARNEY
+Timetable Number - 014402
+
+N1 CITY-TOWN CENTRE
+Timetable Number - 012801
+
+N1 CITY-TOWN CENTRE
+Timetable Number - 012802
+
+NDABENI-EPPING
+Timetable Number - 009301
+
+NDABENI-EPPING
+Timetable Number - 009302
+
+NDABENI-MUTUAL
+Timetable Number - 009301
+
+NDABENI-MUTUAL
+Timetable Number - 009302
+
+NDABENI-TOWN CENTRE
+Timetable Number - 009301
+
+NDABENI-TOWN CENTRE
+Timetable Number - 009302
+
+NETREG-ELSIES RIVER
+Timetable Number - 002101
+
+NETREG-ELSIES RIVER
+Timetable Number - 002102
+
+NETREG-KILLARNEY
+Timetable Number - 002101
+
+NETREG-KILLARNEY
+Timetable Number - 002102
+
+NOORD HOEK-FISH HOEK
+Timetable Number - 005401
+
+NOORD HOEK-FISH HOEK
+Timetable Number - 005402
+
+NOORD HOEK-OCEAN VIEW
+Timetable Number - 005401
+
+NOORD HOEK-OCEAN VIEW
+Timetable Number - 005402
+
+NOORD HOEK-SIMONSTOWN
+Timetable Number - 005401
+
+NOORD HOEK-SIMONSTOWN
+Timetable Number - 005402
+
+NOORDHOEK-OCEAN VIEW
+Timetable Number - 015502
+
+NOORDHOEK-OCEAN VIEW
+Timetable Number - 015501
+
+NOORDHOEK-SEA FORTH SCHOOLS
+Timetable Number - 015502
+
+NOORDHOEK-SEA FORTH SCHOOLS
+Timetable Number - 015501
+
+NORTHPINE-CAPE TOWN
+Timetable Number - 001504
+
+NORTHPINE-CAPE TOWN
+Timetable Number - 001501
+
+NORTHPINE-CAPE TOWN
+Timetable Number - 001502
+
+NORTHPINE-CAPE TOWN
+Timetable Number - 001503
+
+NORTHPINE-KRAAIFONTEIN
+Timetable Number - 001504
+
+NORTHPINE-KRAAIFONTEIN
+Timetable Number - 001501
+
+NORTHPINE-KRAAIFONTEIN
+Timetable Number - 001502
+
+NORTHPINE-KRAAIFONTEIN
+Timetable Number - 001503
+
+NYANGA-AIRPORT IND
+Timetable Number - 014001
+
+NYANGA-AIRPORT IND
+Timetable Number - 014002
+
+NYANGA-AIRPORT IND
+Timetable Number - 004401
+
+NYANGA-AIRPORT IND
+Timetable Number - 004402
+
+NYANGA-BELLVILLE
+Timetable Number - 004401
+
+NYANGA-BELLVILLE
+Timetable Number - 004402
+
+NYANGA-BOYSTOWN
+Timetable Number - 003502
+
+NYANGA-CAPE TOWN
+Timetable Number - 004301
+
+NYANGA-CAPE TOWN
+Timetable Number - 004302
+
+NYANGA-CLAREMONT
+Timetable Number - 005901
+
+NYANGA-CLAREMONT
+Timetable Number - 005902
+
+NYANGA-DURBANVILLE
+Timetable Number - 013902
+
+NYANGA-DURBANVILLE
+Timetable Number - 013901
+
+NYANGA-EPPING
+Timetable Number - 009701
+
+NYANGA-EPPING
+Timetable Number - 009702
+
+NYANGA-ESCOM
+Timetable Number - 013902
+
+NYANGA-ESCOM
+Timetable Number - 013901
+
+NYANGA-KHAYELITSHA
+Timetable Number - 001801
+
+NYANGA-KHAYELITSHA
+Timetable Number - 001802
+
+NYANGA-KHAYELITSHA
+Timetable Number - 014001
+
+NYANGA-KHAYELITSHA
+Timetable Number - 005801
+
+NYANGA-KHAYELITSHA
+Timetable Number - 005802
+
+NYANGA-KHAYELITSHA
+Timetable Number - 006501
+
+NYANGA-KHAYELITSHA
+Timetable Number - 014002
+
+NYANGA-KHAYELITSHA
+Timetable Number - 004701
+
+NYANGA-KHAYELITSHA
+Timetable Number - 004702
+
+NYANGA-KHAYELITSHA
+Timetable Number - 006502
+
+NYANGA-KHAYELITSHA
+Timetable Number - 009701
+
+NYANGA-KHAYELITSHA
+Timetable Number - 009702
+
+NYANGA-KHAYELITSHA
+Timetable Number - 016901
+
+NYANGA-KHAYELITSHA
+Timetable Number - 016902
+
+NYANGA-KILLARNEY
+Timetable Number - 010401
+
+NYANGA-KILLARNEY
+Timetable Number - 010402
+
+NYANGA-KUILS RIVER
+Timetable Number - 004701
+
+NYANGA-KUILS RIVER
+Timetable Number - 004702
+
+NYANGA-LANGA
+Timetable Number - 006501
+
+NYANGA-LANGA
+Timetable Number - 006502
+
+NYANGA-MAITLAND SCHOOLS
+Timetable Number - 016901
+
+NYANGA-MAITLAND SCHOOLS
+Timetable Number - 016902
+
+NYANGA-METRO
+Timetable Number - 009701
+
+NYANGA-METRO
+Timetable Number - 009702
+
+NYANGA-MFULENI
+Timetable Number - 004701
+
+NYANGA-MFULENI
+Timetable Number - 004702
+
+NYANGA-MOWBRAY
+Timetable Number - 004301
+
+NYANGA-MOWBRAY
+Timetable Number - 004302
+
+NYANGA-PANORAMA
+Timetable Number - 004504
+
+NYANGA-PANORAMA
+Timetable Number - 004503
+
+NYANGA-PANORAMA
+Timetable Number - 004501
+
+NYANGA-PANORAMA
+Timetable Number - 004502
+
+NYANGA-PHILIPPI
+Timetable Number - 003502
+
+NYANGA-PHILIPPI
+Timetable Number - 010401
+
+NYANGA-PHILIPPI
+Timetable Number - 010402
+
+NYANGA-PHILIPPI EAST
+Timetable Number - 004504
+
+NYANGA-PHILIPPI EAST
+Timetable Number - 004503
+
+NYANGA-PHILIPPI EAST
+Timetable Number - 004501
+
+NYANGA-PHILIPPI EAST
+Timetable Number - 004502
+
+NYANGA-PHILIPPI EAST SAP
+Timetable Number - 018202
+
+NYANGA-PHILIPPI EAST SAP
+Timetable Number - 018201
+
+NYANGA-RONDEBOSCH
+Timetable Number - 005901
+
+NYANGA-RONDEBOSCH
+Timetable Number - 005902
+
+NYANGA-SIMONSTOWN
+Timetable Number - 001801
+
+NYANGA-SIMONSTOWN
+Timetable Number - 001802
+
+NYANGA-SOMERSET WEST
+Timetable Number - 005801
+
+NYANGA-SOMERSET WEST
+Timetable Number - 005802
+
+NYANGA-TYGER VALLEY
+Timetable Number - 013902
+
+NYANGA-TYGER VALLEY
+Timetable Number - 013901
+
+NYANGA-TYGERBERG
+Timetable Number - 018202
+
+NYANGA-TYGERBERG
+Timetable Number - 018201
+
+NYANGA-WYNBERG
+Timetable Number - 006001
+
+NYANGA-WYNBERG
+Timetable Number - 006002
+
+OCEAN VIEW-CAPE TOWN
+Timetable Number - 000801
+
+OCEAN VIEW-CAPE TOWN
+Timetable Number - 000802
+
+OCEAN VIEW-FISH HOEK
+Timetable Number - 005301
+
+OCEAN VIEW-FISH HOEK
+Timetable Number - 005302
+
+OCEAN VIEW-FISH HOEK
+Timetable Number - 005401
+
+OCEAN VIEW-FISH HOEK
+Timetable Number - 005402
+
+OCEAN VIEW-NOORD HOEK
+Timetable Number - 005401
+
+OCEAN VIEW-NOORD HOEK
+Timetable Number - 005402
+
+OCEAN VIEW-NOORDHOEK
+Timetable Number - 015502
+
+OCEAN VIEW-NOORDHOEK
+Timetable Number - 018901
+
+OCEAN VIEW-NOORDHOEK
+Timetable Number - 015501
+
+OCEAN VIEW-NOORDHOEK
+Timetable Number - 018902
+
+OCEAN VIEW-RETREAT
+Timetable Number - 000801
+
+OCEAN VIEW-RETREAT
+Timetable Number - 000802
+
+OCEAN VIEW-SEA FORTH SCHOOLS
+Timetable Number - 015502
+
+OCEAN VIEW-SEA FORTH SCHOOLS
+Timetable Number - 015501
+
+OCEAN VIEW-SIMONSTOWN
+Timetable Number - 005301
+
+OCEAN VIEW-SIMONSTOWN
+Timetable Number - 005302
+
+OCEAN VIEW-SIMONSTOWN
+Timetable Number - 005401
+
+OCEAN VIEW-SIMONSTOWN
+Timetable Number - 005402
+
+OCEAN VIEW-STEENBERG
+Timetable Number - 000801
+
+OCEAN VIEW-STEENBERG
+Timetable Number - 000802
+
+OUDE MOLEN SCH-CAMBRIDGE
+Timetable Number - 017901
+
+OUDE MOLEN SCH-KOEBERG POWER STN
+Timetable Number - 017901
+
+PAARL-BELLVILLE
+Timetable Number - 000702
+
+PAARL-BELLVILLE
+Timetable Number - 000701
+
+PAARL-CAPE TOWN
+Timetable Number - 000702
+
+PAARL-CAPE TOWN
+Timetable Number - 000701
+
+PAARL-WELLINGTON
+Timetable Number - 000702
+
+PAARL-WELLINGTON
+Timetable Number - 000701
+
+PANORAMA-BLUEDOWNS
+Timetable Number - 007001
+
+PANORAMA-BLUEDOWNS
+Timetable Number - 007002
+
+PANORAMA-DELFT
+Timetable Number - 007001
+
+PANORAMA-DELFT
+Timetable Number - 007002
+
+PANORAMA-ELSIES RIVER
+Timetable Number - 007001
+
+PANORAMA-ELSIES RIVER
+Timetable Number - 007002
+
+PANORAMA-KHAYELITSHA
+Timetable Number - 004504
+
+PANORAMA-KHAYELITSHA
+Timetable Number - 004503
+
+PANORAMA-KHAYELITSHA
+Timetable Number - 004501
+
+PANORAMA-KHAYELITSHA
+Timetable Number - 004502
+
+PANORAMA-NYANGA
+Timetable Number - 004504
+
+PANORAMA-NYANGA
+Timetable Number - 004503
+
+PANORAMA-NYANGA
+Timetable Number - 004501
+
+PANORAMA-NYANGA
+Timetable Number - 004502
+
+PANORAMA-PHILIPPI EAST
+Timetable Number - 004504
+
+PANORAMA-PHILIPPI EAST
+Timetable Number - 004503
+
+PANORAMA-PHILIPPI EAST
+Timetable Number - 004501
+
+PANORAMA-PHILIPPI EAST
+Timetable Number - 004502
+
+PELLA-CAPE TOWN
+Timetable Number - 001201
+
+PELLA-CAPE TOWN
+Timetable Number - 001202
+
+PELLA-KILLARNEY
+Timetable Number - 001201
+
+PELLA-KILLARNEY
+Timetable Number - 001202
+
+PELLA-MAMRE
+Timetable Number - 001201
+
+PELLA-MAMRE
+Timetable Number - 001202
+
+PERDEKLOOF-DA GAMA PARK
+Timetable Number - 019001
+
+PERDEKLOOF-FISH HOEK
+Timetable Number - 019001
+
+PERDEKLOOF-SIMONSTOWN
+Timetable Number - 019001
+
+PHILIPPI-BOYSTOWN
+Timetable Number - 003502
+
+PHILIPPI-KILLARNEY
+Timetable Number - 010401
+
+PHILIPPI-KILLARNEY
+Timetable Number - 010402
+
+PHILIPPI-NYANGA
+Timetable Number - 003502
+
+PHILIPPI-NYANGA
+Timetable Number - 010401
+
+PHILIPPI-NYANGA
+Timetable Number - 010402
+
+PHILIPPI-TOWN CENTRE
+Timetable Number - 006101
+
+PHILIPPI EAST-NYANGA
+Timetable Number - 004504
+
+PHILIPPI EAST-NYANGA
+Timetable Number - 004503
+
+PHILIPPI EAST-NYANGA
+Timetable Number - 004501
+
+PHILIPPI EAST-NYANGA
+Timetable Number - 004502
+
+PHILIPPI EAST-PANORAMA
+Timetable Number - 004504
+
+PHILIPPI EAST-PANORAMA
+Timetable Number - 004503
+
+PHILIPPI EAST-PANORAMA
+Timetable Number - 004501
+
+PHILIPPI EAST-PANORAMA
+Timetable Number - 004502
+
+PHILIPPI EAST SAP-BELLVILLE
+Timetable Number - 013301
+
+PHILIPPI EAST SAP-BELLVILLE
+Timetable Number - 013302
+
+PHILIPPI EAST SAP-CAPE TOWN
+Timetable Number - 013701
+
+PHILIPPI EAST SAP-CAPE TOWN
+Timetable Number - 013702
+
+PHILIPPI EAST SAP-CLAREMONT
+Timetable Number - 018701
+
+PHILIPPI EAST SAP-CLAREMONT
+Timetable Number - 018702
+
+PHILIPPI EAST SAP-DURBANVILLE
+Timetable Number - 013301
+
+PHILIPPI EAST SAP-DURBANVILLE
+Timetable Number - 013302
+
+PHILIPPI EAST SAP-HOUT BAY
+Timetable Number - 013201
+
+PHILIPPI EAST SAP-HOUT BAY
+Timetable Number - 013202
+
+PHILIPPI EAST SAP-MOWBRAY
+Timetable Number - 013701
+
+PHILIPPI EAST SAP-MOWBRAY
+Timetable Number - 013702
+
+PHILIPPI EAST SAP-NYANGA
+Timetable Number - 018202
+
+PHILIPPI EAST SAP-NYANGA
+Timetable Number - 018201
+
+PHILIPPI EAST SAP-TYGERBERG
+Timetable Number - 018202
+
+PHILIPPI EAST SAP-TYGERBERG
+Timetable Number - 018201
+
+PHILIPPI EAST SAP-WYNBERG
+Timetable Number - 013201
+
+PHILIPPI EAST SAP-WYNBERG
+Timetable Number - 013202
+
+PLUMSTEAD-DIEP RIVER
+Timetable Number - 008701
+
+PLUMSTEAD-DIEP RIVER
+Timetable Number - 008702
+
+PLUMSTEAD-TOWN CENTRE
+Timetable Number - 008701
+
+PLUMSTEAD-TOWN CENTRE
+Timetable Number - 008702
+
+RAVENSMEAD-KILLARNEY
+Timetable Number - 015701
+
+RAVENSMEAD-KILLARNEY
+Timetable Number - 015702
+
+RAVENSMEAD-TYGERBERG
+Timetable Number - 015701
+
+RAVENSMEAD-TYGERBERG
+Timetable Number - 015702
+
+RETREAT-CAPE TOWN
+Timetable Number - 000801
+
+RETREAT-CAPE TOWN
+Timetable Number - 000802
+
+RETREAT-ELSIES RIVER
+Timetable Number - 003402
+
+RETREAT-ELSIES RIVER
+Timetable Number - 003401
+
+RETREAT-HANOVER PARK
+Timetable Number - 003402
+
+RETREAT-HANOVER PARK
+Timetable Number - 003401
+
+RETREAT-OCEAN VIEW
+Timetable Number - 000801
+
+RETREAT-OCEAN VIEW
+Timetable Number - 000802
+
+RETREAT-STEENBERG
+Timetable Number - 000801
+
+RETREAT-STEENBERG
+Timetable Number - 000802
+
+RETREAT-TOWN CENTRE
+Timetable Number - 012401
+
+RETREAT-TOWN CENTRE
+Timetable Number - 012402
+
+RICHWOOD-CAPE TOWN
+Timetable Number - 000501
+
+RICHWOOD-CAPE TOWN
+Timetable Number - 000502
+
+RICHWOOD-EDGEMEAD
+Timetable Number - 000501
+
+RICHWOOD-EDGEMEAD
+Timetable Number - 000502
+
+RICHWOOD-SUMMER GREENS
+Timetable Number - 000501
+
+RICHWOOD-SUMMER GREENS
+Timetable Number - 000502
+
+ROCKLANDS-CAPE TOWN
+Timetable Number - 007701
+
+ROCKLANDS-CAPE TOWN
+Timetable Number - 007702
+
+ROCKLANDS-CLAREMONT
+Timetable Number - 008101
+
+ROCKLANDS-CLAREMONT
+Timetable Number - 008102
+
+ROCKLANDS-MOWBRAY
+Timetable Number - 007701
+
+ROCKLANDS-MOWBRAY
+Timetable Number - 007702
+
+ROCKLANDS-TOWN CENTRE
+Timetable Number - 008101
+
+ROCKLANDS-TOWN CENTRE
+Timetable Number - 012501
+
+ROCKLANDS-TOWN CENTRE
+Timetable Number - 008102
+
+ROCKLANDS-TOWN CENTRE
+Timetable Number - 007701
+
+ROCKLANDS-TOWN CENTRE
+Timetable Number - 007702
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 005901
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 005902
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 006701
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 006702
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 011501
+
+RONDEBOSCH-CLAREMONT
+Timetable Number - 011502
+
+RONDEBOSCH-KHAYELITSHA
+Timetable Number - 006701
+
+RONDEBOSCH-KHAYELITSHA
+Timetable Number - 006702
+
+RONDEBOSCH-NYANGA
+Timetable Number - 005901
+
+RONDEBOSCH-NYANGA
+Timetable Number - 005902
+
+SCOTTSDENE-BELLVILLE
+Timetable Number - 002402
+
+SCOTTSDENE-BELLVILLE
+Timetable Number - 002401
+
+SCOTTSDENE-DURBANVILLE
+Timetable Number - 002402
+
+SCOTTSDENE-DURBANVILLE
+Timetable Number - 002401
+
+SEA FORTH SCHOOLS-NOORDHOEK
+Timetable Number - 015502
+
+SEA FORTH SCHOOLS-NOORDHOEK
+Timetable Number - 015501
+
+SEA FORTH SCHOOLS-OCEAN VIEW
+Timetable Number - 015502
+
+SEA FORTH SCHOOLS-OCEAN VIEW
+Timetable Number - 015501
+
+SEA POINT-CAPE TOWN
+Timetable Number - 000601
+
+SEA POINT-CAPE TOWN
+Timetable Number - 000602
+
+SIMONSTOWN-BLUEDOWNS
+Timetable Number - 012701
+
+SIMONSTOWN-BLUEDOWNS
+Timetable Number - 012702
+
+SIMONSTOWN-DA GAMA PARK
+Timetable Number - 019001
+
+SIMONSTOWN-FISH HOEK
+Timetable Number - 005301
+
+SIMONSTOWN-FISH HOEK
+Timetable Number - 005302
+
+SIMONSTOWN-FISH HOEK
+Timetable Number - 005401
+
+SIMONSTOWN-FISH HOEK
+Timetable Number - 005402
+
+SIMONSTOWN-FISH HOEK
+Timetable Number - 019001
+
+SIMONSTOWN-KHAYELITSHA
+Timetable Number - 001801
+
+SIMONSTOWN-KHAYELITSHA
+Timetable Number - 001802
+
+SIMONSTOWN-LOTUS RIVER
+Timetable Number - 015101
+
+SIMONSTOWN-MUIZENBERG
+Timetable Number - 008602
+
+SIMONSTOWN-MUIZENBERG
+Timetable Number - 008601
+
+SIMONSTOWN-NOORD HOEK
+Timetable Number - 005401
+
+SIMONSTOWN-NOORD HOEK
+Timetable Number - 005402
+
+SIMONSTOWN-NYANGA
+Timetable Number - 001801
+
+SIMONSTOWN-NYANGA
+Timetable Number - 001802
+
+SIMONSTOWN-OCEAN VIEW
+Timetable Number - 005301
+
+SIMONSTOWN-OCEAN VIEW
+Timetable Number - 005302
+
+SIMONSTOWN-OCEAN VIEW
+Timetable Number - 005401
+
+SIMONSTOWN-OCEAN VIEW
+Timetable Number - 005402
+
+SIMONSTOWN-PERDEKLOOF
+Timetable Number - 019001
+
+SIMONSTOWN-TOWN CENTRE
+Timetable Number - 008602
+
+SIMONSTOWN-TOWN CENTRE
+Timetable Number - 008601
+
+SOMERSET WEST-BLUEDOWNS
+Timetable Number - 014701
+
+SOMERSET WEST-BLUEDOWNS
+Timetable Number - 014702
+
+SOMERSET WEST-CAPE TOWN
+Timetable Number - 019301
+
+SOMERSET WEST-CAPE TOWN
+Timetable Number - 019302
+
+SOMERSET WEST-DELFT
+Timetable Number - 014701
+
+SOMERSET WEST-DELFT
+Timetable Number - 014702
+
+SOMERSET WEST-HELDERBERG
+Timetable Number - 017102
+
+SOMERSET WEST-HELDERBERG
+Timetable Number - 017101
+
+SOMERSET WEST-KARL BREMER HOSP
+Timetable Number - 005501
+
+SOMERSET WEST-KARL BREMER HOSP
+Timetable Number - 005502
+
+SOMERSET WEST-KHAYELITSHA
+Timetable Number - 005801
+
+SOMERSET WEST-KHAYELITSHA
+Timetable Number - 005802
+
+SOMERSET WEST-LWANDLE
+Timetable Number - 005602
+
+SOMERSET WEST-LWANDLE
+Timetable Number - 005601
+
+SOMERSET WEST-MACASSAR
+Timetable Number - 017102
+
+SOMERSET WEST-MACASSAR
+Timetable Number - 005602
+
+SOMERSET WEST-MACASSAR
+Timetable Number - 005601
+
+SOMERSET WEST-MACASSAR
+Timetable Number - 017101
+
+SOMERSET WEST-NYANGA
+Timetable Number - 005801
+
+SOMERSET WEST-NYANGA
+Timetable Number - 005802
+
+SOMERSET WEST-STRAND
+Timetable Number - 019301
+
+SOMERSET WEST-STRAND
+Timetable Number - 019302
+
+SOMERSET WEST-STRAND
+Timetable Number - 014701
+
+SOMERSET WEST-STRAND
+Timetable Number - 005602
+
+SOMERSET WEST-STRAND
+Timetable Number - 005601
+
+SOMERSET WEST-STRAND
+Timetable Number - 014702
+
+SOMERSET WEST-TOWN CENTRE
+Timetable Number - 018801
+
+SOMERSET WEST-TOWN CENTRE
+Timetable Number - 018802
+
+SOMERSET WEST-TYGERBERG
+Timetable Number - 005501
+
+SOMERSET WEST-TYGERBERG
+Timetable Number - 005502
+
+STEENBERG-ATHLONE IND
+Timetable Number - 019701
+
+STEENBERG-ATHLONE IND
+Timetable Number - 019702
+
+STEENBERG-CAPE TOWN
+Timetable Number - 016401
+
+STEENBERG-CAPE TOWN
+Timetable Number - 016402
+
+STEENBERG-CAPE TOWN
+Timetable Number - 000801
+
+STEENBERG-CAPE TOWN
+Timetable Number - 000802
+
+STEENBERG-EPPING IND
+Timetable Number - 019701
+
+STEENBERG-EPPING IND
+Timetable Number - 019702
+
+STEENBERG-LOTUS RIVER
+Timetable Number - 016401
+
+STEENBERG-LOTUS RIVER
+Timetable Number - 016402
+
+STEENBERG-OCEAN VIEW
+Timetable Number - 000801
+
+STEENBERG-OCEAN VIEW
+Timetable Number - 000802
+
+STEENBERG-RETREAT
+Timetable Number - 015401
+
+STEENBERG-RETREAT
+Timetable Number - 000801
+
+STEENBERG-RETREAT
+Timetable Number - 000802
+
+STELLENBOSCH-CAPE TOWN
+Timetable Number - 000301
+
+STELLENBOSCH-CAPE TOWN
+Timetable Number - 000302
+
+STELLENBOSCH-TOWN CENTRE
+Timetable Number - 011001
+
+STELLENBOSCH-TOWN CENTRE
+Timetable Number - 011002
+
+STRAND-BELLVILLE
+Timetable Number - 021301
+
+STRAND-BELLVILLE
+Timetable Number - 021302
+
+STRAND-BLUEDOWNS
+Timetable Number - 014701
+
+STRAND-BLUEDOWNS
+Timetable Number - 014702
+
+STRAND-CAPE TOWN
+Timetable Number - 019301
+
+STRAND-CAPE TOWN
+Timetable Number - 019302
+
+STRAND-DELFT
+Timetable Number - 014701
+
+STRAND-DELFT
+Timetable Number - 014702
+
+STRAND-LWANDLE
+Timetable Number - 005602
+
+STRAND-LWANDLE
+Timetable Number - 005601
+
+STRAND-MACASSAR
+Timetable Number - 005602
+
+STRAND-MACASSAR
+Timetable Number - 005601
+
+STRAND-SOMERSET WEST
+Timetable Number - 019301
+
+STRAND-SOMERSET WEST
+Timetable Number - 019302
+
+STRAND-SOMERSET WEST
+Timetable Number - 014701
+
+STRAND-SOMERSET WEST
+Timetable Number - 005602
+
+STRAND-SOMERSET WEST
+Timetable Number - 005601
+
+STRAND-SOMERSET WEST
+Timetable Number - 014702
+
+STRANDFONTEIN-ATLANTIS
+Timetable Number - 017501
+
+STRANDFONTEIN-ATLANTIS
+Timetable Number - 017502
+
+STRANDFONTEIN-CAPE TOWN
+Timetable Number - 008001
+
+STRANDFONTEIN-CAPE TOWN
+Timetable Number - 008002
+
+STRANDFONTEIN-CLAREMONT
+Timetable Number - 012102
+
+STRANDFONTEIN-CLAREMONT
+Timetable Number - 012101
+
+STRANDFONTEIN-KILLARNEY
+Timetable Number - 017501
+
+STRANDFONTEIN-KILLARNEY
+Timetable Number - 017502
+
+STRANDFONTEIN-TOWN CENTRE
+Timetable Number - 008901
+
+STRANDFONTEIN-TOWN CENTRE
+Timetable Number - 008902
+
+STRANDFONTEIN-WYNBERG
+Timetable Number - 008901
+
+STRANDFONTEIN-WYNBERG
+Timetable Number - 008902
+
+SUMMER GREENS-CAPE TOWN
+Timetable Number - 000501
+
+SUMMER GREENS-CAPE TOWN
+Timetable Number - 000502
+
+SUMMER GREENS-EDGEMEAD
+Timetable Number - 000501
+
+SUMMER GREENS-EDGEMEAD
+Timetable Number - 000502
+
+SUMMER GREENS-RICHWOOD
+Timetable Number - 000501
+
+SUMMER GREENS-RICHWOOD
+Timetable Number - 000502
+
+TAFELSIG-BEACON VALLEY
+Timetable Number - 006401
+
+TAFELSIG-BEACON VALLEY
+Timetable Number - 006402
+
+TAFELSIG-CLAREMONT
+Timetable Number - 006401
+
+TAFELSIG-CLAREMONT
+Timetable Number - 006402
+
+TAFELSIG-TOWN CENTRE
+Timetable Number - 004901
+
+TOWN CENTRE-AIRPORT IND
+Timetable Number - 009401
+
+TOWN CENTRE-AIRPORT IND
+Timetable Number - 009402
+
+TOWN CENTRE-ALEXANDRA HOSP
+Timetable Number - 004801
+
+TOWN CENTRE-ALEXANDRA HOSP
+Timetable Number - 004802
+
+TOWN CENTRE-AZ BERMAN DR
+Timetable Number - 014501
+
+TOWN CENTRE-BEACON VALLEY
+Timetable Number - 018501
+
+TOWN CENTRE-BELLVILLE
+Timetable Number - 008502
+
+TOWN CENTRE-BELLVILLE
+Timetable Number - 008501
+
+TOWN CENTRE-BLUEDOWNS
+Timetable Number - 007202
+
+TOWN CENTRE-BLUEDOWNS
+Timetable Number - 007201
+
+TOWN CENTRE-CAPE GATE
+Timetable Number - 001901
+
+TOWN CENTRE-CAPE GATE
+Timetable Number - 001902
+
+TOWN CENTRE-CAPE TOWN
+Timetable Number - 007701
+
+TOWN CENTRE-CAPE TOWN
+Timetable Number - 007702
+
+TOWN CENTRE-CAPE TOWN
+Timetable Number - 014501
+
+TOWN CENTRE-CAPE TOWN
+Timetable Number - 007801
+
+TOWN CENTRE-CAPE TOWN
+Timetable Number - 007802
+
+TOWN CENTRE-CENTURY CITY
+Timetable Number - 017401
+
+TOWN CENTRE-CENTURY CITY
+Timetable Number - 017402
+
+TOWN CENTRE-CLAREMONT
+Timetable Number - 008101
+
+TOWN CENTRE-CLAREMONT
+Timetable Number - 008102
+
+TOWN CENTRE-CLAREMONT
+Timetable Number - 008201
+
+TOWN CENTRE-CLAREMONT
+Timetable Number - 008202
+
+TOWN CENTRE-DELFT
+Timetable Number - 009601
+
+TOWN CENTRE-DELFT
+Timetable Number - 009602
+
+TOWN CENTRE-DIEP RIVER
+Timetable Number - 008701
+
+TOWN CENTRE-DIEP RIVER
+Timetable Number - 008702
+
+TOWN CENTRE-DURBANVILLE
+Timetable Number - 008502
+
+TOWN CENTRE-DURBANVILLE
+Timetable Number - 008501
+
+TOWN CENTRE-EPPING
+Timetable Number - 009301
+
+TOWN CENTRE-EPPING
+Timetable Number - 009302
+
+TOWN CENTRE-FREEWAY
+Timetable Number - 014501
+
+TOWN CENTRE-HANOVER PARK
+Timetable Number - 008302
+
+TOWN CENTRE-KENILWORTH CENTRE
+Timetable Number - 008302
+
+TOWN CENTRE-KILLARNEY
+Timetable Number - 009102
+
+TOWN CENTRE-KILLARNEY
+Timetable Number - 009101
+
+TOWN CENTRE-KOEBERG STN
+Timetable Number - 009201
+
+TOWN CENTRE-KOEBERG STN
+Timetable Number - 009202
+
+TOWN CENTRE-LENTEGEUR HOSP
+Timetable Number - 009001
+
+TOWN CENTRE-MAITLAND
+Timetable Number - 009201
+
+TOWN CENTRE-MAITLAND
+Timetable Number - 009202
+
+TOWN CENTRE-MANDALAY
+Timetable Number - 014901
+
+TOWN CENTRE-MANDALAY
+Timetable Number - 004801
+
+TOWN CENTRE-MANDALAY
+Timetable Number - 004802
+
+TOWN CENTRE-MERRYDALE
+Timetable Number - 008201
+
+TOWN CENTRE-MERRYDALE
+Timetable Number - 008202
+
+TOWN CENTRE-MERRYDALE
+Timetable Number - 007801
+
+TOWN CENTRE-MERRYDALE
+Timetable Number - 007802
+
+TOWN CENTRE-METRO
+Timetable Number - 018601
+
+TOWN CENTRE-METRO
+Timetable Number - 018602
+
+TOWN CENTRE-MOWBRAY
+Timetable Number - 007701
+
+TOWN CENTRE-MOWBRAY
+Timetable Number - 007702
+
+TOWN CENTRE-MOWBRAY
+Timetable Number - 007801
+
+TOWN CENTRE-MOWBRAY
+Timetable Number - 007802
+
+TOWN CENTRE-MUIZENBERG
+Timetable Number - 008602
+
+TOWN CENTRE-MUIZENBERG
+Timetable Number - 008601
+
+TOWN CENTRE-MUTUAL
+Timetable Number - 009301
+
+TOWN CENTRE-MUTUAL
+Timetable Number - 009302
+
+TOWN CENTRE-N1 CITY
+Timetable Number - 012801
+
+TOWN CENTRE-N1 CITY
+Timetable Number - 012802
+
+TOWN CENTRE-NDABENI
+Timetable Number - 009301
+
+TOWN CENTRE-NDABENI
+Timetable Number - 009302
+
+TOWN CENTRE-PHILIPPI
+Timetable Number - 006101
+
+TOWN CENTRE-PLUMSTEAD
+Timetable Number - 008701
+
+TOWN CENTRE-PLUMSTEAD
+Timetable Number - 008702
+
+TOWN CENTRE-RETREAT
+Timetable Number - 012401
+
+TOWN CENTRE-RETREAT
+Timetable Number - 012402
+
+TOWN CENTRE-ROCKLANDS
+Timetable Number - 008101
+
+TOWN CENTRE-ROCKLANDS
+Timetable Number - 012501
+
+TOWN CENTRE-ROCKLANDS
+Timetable Number - 008102
+
+TOWN CENTRE-ROCKLANDS
+Timetable Number - 007701
+
+TOWN CENTRE-ROCKLANDS
+Timetable Number - 007702
+
+TOWN CENTRE-SIMONSTOWN
+Timetable Number - 008602
+
+TOWN CENTRE-SIMONSTOWN
+Timetable Number - 008601
+
+TOWN CENTRE-SOMERSET WEST
+Timetable Number - 018801
+
+TOWN CENTRE-SOMERSET WEST
+Timetable Number - 018802
+
+TOWN CENTRE-STELLENBOSCH
+Timetable Number - 011001
+
+TOWN CENTRE-STELLENBOSCH
+Timetable Number - 011002
+
+TOWN CENTRE-STRANDFONTEIN
+Timetable Number - 008901
+
+TOWN CENTRE-STRANDFONTEIN
+Timetable Number - 008902
+
+TOWN CENTRE-TAFELSIG
+Timetable Number - 004901
+
+TOWN CENTRE-TYGERBERG
+Timetable Number - 012302
+
+TOWN CENTRE-TYGERBERG
+Timetable Number - 012301
+
+TOWN CENTRE-WYNBERG
+Timetable Number - 008901
+
+TOWN CENTRE-WYNBERG
+Timetable Number - 008902
+
+TYGER VALLEY-BELLVILLE
+Timetable Number - 002502
+
+TYGER VALLEY-BELLVILLE
+Timetable Number - 002501
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 002502
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 013902
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 013901
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 002501
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 018101
+
+TYGER VALLEY-DURBANVILLE
+Timetable Number - 018102
+
+TYGER VALLEY-ESCOM
+Timetable Number - 013902
+
+TYGER VALLEY-ESCOM
+Timetable Number - 013901
+
+TYGER VALLEY-EVERSDAL
+Timetable Number - 002502
+
+TYGER VALLEY-EVERSDAL
+Timetable Number - 002501
+
+TYGER VALLEY-KHAYELITSHA
+Timetable Number - 018101
+
+TYGER VALLEY-KHAYELITSHA
+Timetable Number - 018102
+
+TYGER VALLEY-NYANGA
+Timetable Number - 013902
+
+TYGER VALLEY-NYANGA
+Timetable Number - 013901
+
+TYGERBERG-BLUEDOWNS
+Timetable Number - 007101
+
+TYGERBERG-BLUEDOWNS
+Timetable Number - 007102
+
+TYGERBERG-DELFT
+Timetable Number - 019501
+
+TYGERBERG-HANOVER PARK
+Timetable Number - 011601
+
+TYGERBERG-HANOVER PARK
+Timetable Number - 011602
+
+TYGERBERG-KARL BREMER HOSP
+Timetable Number - 005501
+
+TYGERBERG-KARL BREMER HOSP
+Timetable Number - 005502
+
+TYGERBERG-KHAYELITSHA
+Timetable Number - 004601
+
+TYGERBERG-KHAYELITSHA
+Timetable Number - 004602
+
+TYGERBERG-KILLARNEY
+Timetable Number - 015701
+
+TYGERBERG-KILLARNEY
+Timetable Number - 015702
+
+TYGERBERG-NYANGA
+Timetable Number - 018202
+
+TYGERBERG-NYANGA
+Timetable Number - 018201
+
+TYGERBERG-PHILIPPI EAST SAP
+Timetable Number - 018202
+
+TYGERBERG-PHILIPPI EAST SAP
+Timetable Number - 018201
+
+TYGERBERG-RAVENSMEAD
+Timetable Number - 015701
+
+TYGERBERG-RAVENSMEAD
+Timetable Number - 015702
+
+TYGERBERG-SOMERSET WEST
+Timetable Number - 005501
+
+TYGERBERG-SOMERSET WEST
+Timetable Number - 005502
+
+TYGERBERG-TOWN CENTRE
+Timetable Number - 012302
+
+TYGERBERG-TOWN CENTRE
+Timetable Number - 012301
+
+TYGERBERG HOSP-CHATSWORTH
+Timetable Number - 021202
+
+TYGERBERG HOSP-CHATSWORTH
+Timetable Number - 021201
+
+TYGERBERG HOSP-ELSIES RIVER
+Timetable Number - 011402
+
+TYGERBERG HOSP-ELSIES RIVER
+Timetable Number - 011401
+
+TYGERBERG HOSP-EPPING IND
+Timetable Number - 011402
+
+TYGERBERG HOSP-EPPING IND
+Timetable Number - 011401
+
+TYGERBERG HOSP-MALMESBURY
+Timetable Number - 021202
+
+TYGERBERG HOSP-MALMESBURY
+Timetable Number - 021201
+
+TYGERBERG HOSP-UWC
+Timetable Number - 021202
+
+TYGERBERG HOSP-UWC
+Timetable Number - 021201
+
+TYGERBERG STN-BONTEHEUWEL
+Timetable Number - 002202
+
+TYGERBERG STN-BONTEHEUWEL
+Timetable Number - 002201
+
+TYGERBERG STN-ELSIES RIVER
+Timetable Number - 002202
+
+TYGERBERG STN-ELSIES RIVER
+Timetable Number - 002201
+
+UWC-CHATSWORTH
+Timetable Number - 021202
+
+UWC-CHATSWORTH
+Timetable Number - 021201
+
+UWC-MALMESBURY
+Timetable Number - 021202
+
+UWC-MALMESBURY
+Timetable Number - 021201
+
+UWC-TYGERBERG HOSP
+Timetable Number - 021202
+
+UWC-TYGERBERG HOSP
+Timetable Number - 021201
+
+VALKENBERG HOSP-BLUEDOWNS
+Timetable Number - 019201
+
+VALKENBERG HOSP-BLUEDOWNS
+Timetable Number - 019202
+
+VALKENBERG HOSP-DELFT
+Timetable Number - 019201
+
+VALKENBERG HOSP-DELFT
+Timetable Number - 019202
+
+WELGEMOED-CAPE TOWN
+Timetable Number - 018302
+
+WELGEMOED-CAPE TOWN
+Timetable Number - 018301
+
+WELGEMOED-KENRIDGE
+Timetable Number - 018302
+
+WELGEMOED-KENRIDGE
+Timetable Number - 018301
+
+WELLINGTON-BELLVILLE
+Timetable Number - 000702
+
+WELLINGTON-BELLVILLE
+Timetable Number - 000701
+
+WELLINGTON-CAPE TOWN
+Timetable Number - 000702
+
+WELLINGTON-CAPE TOWN
+Timetable Number - 000701
+
+WELLINGTON-PAARL
+Timetable Number - 000702
+
+WELLINGTON-PAARL
+Timetable Number - 000701
+
+WESTGATE MALL-TOWN CENTRE
+Timetable Number - 005702
+
+WYNBERG-BISHOPSCOURT
+Timetable Number - 002802
+
+WYNBERG-BLUEDOWNS
+Timetable Number - 014801
+
+WYNBERG-BLUEDOWNS
+Timetable Number - 014802
+
+WYNBERG-BONTEHEUWEL
+Timetable Number - 019602
+
+WYNBERG-BONTEHEUWEL
+Timetable Number - 019601
+
+WYNBERG-CLAREMONT
+Timetable Number - 002802
+
+WYNBERG-CONSTANTIA
+Timetable Number - 002802
+
+WYNBERG-DELFT
+Timetable Number - 014801
+
+WYNBERG-DELFT
+Timetable Number - 014802
+
+WYNBERG-HANOVER PARK
+Timetable Number - 003801
+
+WYNBERG-HANOVER PARK
+Timetable Number - 003802
+
+WYNBERG-HOUT BAY
+Timetable Number - 013201
+
+WYNBERG-HOUT BAY
+Timetable Number - 013202
+
+WYNBERG-HOUT BAY
+Timetable Number - 003201
+
+WYNBERG-HOUT BAY
+Timetable Number - 003202
+
+WYNBERG-KHAYELITSHA
+Timetable Number - 003201
+
+WYNBERG-KHAYELITSHA
+Timetable Number - 003202
+
+WYNBERG-KHAYELITSHA
+Timetable Number - 006802
+
+WYNBERG-KHAYELITSHA
+Timetable Number - 006801
+
+WYNBERG-MANENBERG
+Timetable Number - 003801
+
+WYNBERG-MANENBERG
+Timetable Number - 003802
+
+WYNBERG-NYANGA
+Timetable Number - 006001
+
+WYNBERG-NYANGA
+Timetable Number - 006002
+
+WYNBERG-PHILIPPI EAST SAP
+Timetable Number - 013201
+
+WYNBERG-PHILIPPI EAST SAP
+Timetable Number - 013202
+
+WYNBERG-STRANDFONTEIN
+Timetable Number - 008901
+
+WYNBERG-STRANDFONTEIN
+Timetable Number - 008902
+
+WYNBERG-TOWN CENTRE
+Timetable Number - 008901
+
+WYNBERG-TOWN CENTRE
+Timetable Number - 008902
+`.trim();
+
+    function escapeHtml(s){
+      return String(s||'').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+
+    function parseTimetables(raw){
+      const lines = String(raw||'')
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      const items = [];
+      for(let i=0;i<lines.length;i++){
+        const route = lines[i];
+        const next = lines[i+1] || '';
+        const m = next.match(/^Timetable\s*Number\s*-\s*([0-9.]+)\s*$/i);
+        if(!m) continue;
+        const timetable = m[1].trim();
+        const letter = (route && route[0]) ? route[0].toUpperCase() : '';
+        items.push({ letter, route: route.toUpperCase(), timetable });
+        i++; // skip timetable line
+      }
+
+      // Dedup
+      const seen = new Set();
+      const dedup = [];
+      for(const it of items){
+        const key = `${it.letter}||${it.route}||${it.timetable}`;
+        if(seen.has(key)) continue;
+        seen.add(key);
+        dedup.push(it);
+      }
+
+      dedup.sort((a,b)=>{
+        if(a.letter!==b.letter) return a.letter.localeCompare(b.letter);
+        if(a.route!==b.route) return a.route.localeCompare(b.route);
+        return a.timetable.localeCompare(b.timetable, undefined, {numeric:true});
+      });
+
+      return dedup;
+    }
+
+    let routes = parseTimetables(RAW_DATA);
+    let activeLetter = 'A';
+    let searchQ = '';
+    let mycitiMode = false;
+    let mycitiTab = 'stops';
+
+    function buildChips(){
+      chipsEl.innerHTML = '';
+      chipOrder.forEach(label=>{
+        const val = label.toUpperCase();
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (val === activeLetter ? ' active' : '');
+        b.textContent = label;
+        b.addEventListener('click', ()=>{
+          activeLetter = val;
+          currentLetterEl.textContent = label;
+          buildChips();
+          render();
+        });
+        chipsEl.appendChild(b);
+      });
+    }
+
+    function sanitizeFilename(n){
+      return String(n||'')
+        .replace(/[\\/:*?"<>|]/g,'')
+        .replace(/\s+/g,'-')
+        .slice(0,160);
+    }
+
+    // NOTE: this downloads a simple "PDF-looking" file.
+    // If you want real PDFs, tell me and I’ll switch it to a proper PDF generator.
+    function downloadPdf(item){
+      const filename = sanitizeFilename(`${item.route}-${item.timetable}`) + '.pdf';
+      const content =
+`Timetable for ${item.route}
+Timetable Number - ${item.timetable}
+
+(placeholder PDF content)`;
+
+      const blob = new Blob([content], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function openViewer(item){
+      modalTitle.textContent = item.route || '';
+      modalSub.textContent = 'Timetable Number - ' + (item.timetable || 'N/A');
+      modalPreview.innerHTML = `
+        <div>
+          <div style="font-weight:900;margin-bottom:6px">Preview</div>
+          <div style="font-size:13px;color:#111827">${escapeHtml(item.route)}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:6px">Timetable Number - ${escapeHtml(item.timetable)}</div>
+        </div>
+      `;
+      openModalDialog();
+      modalDownload.onclick = (e)=>{ e.preventDefault(); downloadPdf(item); };
+    }
+
+    function render(){
+      const q = searchQ.toLowerCase();
+
+      const list = routes.filter(r=>{
+        const letterOk = (activeLetter === 'ALL') || (r.letter === activeLetter);
+        const txtOk = !q || (r.route && r.route.toLowerCase().includes(q));
+        return letterOk && txtOk;
+      });
+
+      grid.innerHTML = '';
+      for(const item of list){
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="info">
+            <h3>${escapeHtml(item.route)}</h3>
+            <p>Timetable - ${escapeHtml(item.timetable)}</p>
+          </div>
+          <div class="actions">
+            <button class="btn secondary btn-view" type="button"><i class="fa-regular fa-eye"></i> View</button>
+            <button class="btn btn-dl" type="button"><i class="fa-solid fa-download"></i> Download</button>
+          </div>
+        `;
+        card.querySelector('.btn-view').addEventListener('click', ()=>openViewer(item));
+        card.querySelector('.btn-dl').addEventListener('click', ()=>downloadPdf(item));
+        grid.appendChild(card);
+      }
+
+      countPill.textContent = list.length;
+    }
+
+    const MYCITI_STOPS = [
+      "Abbas","Acacia","Adderley","Adderley Holding","Airport","Albany","Alberto","Alfred","Aliam","Aloe","Amsterdam","Ankerlig Power Station","Annandale","Aquarium","Arion","Armstrong","Arthurs","Atalantes","Atholl","Atlantic Beach","Atlantic Skipper","Atlantis Cemetery","Atlantis Station","August Kotzenberg","Avondale","Azalea","Bakoven","Balfour","Bantry Bay","Barley Bay","Barron","Bayview","Begonia","Belle Ombre","Ben Nevis","Bengal","Bergendal","Berkshire West","Berzelia","Big Bay","Birkenhead","Biscuit Mill","Bittern","Blaauwberg Hospital","Blaauwberg Hospital_","Blouberg Rise","Blouberg Sands","Boat Bay","Bokkombaai","Bolt","Bontebok","Bosmansdam","Boundary","Braselton","Breakwater","Brecon","Brenton","Brevity Lane","Bridgeway","Brittlestar","Briza","Brook","Brutus","Buick","Cabin","Caelian","Camberwell","Camps Bay","Canal Walk North","Canal Walk South","Capitoline","Carmel","Cassel","Castle","Castlehill","Central Park","Century City","Century City Rail","Century Gate","Charel Uys","Charel Uys North","Charel Uys South","Charles Duminy","Charles Matthews","Charles Mokoena","Charles Piers","Chas Booth","Chester East","Chester West","Chesterfield","Chippenham","Church","Churchill","Circle East","Civic Centre","Clarens","Clearwater","Clifton","Clifton 2nd","Clifton 3rd","Clifton 4th","Colebrook","Comrie","Convention Centre","Conway","Cormorant","Coronation","Coronation East","Coronation West","Corsair","Cosmonaut","Cotswold","Cput","Crassula","Crown","Curlew","D Nyembe","Dahlia","DaimlerBenz","Dal","Daphne","Darling","Dartford","David Cloete","Davison","Dawn","De Mist","De Waal Park","Deerhurst","Deerlodge","Democracy South","Denne Central","Denne East","Denne West","Dibana","Disa","Disandt","Discovery","District Six","Dolomites East","Dolomites West","Dorchester","Dorp","Dreyer","Drill","Dublin","Dunker","Duynefontein","Earlswood","Echium","Edison","Edward","Ellerton","Emerald","Enon","Enterprise","Esso","Estuaries","Exner","Fenwick","Fernande","Figaro","Firmount","First","Fishmarket","Fiskaal","Flamingo Park","Foreshore","Frans","Fresnaye","Gallows Hill","Garden","Gardenia","Gardens","Gerwyn Owen","Gideon Basson","Gie Central","Gie North","Gie South","Glen Beach","Goede Hoop","Goedverwacht","Gothenburg","Gousblom","Government Ave","Graafs Pool","Grand Canal","Granger","Granger Bay","Green","Grey","Groote Kerk","Grosvenor","Grosvenor North","Hampstead","Hamptons","Hangberg","Hanover Street","Harry Alexander","Hawking","Helgarda","Hermes","Hermeslaan Primary","Herzlia","Higgo","High Level","Highlands","Highlands","Hill","Hillary","Hoffe North","Hoffe South","Hol Bay","Hoogergeest","Horak","Houghton","Hout Bay","Human","Imizamo Yethu","Imperial","Industrial","Insiswa","Invermark","Irwinton","Jacana","Janssens","Jeff Masemola","Johan Heyns","Johan Heyns North","Johannes","John Dreyer","John Van Niekerk","Kapteinsklip","Kehrweider","Kei Apple","Kemp","Kent","Kerrem","Kerria Primary","Kew","Khwebula","Khwezi","Killarney","Kleinbaai","Klipheuwel","Kloof","Kloof Nek","Knysna","Koeberg Power Station","Koel Bay","Kolgha","Koosani","Kuyasa","La Paloma","Lagan","Lagoon Beach","Lancaster","Langeberg","Lawley","Le Sueur","Leeuwen","Lewisham","Lighthouse","Lindela","Link","Lisboa","Llandudno","Lobelia","Loco","London","Longmarket","Lookout Hill","Lord Caledon","Losperds","Louwtjie Rothman","Lower Buitenkant","Lower Camps Bay","Lower Church","Lower Kloof","Lower Plein","Lower Reservoir","Lower Victoria","Loxton East","Loxton West","Ludwigs Garden","Madeira","Magnet","Maidens Cove","Mainstream","Makabeni","Makhanya","Malgas","Malvern","Mansfield","Marconi","Marguerite","Marigold","Marina","Marine","Marine Circle","Marlin","Marmion","Mauritius","Meermin","Melkbosch","Melkbosch Village","Melkbosstrand","Merlot","Mfundisweni","Michaelis","Mid Long","Mid Loop","Milnerton","Milnerton Lighthouse","Mitchells Plain","Molteno","Montague Gardens","Montezuma","Montreal","Montreal South","Montrose","Moravia","Morgenster","Morningfield","Mouille Point","Mount Rhodes","Muscadel","Namar","Nantucket","Narcissus","Narwhal","Nazareth","Ncumo East","Ncumo West","Neil Hare","Neptune","Newlands","Ngcingcu","Nicobar","Nobel Square","Northshore","Ntlazane","Oakdale","Oakland Hills","Oasis","Ocean Spirit","Oceana","Old Breakwater Prison","Old Fire Station","Omuramba","Oscar Mpetha","Oudekraal","Oxford Earl","Paarden Eiland","Pama West","Paradise","Parklands College","Parklands Main","Parklands Main North","Parklands Main South","Parklands Secondary","Parkview","Patrys","Paulsberg","Pelican","Pella Central","Pella North","Pella South","Perlemoen","Petrus","Pinto","Platteklip","PM Louw","Pontiac","Popham","Porterfield","Portswood","Potsdam","Prima","Promenade","Quebec","Queens","Queens Beach","Quest","Racecourse","Radar","Ravenscraig","Ravensteyn","Ravenswood","Rayden","Raymond","Refinery","Reygersdal","Rhine","Riebeeck","Riebeeckstrand","Rivergate Primary","Robben","Robinvale","Rocklands","Roeland","Rontree","Roodehek","Royal Ascot","Russel","Ruwenzori","Ruyterplaats","Sailors Green","Salt River Hall","Salt River Rail","Salt River Rail North","Sampson","Sand","Sanddrift","Sandown","Sandown East","Saxonsea Clinic","Saxonsea Primary","Scott","Sea Point","Sea Point High","Sea Point Pool","Seal","Seaside Village","Section","Sesame","Shell","Sheridan","Sherwood","Sigwele","Silverstream","Silwerstroom Gate","Silwerstroomstrand","Skye Way","Snowdon","Soldier","Somerset Hospital","Southwark","Sparrebos","Spencer","Spine","St Bedes","St Georges","St James","St Johns Wood","St Michaels","Stables Turnaround","Stadium","Starke","Station","Steve Biko","Stirling","Strand","Studio","Sunset Beach","Surrey","Susan","Swawel","Swift","Table View","Tafelsig Primary","The Castle","The Glen","Thibault Square","Three Anchor Bay","Tijgerhof","Tom Henshilwood","Tortelduif","Tramway","Tritonia","Tryall","Tryall West","Tsitsikamma","Turf Club","Tutu","Union","Upper Buitenkant","Upper Kloof","Upper Long","Upper Loop","Upper Mountain","Upper Orange","Upper Portswood","Upper Roodebloem","Upper Salt River","Valderrama","Valley","Valleyfield","Victoria","Viola","Vrystaat","Vuyani","Waldeck","Walworth","Wandsworth","Waterford","Waterfront","Waterfront Silo","Waters Edge","Waterstone","Waterview","Waterville","Welgemeend","Wesfleur Hospital","Wesfleur Park","West Beach","Wexford","Whale Rock","Wigtown","Windsor","Wood","Wood Central","Wood North","Woodbridge","Woodford","Woodlands","Woodstock","Woodville","Zastron","Zoarvlei","Zonnebloem"
+    ];
+    const MYCITI_ROUTES = [
+      { code: "101", name: "Vredehoek - Gardens - Civic Centre (clockwise)" },
+      { code: "102", name: "Salt River Rail - Walmer Estate - Civic Centre" },
+      { code: "103", name: "Oranjezicht - Gardens - Civic Centre" },
+      { code: "104", name: "Oranjezicht - Gardens - Adderley - Waterfront" },
+      { code: "105", name: "Sea Point - Fresnaye - Civic Centre" },
+      { code: "106", name: "Camps Bay (clockwise) - Civic Centre" },
+      { code: "107", name: "Camps Bay (anticlockwise) - Civic Centre" },
+      { code: "108", name: "Hangberg - Hout Bay Harbour - Sea Point" },
+      { code: "109", name: "Hout Bay - Imizamo Yethu - Sea point" },
+      { code: "111", name: "Vredehoek - Gardens - Civic Centre (anti-clockwise)" },
+      { code: "113", name: "Upper Kloof Street - Adderley - Waterfront" },
+      { code: "118", name: "Hangberg - Imizamo Yethu - Sea Point - Adderley" },
+      { code: "213", name: "Sunningdale - Parklands - Table View - Sunningdale (clockwise)" },
+      { code: "214a", name: "Parklands - Table View" },
+      { code: "214b", name: "Table View - Melkbosch Village" },
+      { code: "214c", name: "Table View - Melkbosstrand - Duynefontein" },
+      { code: "215", name: "Sunningdale - Gie Road - Wood" },
+      { code: "216", name: "Big Bay - Wood Drive - Wood" },
+      { code: "223", name: "Sunningdale - West Beach - Table View - Sunningdale (anticlockwise)" },
+      { code: "231", name: "Atlantis Industria East - Atlantis" },
+      { code: "233", name: "Saxonsea - Atlantis" },
+      { code: "234", name: "Mamre (Crown) - Atlantis" },
+      { code: "235", name: "Pella - Atlantis" },
+      { code: "236", name: "Sherwood - Atlantis" },
+      { code: "237", name: "Robinvale - Atlantis" },
+      { code: "241", name: "Atlantis - Avondale - Beacon Hill" },
+      { code: "242", name: "Atlantis - Protea Park - Sherwood" },
+      { code: "243", name: "Atlantis - Pella - Mamre" },
+      { code: "244", name: "Avondale - Protea Park - Atlantis Industria West - Atlantis" },
+      { code: "245", name: "Saxonsea - Goode Hoop - Atlantis" },
+      { code: "246", name: "Mamre (Frans) - Atlantis" },
+      { code: "260", name: "Summer Greens - Woodbridge Island" },
+      { code: "261", name: "Century City Rail - Omuramba - Salt River - Adderley" },
+      { code: "262", name: "Summer Greens - Century City - Woodbridge Island" },
+      { code: "D01", name: "Khayelitsha East - Civic Centre" },
+      { code: "D02", name: "Khayelitsha West - Civic Centre" },
+      { code: "D03", name: "Mitchells Plain East - Civic Centre" },
+      { code: "D04", name: "Kapteinsklip - Mitchells Plain Town Centre - Civic Centre" },
+      { code: "D05", name: "Dunoon - Parklands - Table View - Civic Centre" },
+      { code: "D08", name: "Dunoon - Montague Gardens - Century City" },
+      { code: "T01", name: "Dunoon - Table View - Civic Centre - Waterfront" },
+      { code: "T01X", name: "Dunoon - Table View - Civic Centre" },
+      { code: "T02", name: "Civic Centre - Table View - Atlantis" },
+      { code: "T02X", name: "Atlantis - Table View - Civic Centre" },
+      { code: "T03", name: "Atlantis - Melkbosstrand - Table View - Century City" },
+      { code: "T04", name: "Dunoon - Omuramba - Century City" }
+    ];
+
+    function uniqueInOrder(list){
+      const seen = new Set();
+      const out = [];
+      list.forEach(item=>{
+        if(seen.has(item)) return;
+        seen.add(item);
+        out.push(item);
+      });
+      return out;
+    }
+
+    let mycitiStopsData = [];
+    let mycitiRoutesData = [];
+
+    function buildMycitiStops(){
+      return uniqueInOrder(mycitiStopsData.length ? mycitiStopsData : MYCITI_STOPS);
+    }
+
+    function buildMycitiRoutes(){
+      return (mycitiRoutesData.length ? mycitiRoutesData : MYCITI_ROUTES).slice();
+    }
+
+    function renderMycitiList(){
+      const listEl = document.getElementById('mycitiList');
+      if(!listEl) return;
+      const q = String(document.getElementById('mycitiSearch')?.value || '').toLowerCase().trim();
+      const data = mycitiTab === 'stops' ? buildMycitiStops(routes) : buildMycitiRoutes();
+      const filtered = q ? data.filter(n => {
+        if(typeof n === 'string') return n.toLowerCase().includes(q);
+        return `${n.code} ${n.name}`.toLowerCase().includes(q);
+      }) : data;
+
+      listEl.innerHTML = '';
+      for(let i=0;i<filtered.length;i+=3){
+        const row = document.createElement('div');
+        row.className = 'myciti-row';
+        const slice = filtered.slice(i, i+3);
+        slice.forEach(text=>{
+          const cell = document.createElement('div');
+          cell.className = 'myciti-cell button';
+          if(typeof text === 'string'){
+            cell.textContent = text;
+            cell.addEventListener('click', ()=>openMycitiDetail(text));
+          }else{
+            cell.innerHTML = `<span class="route-badge" data-code="${text.code}">${text.code}</span> ${text.name}`;
+            cell.addEventListener('click', ()=>openMycitiDetail(text.name));
+          }
+          row.appendChild(cell);
+        });
+        listEl.appendChild(row);
+      }
+
+      listEl.querySelectorAll('.route-badge').forEach((badge, idx)=>{
+        const palette = ['#9be15d','#00b0ff','#a3d4ff','#ffd34f','#7e71c4','#00a0dc','#ec407a','#ffb300','#4db6ac','#26a69a','#8bc34a','#7cb342','#7e57c2','#8e24aa','#26c6da','#ffd54f','#ffcc80','#64b5f6'];
+        badge.style.background = palette[idx % palette.length];
+      });
+    }
+
+    const mycitiItems = [
+      { time: "05:29", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "05:49", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:00", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:08", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:10", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:15", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:21", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:21", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:29", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:33", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:38", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:42", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:49", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "06:58", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "06:58", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:03", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "07:09", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:17", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "07:20", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:28", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "07:31", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:43", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:49", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "07:56", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "07:57", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:05", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:06", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:17", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:18", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:18", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:23", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:26", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:29", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:38", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:43", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:44", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "08:49", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "08:56", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "09:02", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "09:03", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "09:13", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "09:14", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "09:23", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "09:29", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "09:34", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "09:41", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "09:55", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "10:00", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "10:13", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "10:22", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "10:37", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "10:37", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "10:55", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "10:59", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "11:13", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "11:19", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "11:33", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "11:40", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "11:55", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "12:02", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "12:13", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "12:23", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "12:35", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "12:40", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "12:56", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "12:58", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "13:16", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "13:21", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "13:34", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "13:40", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "13:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "13:57", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:05", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:07", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:15", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:19", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:28", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:29", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:34", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:43", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "14:49", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "14:59", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:01", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:18", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:21", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:27", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:34", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:35", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:39", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:41", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "15:51", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "15:58", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:01", live: true, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:09", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:16", live: true, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:20", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:25", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:30", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:35", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:40", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "16:50", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "16:55", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:00", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:05", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:15", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:20", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:25", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:30", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:35", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:40", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "17:50", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "17:55", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:00", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:05", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:15", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:20", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:25", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:30", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:35", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:40", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "18:50", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "18:55", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:00", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:05", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:15", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:20", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:25", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:30", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:35", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:40", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:45", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "19:50", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "19:55", live: false, route: "216", direction: "216 Big Bay", day: "Today" },
+      { time: "20:00", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "20:10", live: false, route: "216", direction: "216 Wood", day: "Today" },
+      { time: "20:20", live: false, route: "216", direction: "216 Wood", day: "Today" }
+    ];
+
+    const stopTimetables = {
+      "Abbas": mycitiItems,
+      "Acacia": [
+        { time: "04:40", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "04:55", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "05:10", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "05:11", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "05:26", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "05:29", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "05:40", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "05:41", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "05:54", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "05:59", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "06:11", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "06:11", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "06:26", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "06:27", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "06:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "06:44", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "06:58", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "07:02", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "07:14", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "07:15", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "07:28", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "07:33", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "07:40", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "07:46", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "07:54", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "08:06", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "08:11", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "08:13", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "08:30", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "08:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "08:44", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "08:54", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "08:57", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "08:57", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "09:11", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "09:13", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "09:28", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "09:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "09:42", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "10:10", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "10:12", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "10:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "10:43", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "11:10", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "11:12", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "11:41", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "11:42", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "12:11", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "12:16", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "12:42", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "12:42", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "13:11", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "13:12", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "13:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "13:43", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "14:09", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "14:12", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "14:40", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "15:12", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "15:18", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "15:35", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "15:41", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "15:44", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "15:58", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "16:05", live: true, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "16:11", live: true, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "16:16", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "16:29", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "16:31", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "16:44", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "16:46", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "16:59", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "17:01", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "17:14", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "17:16", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "17:29", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "17:31", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "17:44", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "17:46", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "17:59", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "18:01", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "18:14", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "18:16", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "18:31", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "18:40", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "18:46", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "19:10", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "19:13", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "19:40", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "19:43", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "20:10", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "20:13", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "20:40", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "20:43", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "21:10", live: false, route: "244", direction: "244 Atlantis", day: "Today" },
+        { time: "21:13", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "21:43", live: false, route: "244", direction: "244 Avondale", day: "Today" },
+        { time: "22:24", live: false, route: "242", direction: "242 Swawel", day: "Today" }
+      ]
+    };
+
+    const mycitiState = { route: "all", direction: "all", day: "Today" };
+    let mycitiCurrentItems = mycitiItems;
+
+    function dedupeItems(items){
+      const seen = new Set();
+      const out = [];
+      for(const it of items){
+        const key = `${it.time}|${it.live}|${it.route}|${it.direction}|${it.day}`;
+        if(seen.has(key)) continue;
+        seen.add(key);
+        out.push(it);
+      }
+      return out;
+    }
+
+    function renderMycitiTable(items){
+      const listEl = document.getElementById("timetableList");
+      if(!listEl) return;
+      listEl.innerHTML = items.map(item => `
+        <div class="row">
+          <div class="left">
+            <div class="time">${item.time}</div>
+            <div class="live">${item.live ? "Live" : ""}</div>
+          </div>
+          <div class="right">
+            <div class="badge">${item.route}</div>
+            <a class="route-link" href="#" onclick="return false;">${item.direction}</a>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function applyMycitiFilter(){
+      const filtered = mycitiCurrentItems.filter(x => {
+        const okRoute = (mycitiState.route === "all") || (x.route === mycitiState.route);
+        const okDir   = (mycitiState.direction === "all") || (x.direction === mycitiState.direction);
+        const okDay   = (x.day === mycitiState.day);
+        return okRoute && okDir && okDay;
+      });
+      renderMycitiTable(filtered);
+    }
+
+    function closeAllMenus(except){
+      document.querySelectorAll(".myciti-detail .menu.open").forEach(m => {
+        if (m !== except) m.classList.remove("open");
+      });
+      document.querySelectorAll(".myciti-detail .select-btn[aria-expanded='true']").forEach(btn => {
+        btn.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    function bindMycitiSelects(){
+      document.querySelectorAll(".myciti-detail .select").forEach(select => {
+        const btn = select.querySelector(".select-btn");
+        const menu = select.querySelector(".menu");
+        const key = select.dataset.select;
+        if(!btn || !menu || !key) return;
+
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = menu.classList.contains("open");
+          closeAllMenus(isOpen ? null : menu);
+          menu.classList.toggle("open", !isOpen);
+          btn.setAttribute("aria-expanded", String(!isOpen));
+        });
+
+        menu.querySelectorAll(".opt").forEach(opt => {
+          opt.addEventListener("click", () => {
+            menu.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
+            opt.classList.add("active");
+
+            const val = opt.dataset.value;
+            mycitiState[key] = val;
+            btn.textContent = opt.textContent;
+
+            menu.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+          });
+        });
+      });
+
+      document.addEventListener("click", () => closeAllMenus(null));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeAllMenus(null);
+      });
+    }
+
+    function openMycitiDetail(name){
+      const detail = document.getElementById('mycitiDetail');
+      const listView = document.getElementById('mycitiListView');
+      const stopName = document.getElementById('stopName');
+      if(!detail || !listView || !stopName) return;
+
+      const displayName = name === 'Adderly' ? 'Adderley' : name;
+      stopName.textContent = displayName;
+      listView.style.display = 'none';
+      detail.classList.add('active');
+      if(displayName === 'Adderley' && !stopTimetables[displayName]){
+        fetch('myciti-adderley.txt')
+          .then(r => r.ok ? r.text() : '')
+          .then(txt => {
+            if(txt && txt.trim()){
+              stopTimetables[displayName] = parseStopLines(txt);
+            }
+            mycitiCurrentItems = dedupeItems(stopTimetables[displayName] || mycitiItems);
+            applyMycitiFilter();
+          })
+          .catch(()=>{ mycitiCurrentItems = dedupeItems(mycitiItems); applyMycitiFilter(); });
+        return;
+      }
+      mycitiCurrentItems = dedupeItems(stopTimetables[displayName] || mycitiItems);
+      applyMycitiFilter();
+    }
+
+    function closeMycitiDetail(){
+      const detail = document.getElementById('mycitiDetail');
+      const listView = document.getElementById('mycitiListView');
+      if(detail) detail.classList.remove('active');
+      if(listView) listView.style.display = 'block';
+    }
+
+    function initMyciti(){
+      const tabStops = document.getElementById('tab-stops');
+      const tabRoutes = document.getElementById('tab-routes');
+      const search = document.getElementById('mycitiSearch');
+      if(tabStops && tabRoutes){
+        tabStops.addEventListener('click', ()=>{
+          mycitiTab = 'stops';
+          tabStops.classList.add('active');
+          tabRoutes.classList.remove('active');
+          if(search) search.placeholder = 'Search by station / stop name';
+          renderMycitiList();
+        });
+        tabRoutes.addEventListener('click', ()=>{
+          mycitiTab = 'routes';
+          tabRoutes.classList.add('active');
+          tabStops.classList.remove('active');
+          if(search) search.placeholder = 'Search by route name';
+          renderMycitiList();
+        });
+      }
+      if(search){
+        search.addEventListener('input', renderMycitiList);
+      }
+      const back = document.getElementById('mycitiBack');
+      if(back) back.addEventListener('click', closeMycitiDetail);
+      const filterBtn = document.getElementById('applyFilter');
+      if(filterBtn) filterBtn.addEventListener('click', applyMycitiFilter);
+      bindMycitiSelects();
+      renderMycitiList();
+    }
+
+    // Events
+    searchInput.addEventListener('input', (e)=>{
+      searchQ = e.target.value.trim();
+      render();
+    });
+
+    closeModal.addEventListener('click', closeModalDialog);
+
+    // Close modal on backdrop click
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal){
+        closeModalDialog();
+      }
+    });
+
+    // ESC closes modal
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape' && modal.classList.contains('show')){
+        closeModalDialog();
+      }
+    });
+
+    async function loadRealTimetableData(){
+      if (!window.CCDataService) return;
+      const isGa = document.body.classList.contains('bus-ga');
+      const data = await window.CCDataService.loadByBus(isGa ? 'ga' : 'myciti');
+
+      if (isGa) {
+        if (Array.isArray(data.routePairs) && data.routePairs.length) {
+          routes = data.routePairs.map((pair, idx) => ({
+            letter: String(pair.from || 'A').charAt(0).toUpperCase(),
+            route: `${String(pair.from || '').toUpperCase()} - ${String(pair.to || '').toUpperCase()}`,
+            timetable: `GA-${String(idx + 1).padStart(3, '0')}`
+          }));
+        }
+        return;
+      }
+
+      if (Array.isArray(data.stops) && data.stops.length) {
+        mycitiStopsData = data.stops
+          .map(s => (typeof s === 'string' ? s : s?.name))
+          .filter(Boolean);
+      }
+
+      if (Array.isArray(data.routes) && data.routes.length) {
+        mycitiRoutesData = data.routes
+          .map(r => ({ code: String(r.code || '').trim(), name: String(r.name || '').trim() }))
+          .filter(r => r.code || r.name);
+      }
+    }
+
+    // Init
+    async function init(){
+      buildChips();
+      const storageKey = document.body.classList.contains('bus-myciti')
+        ? 'timetablesRaw_myciti'
+        : 'timetablesRaw_ga';
+      const stored = localStorage.getItem(storageKey) || localStorage.getItem('timetablesRaw');
+      if(stored && stored.trim()){
+        routes = parseTimetables(stored);
+      }else{
+        routes = parseTimetables(RAW_DATA);
+      }
+
+      try {
+        await loadRealTimetableData();
+      } catch (err) {
+        console.warn('Could not load real timetable data. Using fallback dataset.', err);
+      }
+
+      activeLetter = 'A';
+      currentLetterEl.textContent = 'A';
+      render();
+
+      mycitiMode = document.body.classList.contains('bus-myciti');
+      if(mycitiMode){
+        initMyciti();
+      }
+    }
+    init();
+  })();
+  </script>
+  <script src="js/app.js"></script>
+  <script>
+    if (window.App) {
+      App.loadTheme();
+      App.applyBusTheme();
+    }
+  </script>
+  <script>
+    (function(){
+      const path = location.pathname.split('/').pop();
+      document.querySelectorAll('#main-nav a').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href === path) a.classList.add('active');
+      });
+      const bus = (localStorage.getItem('selectedBus') || '').toLowerCase();
+      const calc = document.getElementById('calc-link');
+      const booking = document.getElementById('booking-link');
+      const logoImg = document.getElementById('nav-logo-img');
+      const logoText = document.getElementById('nav-logo-text');
+      if (bus === 'ga') {
+        if (calc) calc.href = 'ga-calculator.html';
+        if (booking) booking.href = 'ga-route-calculator.html';
+        if (logoImg) logoImg.src = 'pictures/Golden_Arrow-removebg-preview.png';
+        if (logoImg) logoImg.alt = 'Golden Arrow';
+        if (logoText) logoText.textContent = 'CapeConnect';
+      } else {
+        if (calc) calc.href = 'myciti-calculator.html';
+        if (booking) booking.href = 'choose-fare.html';
+        if (logoImg) logoImg.src = 'pictures/myciti-removebg-preview.png';
+        if (logoImg) logoImg.alt = 'MyCiTi';
+        if (logoText) logoText.textContent = 'MyCiTi';
+      }
+    })();
+  </script>
+  <script>
+    (function(){
+      const list = document.getElementById('helpline-list');
+      const title = document.getElementById('helpline-title');
+      if (!list || !title) return;
+      const bus = (localStorage.getItem('selectedBus') || '').toLowerCase();
+      list.innerHTML = '';
+      if (bus === 'ga') {
+        title.textContent = 'Golden Arrow Helpline';
+        list.innerHTML = `
+          <li><a href="tel:0800656463">0800 65 64 63 (Toll-free)</a></li>
+          <li><a href="tel:+27215078800">+27 21 507 8800 (Weekdays 08:00–16:30)</a></li>
+          <li><a href="tel:+27219378800">+27 21 937 8800 (Arrowgate)</a></li>
+        `;
+      } else {
+        title.textContent = 'MyCiTi Helpline';
+        list.innerHTML = `
+          <li><a href="tel:0800656463">0800 65 64 63 (Toll-free)</a></li>
+          <li><span>24/7 general enquiries</span></li>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>
+
+

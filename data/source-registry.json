@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "lastReviewed": "2026-02-16",
+  "operators": [
+    {
+      "id": "myciti",
+      "name": "MyCiTi",
+      "authority": "City of Cape Town",
+      "sources": [
+        {
+          "key": "site_root",
+          "url": "https://www.myciti.org.za/",
+          "type": "official-home"
+        },
+        {
+          "key": "timetable_downloads",
+          "url": "https://www.myciti.org.za/en/timetables/timetable-downloads/",
+          "type": "timetable"
+        },
+        {
+          "key": "route_stop_timetables",
+          "url": "https://www.myciti.org.za/en/timetables/route-stop-station-timetables/",
+          "type": "timetable"
+        },
+        {
+          "key": "fare_release_jul_2025",
+          "url": "https://www.myciti.org.za/en/contact/media-releases/annual-fare-adjustment-july-2025/",
+          "type": "fare-release",
+          "effectiveDate": "2025-07-01"
+        }
+      ],
+      "refreshCadence": "monthly-or-on-fare-notice",
+      "owner": "frontend-data"
+    },
+    {
+      "id": "golden-arrow",
+      "name": "Golden Arrow",
+      "authority": "Golden Arrow Bus Services",
+      "sources": [
+        {
+          "key": "site_root",
+          "url": "https://www.gabs.co.za/",
+          "type": "official-home"
+        },
+        {
+          "key": "routes_and_times",
+          "url": "https://www.gabs.co.za/RouteandTimes.aspx",
+          "type": "timetable"
+        },
+        {
+          "key": "product_details",
+          "url": "https://www.gabs.co.za/ProductDetails.aspx",
+          "type": "fare-product"
+        },
+        {
+          "key": "contact",
+          "url": "https://www.gabs.co.za/ContactUs.aspx",
+          "type": "verification-contact"
+        }
+      ],
+      "refreshCadence": "monthly-or-on-fare-notice",
+      "owner": "frontend-data"
+    }
+  ],
+  "publishRequirements": [
+    "sourceUrl",
+    "effectiveDate",
+    "retrievedAt",
+    "reviewedBy",
+    "lastUpdated"
+  ]
+}
+

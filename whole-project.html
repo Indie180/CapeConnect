@@ -1,0 +1,2654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapeConnect - Navigation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Variables for Light Mode */
+        :root {
+            --primary-blue: #1e3a8a;
+            --dark-blue: #1e40af;
+            --light-blue: #dbeafe;
+            --accent-yellow: #fbbf24;
+            --dark-yellow: #f59e0b;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --background-light: #f8fafc;
+            --white: #ffffff;
+            --card-bg: #ffffff;
+            --border-light: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --modal-bg: rgba(0, 0, 0, 0.5);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        /* CSS Variables for Dark Mode */
+        [data-theme="dark"] {
+            --primary-blue: #3b82f6;
+            --dark-blue: #1d4ed8;
+            --light-blue: #1e3a8a;
+            --accent-yellow: #fbbf24;
+            --dark-yellow: #f59e0b;
+            --text-dark: #f9fafb;
+            --text-light: #d1d5db;
+            --background-light: #111827;
+            --white: #1f2937;
+            --card-bg: #374151;
+            --border-light: #4b5563;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --modal-bg: rgba(0, 0, 0, 0.7);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 15px;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+            color: var(--accent-yellow);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 25px;
+        }
+
+        nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-yellow);
+            color: var(--text-dark);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--white);
+            color: var(--white);
+            margin-right: 10px;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Page Management */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Hidden Sections */
+        .hidden-section {
+            display: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* Section Styling */
+        section {
+            padding: 60px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .section-title p {
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Active Tickets Section */
+        .active-tickets {
+            background-color: var(--card-bg);
+        }
+
+        .tickets-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ticket-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .ticket-route {
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .ticket-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #e6f7ee;
+            color: var(--success-color);
+        }
+
+        .ticket-details {
+            margin-bottom: 15px;
+        }
+
+        .ticket-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .ticket-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* Timetable Section */
+        .timetable-section {
+            background-color: var(--background-light);
+        }
+
+        .timetable-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .timetable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timetable-header h3 {
+            color: var(--text-dark);
+        }
+
+        .refresh-btn {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--dark-blue);
+        }
+
+        .timetable-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-dark);
+        }
+
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .timetable th,
+        .timetable td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .timetable th {
+            background-color: var(--light-blue);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .timetable tr:hover {
+            background-color: var(--light-blue);
+        }
+
+        .status-on-time {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .status-delayed {
+            color: var(--error-color);
+            font-weight: 500;
+        }
+
+        /* Services Section */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .service-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .card-header {
+            padding: 20px;
+            color: var(--white);
+        }
+
+        .myciti .card-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        }
+
+        .golden-arrow .card-header {
+            background: linear-gradient(135deg, var(--accent-yellow), var(--dark-yellow));
+        }
+
+        .card-header h3 {
+            margin-bottom: 5px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .balance {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .balance h3 {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .ticket-details {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--light-blue);
+            border-radius: 4px;
+        }
+
+        .ticket-details h3 {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .ticket-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .dropdown {
+            margin-bottom: 20px;
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-dark);
+        }
+
+        .radio-group {
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .radio-option input {
+            margin-right: 10px;
+        }
+
+        /* Stats Section */
+        .stats {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+        }
+
+        .stats .section-title h2,
+        .stats .section-title p {
+            color: var(--white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Features Section */
+        .features {
+            background-color: var(--card-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: transform 0.3s ease;
+            background-color: var(--card-bg);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        /* Auth Pages */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--background-light);
+            padding: 40px 20px;
+        }
+
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 30px;
+        }
+
+        .auth-logo i {
+            margin-right: 10px;
+            color: var(--accent-yellow);
+        }
+
+        .auth-container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px var(--shadow);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .auth-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .input-with-icon input,
+        .input-with-icon select {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: var(--card-bg);
+        }
+
+        .searchable-select {
+            position: relative;
+        }
+
+        .searchable-select input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: var(--card-bg);
+        }
+
+        .searchable-select .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .searchable-select .dropdown-options.active {
+            display: block;
+        }
+
+        .searchable-select .dropdown-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .searchable-select .dropdown-option:last-child {
+            border-bottom: none;
+        }
+
+        .searchable-select .dropdown-option:hover {
+            background-color: var(--light-blue);
+        }
+
+        .forgot-password {
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .auth-btn:hover {
+            background-color: var(--dark-blue);
+        }
+
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: var(--text-light);
+        }
+
+        .separator::before,
+        .separator::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .separator span {
+            padding: 0 15px;
+        }
+
+        .social-auth {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .social-btn:hover {
+            background-color: var(--border-light);
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+        }
+
+        .auth-link a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .terms {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .terms a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .password-requirements {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: var(--light-blue);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .password-requirements p {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .password-requirements ul {
+            list-style: none;
+        }
+
+        .password-requirements li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .password-requirements i {
+            margin-right: 8px;
+            font-size: 0.7rem;
+        }
+
+        .requirement-met {
+            color: var(--success-color);
+        }
+
+        .requirement-not-met {
+            color: var(--text-light);
+        }
+
+        /* Payment Page */
+        .payment-container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 20px var(--shadow);
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .payment-header .logo {
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--primary-blue);
+        }
+
+        .payment-header h1 {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .subtitle {
+            color: var(--text-light);
+        }
+
+        .payment-card {
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .form-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .card-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .card-row .form-group {
+            flex: 1;
+        }
+
+        .card-icons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 20px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .card-icon.active {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-blue);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Confirmation Page */
+        .confirmation-card {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 20px var(--shadow);
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background-color: #e6f7ee;
+            color: var(--success-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .confirmation-message {
+            margin-bottom: 30px;
+            color: var(--text-light);
+        }
+
+        .booking-details {
+            text-align: left;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--light-blue);
+            border-radius: 8px;
+        }
+
+        .booking-details h3 {
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .detail-value {
+            color: var(--text-light);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background-color: var(--background-light);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-light);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-bg);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .modal-header h3 {
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            padding: 50px 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-column h3 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: var(--white);
+        }
+
+        .footer-column p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column ul li a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--white);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .social-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            nav ul {
+                justify-content: center;
+            }
+
+            nav ul li {
+                margin: 0 10px;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .card-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+        /* New styles for welcome message */
+        .welcome-message {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-message h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .welcome-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background-color: var(--accent-yellow);
+            color: var(--text-dark);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: var(--error-color) !important;
+        }
+
+        /* Barcode Styles */
+        .barcode-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+        }
+
+        .barcode {
+            display: inline-block;
+            margin: 0 auto;
+        }
+
+        .barcode-line {
+            display: inline-block;
+            height: 50px;
+            margin-right: 2px;
+            background-color: black;
+        }
+
+        .ticket-barcode {
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .ticket-barcode img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="page-container">
+        <!-- Header -->
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo" onclick="navigateTo('dashboard')">
+                        <i class="fas fa-bus"></i>
+                        <span>CapeConnect</span>
+                    </div>
+                    <nav>
+                        <ul>
+                            <li><a href="#" onclick="navigateTo('dashboard')">Home</a></li>
+                            <li><a href="#" onclick="showTimetable()">Routes & Timetables</a></li>
+                            <li><a href="#">Help</a></li>
+                        </ul>
+                    </nav>
+                    <div class="auth-buttons" id="auth-buttons">
+                        <a href="#" class="btn btn-outline" onclick="navigateTo('login')">Login</a>
+                        <a href="#" class="btn btn-primary" onclick="navigateTo('register')">Sign Up</a>
+                        <button class="theme-toggle" aria-label="Toggle theme" id="theme-toggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                    <div class="auth-buttons" id="user-menu" style="display: none;">
+                        <span id="username" style="color: white; margin-right: 10px;"></span>
+                        <a href="#" class="btn btn-outline" onclick="logout()">Logout</a>
+                        <button class="theme-toggle" aria-label="Toggle theme" id="theme-toggle-user">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <section id="dashboard" class="page active">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <div class="welcome-message">
+                            <h1 id="welcome-title">Seamless Bus Travel Across Cape Town</h1>
+                            <p id="welcome-subtitle">Book tickets, top up your balance, and plan journeys with Cape
+                                Town's premier bus service app</p>
+                            <div id="welcome-badge" class="welcome-badge" style="display: none;">New User</div>
+                        </div>
+                        <div class="hero-buttons">
+                            <a href="#" class="btn btn-primary" onclick="showTimetable()">View Real-time Timetable</a>
+                            <a href="#" class="btn btn-outline" onclick="handleBookTicket()">Book Your Ticket</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NEW: Active Tickets Section -->
+            <section class="active-tickets">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Your Active Tickets</h2>
+                        <p>View and manage your current bus tickets</p>
+                    </div>
+
+                    <div id="tickets-container" class="tickets-container">
+                        <!-- Tickets will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timetable Section - Initially Hidden -->
+            <section id="timetable" class="timetable-section hidden-section">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Real-time Bus Timetable</h2>
+                        <p>Live departure times for all settlements around Cape Town</p>
+                    </div>
+
+                    <div class="timetable-container">
+                        <div class="timetable-header">
+                            <h3>Next Departures</h3>
+                            <button class="refresh-btn" onclick="refreshTimetable()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div class="timetable-filters">
+                            <select class="filter-select" id="route-filter">
+                                <option value="all">All Routes</option>
+                                <option value="northern">Northern Line</option>
+                                <option value="southern">Southern Line</option>
+                                <option value="eastern">Eastern Line</option>
+                                <option value="central">Central Line</option>
+                            </select>
+
+                            <select class="filter-select" id="settlement-filter">
+                                <option value="all">All Settlements</option>
+                                <option value="formal">Formal Settlements</option>
+                                <option value="informal">Informal Settlements</option>
+                            </select>
+                        </div>
+
+                        <div class="timetable-content">
+                            <table class="timetable">
+                                <thead>
+                                    <tr>
+                                        <th>Route</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Departure</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timetable-body">
+                                    <!-- Timetable data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Services Section - Initially Hidden -->
+            <section id="services" class="services hidden-section">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Our Services</h2>
+                        <p>Choose between MyCiTi's points-based system or Golden Arrow's journey-based tickets</p>
+                    </div>
+                    <div class="services-grid">
+                        <!-- MyCiTi Card -->
+                        <div class="service-card myciti">
+                            <div class="card-header">
+                                <h3>MyCiTi Bus</h3>
+                                <p>Points-based system with flexible top-ups</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="balance">
+                                    <h3>Your Balance</h3>
+                                    <div class="balance-amount" id="myciti-balance">R 0.00</div>
+                                    <p id="last-topup">No recent top-ups</p>
+                                </div>
+                                <div class="ticket-details" id="myciti-ticket-details" style="display: none;">
+                                    <h3>Active Ticket</h3>
+                                    <div class="ticket-detail-row">
+                                        <span>Reference:</span>
+                                        <span id="myciti-ticket-ref">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>From:</span>
+                                        <span id="myciti-ticket-from">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>To:</span>
+                                        <span id="myciti-ticket-to">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>Date:</span>
+                                        <span id="myciti-ticket-date">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>Passengers:</span>
+                                        <span id="myciti-ticket-passengers">-</span>
+                                    </div>
+                                </div>
+
+                                <div class="dropdown">
+                                    <select class="dropdown-select" id="myciti-topup">
+                                        <option value="" disabled selected>Select top-up amount</option>
+                                        <option value="50">R50</option>
+                                        <option value="100">R100</option>
+                                        <option value="200">R200</option>
+                                        <option value="500">R500</option>
+                                    </select>
+                                </div>
+
+                                <div class="radio-group">
+                                    <div class="radio-option" onclick="selectMyCiTiOption('monthly')">
+                                        <input type="radio" id="myciti-monthly-option" name="myciti-option"
+                                            value="monthly">
+                                        <label for="myciti-monthly-option">Monthly Ticket - R1000</label>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" style="width: 100%;"
+                                    onclick="selectMyCiTiService()">Continue</button>
+                            </div>
+                        </div>
+
+                        <!-- Golden Arrow Card -->
+                        <div class="service-card golden-arrow">
+                            <div class="card-header">
+                                <h3>Golden Arrow</h3>
+                                <p>Journey-based tickets for regular commuters</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="balance">
+                                    <h3>Active Tickets</h3>
+                                    <div class="balance-amount" id="ga-ticket-status">No active tickets</div>
+                                    <p id="ga-validity">Purchase a ticket to get started</p>
+                                </div>
+                                <div class="ticket-details" id="ga-ticket-details" style="display: none;">
+                                    <h3>Active Ticket</h3>
+                                    <div class="ticket-detail-row">
+                                        <span>Reference:</span>
+                                        <span id="ga-ticket-ref">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>From:</span>
+                                        <span id="ga-ticket-from">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>To:</span>
+                                        <span id="ga-ticket-to">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>Date:</span>
+                                        <span id="ga-ticket-date">-</span>
+                                    </div>
+                                    <div class="ticket-detail-row">
+                                        <span>Passengers:</span>
+                                        <span id="ga-ticket-passengers">-</span>
+                                    </div>
+                                </div>
+
+                                <div class="radio-group">
+                                    <div class="radio-option" onclick="selectGoldenArrowOption('weekly')">
+                                        <input type="radio" id="weekly-option" name="golden-arrow-option"
+                                            value="weekly">
+                                        <label for="weekly-option">Weekly Ticket - R240</label>
+                                    </div>
+                                    <div class="radio-option"
+                                        onclick="document.getElementById('monthly-option').checked = true; selectGoldenArrowOption('monthly');">
+                                        <input type="radio" id="monthly-option" name="golden-arrow-option"
+                                            value="monthly">
+                                        <label for="monthly-option" style="cursor:pointer;">Monthly Ticket -
+                                            R1050</label>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" style="width: 100%;"
+                                    onclick="selectGoldenArrowService()">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Why Choose CapeConnect?</h2>
+                        <p>We're committed to making your commute easier and more efficient</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">98%</div>
+                            <p>On-time Performance</p>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">250+</div>
+                            <p>Routes Covered</p>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">50k+</div>
+                            <p>Daily Commuters</p>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">24/7</div>
+                            <p>Customer Support</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>How It Works</h2>
+                        <p>Everything you need for stress-free bus travel in Cape Town</p>
+                    </div>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-route"></i>
+                            <h3>Plan Your Journey</h3>
+                            <p>Find the best routes and check real-time bus arrivals</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-mobile-alt"></i>
+                            <h3>Book & Pay</h3>
+                            <p>Purchase tickets or top up your balance in seconds</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-ticket-alt"></i>
+                            <h3>Digital Tickets</h3>
+                            <p>Access your tickets anytime, even offline</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-bell"></i>
+                            <h3>Real-time Alerts</h3>
+                            <p>Get notified about schedule changes and delays</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- Login Page -->
+        <section id="login" class="page">
+            <div class="auth-page">
+                <div class="auth-logo">
+                    <i class="fas fa-bus"></i>
+                    <span>CapeConnect</span>
+                </div>
+
+                <div class="auth-container">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="login-email" name="email" placeholder="Enter your email"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="login-password" name="password"
+                                    placeholder="Enter your password" required>
+                            </div>
+                            <a href="#" class="forgot-password">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="auth-btn">Login</button>
+
+                        <div class="separator">
+                            <span>Or continue with</span>
+                        </div>
+
+                        <div class="social-auth">
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-google"></i>
+                            </a>
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <p class="auth-link">
+                        Don't have an account? <a href="#" onclick="navigateTo('register')">Register now</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Registration Page -->
+        <section id="register" class="page">
+            <div class="auth-page">
+                <div class="auth-logo">
+                    <i class="fas fa-bus"></i>
+                    <span>CapeConnect</span>
+                </div>
+
+                <div class="auth-container">
+                    <h2 class="auth-title">Create Your Account</h2>
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="register-name">Full Name</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="register-name" name="name" placeholder="Enter your full name"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="register-email" name="email" placeholder="Enter your email"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="register-password" name="password"
+                                    placeholder="Create a password" required>
+                            </div>
+
+                            <div class="password-requirements" id="password-requirements">
+                                <p>Password must include:</p>
+                                <ul>
+                                    <li class="requirement-not-met" id="length-req"><i class="fas fa-circle"></i> At
+                                        least 8 characters</li>
+                                    <li class="requirement-not-met" id="number-req"><i class="fas fa-circle"></i> At
+                                        least one number</li>
+                                    <li class="requirement-not-met" id="special-req"><i class="fas fa-circle"></i> At
+                                        least one special character</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="auth-btn">Create Account</button>
+
+                        <div class="separator">
+                            <span>Or register with</span>
+                        </div>
+
+                        <div class="social-auth">
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-google"></i>
+                            </a>
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-btn">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <p class="auth-link">
+                        Already have an account? <a href="#" onclick="navigateTo('login')">Login here</a>
+                    </p>
+
+                    <p class="terms">
+                        By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
+                            Policy</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Destination Selection Page -->
+        <section id="destination" class="page">
+            <div class="auth-page">
+                <div class="auth-logo">
+                    <i class="fas fa-bus"></i>
+                    <span>CapeConnect</span>
+                </div>
+
+                <div class="auth-container">
+                    <h2 class="auth-title">Choose Your Destination</h2>
+                    <form id="destination-form">
+                        <div class="form-group">
+                            <label for="from-location">From</label>
+                            <div class="searchable-select">
+                                <div class="input-with-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <input type="text" id="from-location" name="from"
+                                        placeholder="Search or select starting location" required autocomplete="off">
+                                </div>
+                                <div class="dropdown-options" id="from-options"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="to-location">To</label>
+                            <div class="searchable-select">
+                                <div class="input-with-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <input type="text" id="to-location" name="to"
+                                        placeholder="Search or select destination" required autocomplete="off">
+                                </div>
+                                <div class="dropdown-options" id="to-options"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="departure-date">Departure Date</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-calendar"></i>
+                                <input type="date" id="departure-date" name="date" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="passengers">Number of Passengers</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-users"></i>
+                                <input type="number" id="passengers" name="passengers" min="1" max="10" value="1"
+                                    required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="auth-btn">Continue to Payment</button>
+                    </form>
+
+                    <p class="auth-link">
+                        <a href="#" onclick="navigateTo('services')">Back to Services</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment Page -->
+        <section id="payment" class="page">
+            <div class="container">
+                <div class="payment-container">
+                    <div class="payment-header">
+                        <div class="logo">
+                            <i class="fas fa-bus"></i>
+                            <span>CapeConnect</span>
+                        </div>
+                        <h1>Secure Payment</h1>
+                        <p class="subtitle">Enter your card details to complete payment</p>
+                    </div>
+
+                    <div class="payment-card">
+                        <div class="form-title">
+                            <i class="fas fa-credit-card"></i> Card Details
+                        </div>
+
+                        <form id="payment-form">
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number</label>
+                                <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456"
+                                    required maxlength="19">
+                                <div id="cardNumberError" class="error-message"></div>
+                            </div>
+
+                            <div class="card-icons">
+                                <div class="card-icon active" data-type="visa" onclick="selectCardType('visa')">
+                                    <i class="fab fa-cc-visa"></i>
+                                </div>
+                                <div class="card-icon" data-type="mastercard" onclick="selectCardType('mastercard')">
+                                    <i class="fab fa-cc-mastercard"></i>
+                                </div>
+                            </div>
+
+                            <div class="card-row">
+                                <div class="form-group">
+                                    <label for="expiry">Expiry Date</label>
+                                    <input type="text" id="expiry" name="expiry" placeholder="MM/YY" required
+                                        maxlength="5">
+                                    <div id="expiryError" class="error-message"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="cvv">Security Code (CVV)</label>
+                                    <input type="text" id="cvv" name="cvv" placeholder="123" required maxlength="4">
+                                    <div id="cvvError" class="error-message"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cardName">Name on Card</label>
+                                <input type="text" id="cardName" name="cardName" placeholder="John Doe" required>
+                                <div id="cardNameError" class="error-message"></div>
+                            </div>
+
+                            <button type="submit" class="auth-btn">
+                                <i class="fas fa-lock"></i> Pay Now
+                            </button>
+
+                            <div class="security-note">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Your payment information is encrypted and secure</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Confirmation Page -->
+        <section id="confirmation" class="page">
+            <div class="container">
+                <div class="confirmation-card">
+                    <div class="success-icon" id="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+
+                    <h2 id="confirmation-title">Payment Successful!</h2>
+                    <p class="confirmation-message" id="confirmation-message">Your bus booking has been confirmed. Thank
+                        you for choosing CapeConnect!</p>
+
+                    <div class="booking-details" id="booking-details">
+                        <h3>Booking Details</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Booking Reference:</span>
+                            <span class="detail-value" id="booking-ref">CT789456123</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Service:</span>
+                            <span class="detail-value" id="booking-service">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">From:</span>
+                            <span class="detail-value" id="booking-from">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">To:</span>
+                            <span class="detail-value" id="booking-to">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date & Time:</span>
+                            <span class="detail-value" id="booking-date">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Passengers:</span>
+                            <span class="detail-value" id="booking-passengers">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Total Paid:</span>
+                            <span class="detail-value" id="booking-amount">-</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <a href="#" class="btn btn-primary" onclick="navigateTo('dashboard')">
+                            <i class="fas fa-ticket-alt"></i> View Ticket on Dashboard
+                        </a>
+                        <a href="#" class="btn btn-secondary" onclick="navigateTo('services')">
+                            <i class="fas fa-plus"></i> Book Another Ticket
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ticket Details Modal -->
+        <div id="ticket-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Ticket Details</h3>
+                    <button class="modal-close" onclick="closeTicketModal()">&times;</button>
+                </div>
+                <div id="ticket-modal-content">
+                    <!-- Ticket details will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-column">
+                        <h3>CapeConnect</h3>
+                        <p>Your reliable partner for bus transportation in Cape Town. Making commuting easier since
+                            2023.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Press</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Services</h3>
+                        <ul>
+                            <li><a href="#">MyCiTi Bus</a></li>
+                            <li><a href="#">Golden Arrow</a></li>
+                            <li><a href="#">School Transport</a></li>
+                            <li><a href="#">Tourist Passes</a></li>
+                            <li><a href="#">Corporate Solutions</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">Help Center</a></li>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Refund Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="copyright">
+                    <p>&copy; 2025 CapeConnect. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // Update theme toggle icons
+            const themeIcons = document.querySelectorAll('.theme-toggle i');
+            themeIcons.forEach(icon => {
+                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            });
+        }
+
+        // Initialize theme from localStorage
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+            // Set initial theme toggle icons
+            const themeIcons = document.querySelectorAll('.theme-toggle i');
+            themeIcons.forEach(icon => {
+                icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            });
+        }
+
+        // Page Navigation
+        function navigateTo(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show the selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // If navigating to dashboard, populate tickets
+            if (pageId === 'dashboard') {
+                populateTickets();
+            }
+
+            // If navigating to destination, initialize searchable dropdowns
+            if (pageId === 'destination') {
+                initializeSearchableDropdowns();
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Show timetable function
+        function showTimetable() {
+            navigateTo('dashboard');
+            setTimeout(() => {
+                document.getElementById('timetable').classList.remove('hidden-section');
+                document.getElementById('timetable').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Show services function
+        function showServices() {
+            navigateTo('dashboard');
+            setTimeout(() => {
+                document.getElementById('services').classList.remove('hidden-section');
+                document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Handle book ticket button
+        function handleBookTicket() {
+            const isLoggedIn = localStorage.getItem('capeConnectUser');
+            const selectedBus = localStorage.getItem('selectedBus');
+
+            if (selectedBus === 'myciti') {
+                window.location.href = 'html.html';
+                return;
+            }
+
+            if (isLoggedIn) {
+                showServices();
+            } else {
+                navigateTo('login');
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize theme
+            initializeTheme();
+
+            // Add event listeners to theme toggles
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('theme-toggle-user').addEventListener('click', toggleTheme);
+
+            // Check if user is logged in (for demo purposes)
+            const isLoggedIn = localStorage.getItem('capeConnectUser');
+
+            if (isLoggedIn) {
+                const user = JSON.parse(isLoggedIn);
+                document.getElementById('auth-buttons').style.display = 'none';
+                document.getElementById('user-menu').style.display = 'flex';
+                document.getElementById('username').textContent = user.name;
+
+                // Update welcome message based on user status
+                updateWelcomeMessage(user.isNew);
+            }
+
+            // Populate timetable with sample data
+            refreshTimetable();
+
+            // Populate active tickets
+            populateTickets();
+
+            // Set minimum date for departure date
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toISOString().split('T')[0];
+            document.getElementById('departure-date').min = formattedDate;
+        });
+
+        // Update welcome message based on user status
+        function updateWelcomeMessage(isNew) {
+            const welcomeTitle = document.getElementById('welcome-title');
+            const welcomeSubtitle = document.getElementById('welcome-subtitle');
+            const welcomeBadge = document.getElementById('welcome-badge');
+
+            if (isNew) {
+                welcomeTitle.textContent = 'Welcome to CapeConnect!';
+                welcomeSubtitle.textContent = 'We\'re excited to have you on board. Start your journey with us today!';
+                welcomeBadge.style.display = 'block';
+            } else {
+                welcomeTitle.textContent = 'Welcome Back to CapeConnect!';
+                welcomeSubtitle.textContent = 'Ready for your next journey? Check your active tickets or book a new one.';
+                welcomeBadge.style.display = 'none';
+            }
+        }
+
+        // Refresh timetable data
+        function refreshTimetable() {
+            const timetableBody = document.getElementById('timetable-body');
+
+            // Sample timetable data
+            const timetableData = [
+                { route: 'Northern Line', from: 'Cape Town Station', to: 'Khayelitsha', departure: '08:15 AM', status: 'On Time' },
+                { route: 'Southern Line', from: 'Wynberg', to: 'Simon\'s Town', departure: '08:30 AM', status: 'On Time' },
+                { route: 'Eastern Line', from: 'Bellville', to: 'Stellenbosch', departure: '08:45 AM', status: 'Delayed 5 min' },
+                { route: 'Central Line', from: 'Claremont', to: 'Sea Point', departure: '09:00 AM', status: 'On Time' },
+                { route: 'Northern Line', from: 'Khayelitsha', to: 'Cape Town Station', departure: '09:15 AM', status: 'On Time' }
+            ];
+
+            // Clear existing content
+            timetableBody.innerHTML = '';
+
+            // Populate with data
+            timetableData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${item.route}</td>
+                <td>${item.from}</td>
+                <td>${item.to}</td>
+                <td>${item.departure}</td>
+                <td class="${item.status.includes('On Time') ? 'status-on-time' : 'status-delayed'}">${item.status}</td>
+            `;
+                timetableBody.appendChild(row);
+            });
+        }
+
+        // Populate active tickets
+        function populateTickets() {
+            const ticketsContainer = document.getElementById('tickets-container');
+
+            // Get tickets from localStorage or use sample data
+            let tickets = JSON.parse(localStorage.getItem('capeConnectTickets')) || [];
+
+            // Clear existing content
+            ticketsContainer.innerHTML = '';
+
+            // If no tickets
+            if (tickets.length === 0) {
+                ticketsContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                    <i class="fas fa-ticket-alt" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                    <h3>No Active Tickets</h3>
+                    <p>You don't have any active tickets yet.</p>
+                    <a href="#" class="btn btn-primary" onclick="handleBookTicket()">Book Your First Ticket</a>
+                </div>
+            `;
+                return;
+            }
+
+            // Populate with ticket data
+            tickets.forEach(ticket => {
+                const ticketCard = document.createElement('div');
+                ticketCard.className = 'ticket-card';
+                ticketCard.innerHTML = `
+                <div class="ticket-header">
+                    <span class="ticket-route">${ticket.route}</span>
+                    <span class="ticket-status status-active">${ticket.status}</span>
+                </div>
+                <div class="ticket-details">
+                    <div class="ticket-detail">
+                        <span>From:</span>
+                        <span>${ticket.from}</span>
+                    </div>
+                    <div class="ticket-detail">
+                        <span>To:</span>
+                        <span>${ticket.to}</span>
+                    </div>
+                    <div class="ticket-detail">
+                        <span>Date:</span>
+                        <span>${ticket.date}</span>
+                    </div>
+                    <div class="ticket-detail">
+                        <span>Time:</span>
+                        <span>${ticket.time}</span>
+                    </div>
+                    <div class="ticket-detail">
+                        <span>Passengers:</span>
+                        <span>${ticket.passengers}</span>
+                    </div>
+                </div>
+                <div class="ticket-actions">
+                    <button class="btn btn-primary btn-small" onclick="viewTicketDetails('${ticket.id}')">View Details</button>
+                </div>
+            `;
+                ticketsContainer.appendChild(ticketCard);
+            });
+        }
+
+        // View ticket details
+        function viewTicketDetails(ticketId) {
+            // Get tickets from localStorage
+            const tickets = JSON.parse(localStorage.getItem('capeConnectTickets')) || [];
+            const ticket = tickets.find(t => t.id === ticketId);
+
+            if (!ticket) {
+                alert('Ticket not found');
+                return;
+            }
+
+            const modalContent = document.getElementById('ticket-modal-content');
+            modalContent.innerHTML = `
+            <div class="ticket-details" style="padding: 20px;">
+                <div class="detail-row">
+                    <span class="detail-label">Ticket ID:</span>
+                    <span class="detail-value">${ticket.id}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Service:</span>
+                    <span class="detail-value">${ticket.service}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Route:</span>
+                    <span class="detail-value">${ticket.route}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">From:</span>
+                    <span class="detail-value">${ticket.from}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">To:</span>
+                    <span class="detail-value">${ticket.to}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">${ticket.date}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">${ticket.time}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Passengers:</span>
+                    <span class="detail-value">${ticket.passengers}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Ticket Type:</span>
+                    <span class="detail-value">${ticket.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Price:</span>
+                    <span class="detail-value">${ticket.price}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Booking Date:</span>
+                    <span class="detail-value">${ticket.bookingDate}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value status-active">${ticket.status}</span>
+                </div>
+            </div>
+            <div class="ticket-barcode">
+                <div class="barcode-container">
+                    <div class="barcode" id="barcode-${ticket.id}"></div>
+                </div>
+            </div>
+        `;
+
+            // Generate barcode for the ticket
+            generateBarcode(ticket.id);
+
+            document.getElementById('ticket-modal').style.display = 'flex';
+        }
+
+        // Generate barcode for a ticket
+        function generateBarcode(ticketId) {
+            const barcodeContainer = document.getElementById(`barcode-${ticketId}`);
+            barcodeContainer.innerHTML = '';
+
+            // Generate a simple barcode using div elements
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                // Random width for each bar to simulate a barcode
+                const width = Math.floor(Math.random() * 4) + 1;
+                bar.className = 'barcode-line';
+                bar.style.width = `${width}px`;
+                barcodeContainer.appendChild(bar);
+            }
+        }
+
+        // Close ticket modal
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').style.display = 'none';
+        }
+
+        // Service selection functions
+        function selectMyCiTiOption(option) {
+            // This would typically update UI to show the selected option
+            document.querySelectorAll('#myciti-option input').forEach(radio => {
+                radio.checked = false;
+            });
+            document.querySelector(`#myciti-${option}-option`).checked = true;
+        }
+
+        function selectGoldenArrowOption(option) {
+            // This would typically update UI to show the selected option
+            document.querySelectorAll('.radio-option input').forEach(radio => {
+                radio.checked = false;
+            });
+            document.querySelector(`input[value="${option}"]`).checked = true;
+        }
+
+        // Select MyCiTi service
+        function selectMyCiTiService() {
+            const topupAmount = document.getElementById('myciti-topup').value;
+            const monthlySelected = document.getElementById('myciti-monthly-option').checked;
+
+            if (!topupAmount && !monthlySelected) {
+                alert('Please select a top-up amount or monthly ticket');
+                return;
+            }
+
+            // Store service selection
+            localStorage.setItem('selectedService', 'myciti');
+
+            if (monthlySelected) {
+                localStorage.setItem('selectedTicketType', 'monthly');
+                localStorage.setItem('selectedAmount', 'R 1000.00');
+            } else {
+                localStorage.setItem('selectedTicketType', 'topup');
+                localStorage.setItem('selectedAmount', `R ${topupAmount}.00`);
+            }
+
+            navigateTo('destination');
+        }
+
+        // Select Golden Arrow service
+        function selectGoldenArrowService() {
+            const selectedOption = document.querySelector('input[name="golden-arrow-option"]:checked');
+
+            if (!selectedOption) {
+                alert('Please select a ticket type');
+                return;
+            }
+
+            // Store service selection
+            localStorage.setItem('selectedService', 'golden-arrow');
+            localStorage.setItem('selectedTicketType', selectedOption.value);
+
+            // Set the amount based on the selection
+            const amount = selectedOption.value === 'weekly' ? 'R 240.00' : 'R 1050.00';
+            localStorage.setItem('selectedAmount', amount);
+
+            navigateTo('destination');
+        }
+
+        // Card type selection
+        function selectCardType(type) {
+            document.querySelectorAll('.card-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            document.querySelector(`.card-icon[data-type="${type}"]`).classList.add('active');
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('capeConnectUser');
+            document.getElementById('auth-buttons').style.display = 'flex';
+            document.getElementById('user-menu').style.display = 'none';
+
+            // Hide services section when logging out
+            document.getElementById('services').classList.add('hidden-section');
+
+            navigateTo('dashboard');
+        }
+
+        // Form handling
+        document.getElementById('login-form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // In a real app, you would send this data to a server
+            const userData = {
+                name: document.getElementById('login-email').value.split('@')[0],
+                email: document.getElementById('login-email').value,
+                isNew: false
+            };
+            localStorage.setItem('capeConnectUser', JSON.stringify(userData));
+            document.getElementById('auth-buttons').style.display = 'none';
+            document.getElementById('user-menu').style.display = 'flex';
+            document.getElementById('username').textContent = userData.name;
+
+            // Update welcome message
+            updateWelcomeMessage(false);
+
+            navigateTo('dashboard');
+        });
+
+        document.getElementById('register-form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // In a real app, you would send this data to a server
+            const userData = {
+                name: document.getElementById('register-name').value,
+                email: document.getElementById('register-email').value,
+                isNew: true
+            };
+            localStorage.setItem('capeConnectUser', JSON.stringify(userData));
+            document.getElementById('auth-buttons').style.display = 'none';
+            document.getElementById('user-menu').style.display = 'flex';
+            document.getElementById('username').textContent = userData.name;
+
+            // Update welcome message
+            updateWelcomeMessage(true);
+
+            navigateTo('dashboard');
+        });
+
+        document.getElementById('destination-form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Store destination data
+            const destinationData = {
+                from: document.getElementById('from-location').value,
+                to: document.getElementById('to-location').value,
+                date: document.getElementById('departure-date').value,
+                passengers: document.getElementById('passengers').value
+            };
+
+            localStorage.setItem('destinationData', JSON.stringify(destinationData));
+            navigateTo('payment');
+        });
+
+        document.getElementById('payment-form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validate card details
+            const cardNumber = document.getElementById('cardNumber').value;
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+            const cardName = document.getElementById('cardName').value;
+
+            let isValid = true;
+
+            // Reset errors
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.input-with-icon input, .input-with-icon select').forEach(el => {
+                el.classList.remove('input-error');
+            });
+
+            // Validate card number (simple check for demo)
+            if (!/^\d{16}$/.test(cardNumber.replace(/\s/g, ''))) {
+                document.getElementById('cardNumberError').textContent = 'Please enter a valid 16-digit card number';
+                document.getElementById('cardNumberError').style.display = 'block';
+                document.getElementById('cardNumber').classList.add('input-error');
+                isValid = false;
+            }
+
+            // Validate expiry date
+            if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                document.getElementById('expiryError').textContent = 'Please enter a valid expiry date (MM/YY)';
+                document.getElementById('expiryError').style.display = 'block';
+                document.getElementById('expiry').classList.add('input-error');
+                isValid = false;
+            }
+
+            // Validate CVV
+            if (!/^\d{3,4}$/.test(cvv)) {
+                document.getElementById('cvvError').textContent = 'Please enter a valid CVV';
+                document.getElementById('cvvError').style.display = 'block';
+                document.getElementById('cvv').classList.add('input-error');
+                isValid = false;
+            }
+
+            // Validate card name
+            if (cardName.trim() === '') {
+                document.getElementById('cardNameError').textContent = 'Please enter the name on your card';
+                document.getElementById('cardNameError').style.display = 'block';
+                document.getElementById('cardName').classList.add('input-error');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            // Store booking data for confirmation page
+            const service = localStorage.getItem('selectedService');
+            const ticketType = localStorage.getItem('selectedTicketType');
+            const amount = localStorage.getItem('selectedAmount');
+            const destinationData = JSON.parse(localStorage.getItem('destinationData'));
+
+            const bookingData = {
+                service: service,
+                ticketType: ticketType,
+                from: destinationData.from,
+                to: destinationData.to,
+                date: destinationData.date,
+                passengers: destinationData.passengers,
+                amount: amount
+            };
+
+            localStorage.setItem('lastBooking', JSON.stringify(bookingData));
+
+            // Generate a new ticket
+            generateTicket(bookingData);
+
+            navigateTo('confirmation');
+
+            // Update confirmation page with booking details
+            setTimeout(() => {
+                const booking = JSON.parse(localStorage.getItem('lastBooking'));
+                if (booking) {
+                    document.getElementById('booking-service').textContent =
+                        booking.service === 'myciti' ? 'MyCiTi Bus' : 'Golden Arrow';
+                    document.getElementById('booking-from').textContent = booking.from;
+                    document.getElementById('booking-to').textContent = booking.to;
+                    document.getElementById('booking-date').textContent = `${booking.date} at 08:15 AM`;
+                    document.getElementById('booking-passengers').textContent = booking.passengers;
+                    document.getElementById('booking-amount').textContent = booking.amount;
+
+                    // Generate a random booking reference
+                    document.getElementById('booking-ref').textContent = 'CT' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                }
+            }, 100);
+        });
+
+        // Generate a new ticket
+        function generateTicket(bookingData) {
+            // Get existing tickets from localStorage
+            let tickets = JSON.parse(localStorage.getItem('capeConnectTickets')) || [];
+
+            // Create a new ticket
+            const newTicket = {
+                id: 'CT' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                service: bookingData.service === 'myciti' ? 'MyCiTi Bus' : 'Golden Arrow',
+                route: `${bookingData.from} to ${bookingData.to}`,
+                from: bookingData.from,
+                to: bookingData.to,
+                date: bookingData.date,
+                time: '08:15 AM',
+                passengers: bookingData.passengers,
+                status: 'Active',
+                type: bookingData.ticketType,
+                price: bookingData.amount,
+                bookingDate: new Date().toISOString().split('T')[0]
+            };
+
+            // Add the new ticket
+            tickets.push(newTicket);
+
+            // Save back to localStorage
+            localStorage.setItem('capeConnectTickets', JSON.stringify(tickets));
+
+            return newTicket;
+        }
+
+        // Password validation for registration form
+        const passwordInput = document.getElementById('register-password');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                const password = this.value;
+                const lengthReq = document.getElementById('length-req');
+                const numberReq = document.getElementById('number-req');
+                const specialReq = document.getElementById('special-req');
+
+                // Check length
+                if (password.length >= 8) {
+                    lengthReq.classList.remove('requirement-not-met');
+                    lengthReq.classList.add('requirement-met');
+                } else {
+                    lengthReq.classList.remove('requirement-met');
+                    lengthReq.classList.add('requirement-not-met');
+                }
+
+                // Check for number
+                if (/\d/.test(password)) {
+                    numberReq.classList.remove('requirement-not-met');
+                    numberReq.classList.add('requirement-met');
+                } else {
+                    numberReq.classList.remove('requirement-met');
+                    numberReq.classList.add('requirement-not-met');
+                }
+
+                // Check for special character
+                if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                    specialReq.classList.remove('requirement-not-met');
+                    specialReq.classList.add('requirement-met');
+                } else {
+                    specialReq.classList.remove('requirement-met');
+                    specialReq.classList.add('requirement-not-met');
+                }
+            });
+        }
+
+        // Format card number input
+        document.getElementById('cardNumber')?.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = value.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+
+            for (let i = 0, len = match.length; i < len; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+
+            if (parts.length) {
+                e.target.value = parts.join(' ');
+            } else {
+                e.target.value = value;
+            }
+        });
+
+        // Format expiry date input
+        document.getElementById('expiry')?.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+
+            e.target.value = value;
+        });
+
+        // Comprehensive list of Cape Town suburbs and settlements
+        const capeTownSuburbs = [
+            // City Bowl
+            "Cape Town City Centre", "Bo-Kaap", "De Waterkant", "Devil's Peak", "District Six", "Foreshore",
+            "Gardens", "Higgovale", "Oranjezicht", "Schotsche Kloof", "Tamboerskloof", "University Estate", "Vredehoek", "Walmer Estate", "Woodstock", "Zonnebloem",
+
+            // Atlantic Seaboard
+            "Bakoven", "Bantry Bay", "Camps Bay", "Clifton", "Fresnaye", "Green Point", "Llandudno", "Mouille Point", "Sea Point", "Three Anchor Bay",
+
+            // Southern Suburbs
+            "Bishopscourt", "Claremont", "Constantia", "Diep River", "Heathfield", "Kenilworth", "Mowbray", "Newlands", "Observatory", "Plumstead", "Retreat", "Rondebosch", "Rosebank", "Salt River", "Steenberg", "Tokai", "Wetton", "Wynberg",
+
+            // Northern Suburbs
+            "Bellville", "Bothasig", "Brackenfell", "Brooklyn", "Century City", "Durbanville", "Edgemead", "Elsies River", "Goodwood", "Kensington", "Kraaifontein", "Kuils River", "Maitland", "Monte Vista", "Panorama", "Parow", "Richwood", "Thornton", "Tygerberg", "Tyger Valley",
+
+            // South Peninsula
+            "Fish Hoek", "Glencairn", "Hout Bay", "Imizamo Yethu", "Kalk Bay", "Kommetjie", "Masiphumelele", "Muizenberg", "Noordhoek", "Ocean View", "Scarborough", "Simon's Town", "St James", "Sun Valley",
+
+            // West Coast
+            "Atlantis", "Bloubergstrand", "Melkbosstrand", "Milnerton", "Table View", "West Beach",
+
+            // Cape Flats
+            "Athlone", "Bishop Lavis", "Blue Downs", "Bonnie Brook", "Bontheuwel", "Crawford", "Crossroads", "Delft", "Eerste River", "Elsies River", "Gugulethu", "Hanover Park", "Heideveld", "Kewtown", "Khayelitsha", "Langa", "Lavender Hill", "Lotus River", "Macassar", "Manenberg", "Mitchells Plain", "Nyanga", "Ottery", "Philippi", "Strandfontein", "Valhalla Park",
+
+            // Helderberg
+            "Gordon's Bay", "Somerset West", "Strand"
+        ];
+
+        // Initialize searchable dropdowns
+        function initializeSearchableDropdowns() {
+            const fromInput = document.getElementById('from-location');
+            const toInput = document.getElementById('to-location');
+            const fromOptions = document.getElementById('from-options');
+            const toOptions = document.getElementById('to-options');
+
+            // Populate dropdowns with all suburbs initially
+            populateDropdownOptions(fromOptions, capeTownSuburbs);
+            populateDropdownOptions(toOptions, capeTownSuburbs);
+
+            // Add event listeners for search functionality
+            fromInput.addEventListener('input', function () {
+                filterDropdownOptions(this.value, fromOptions);
+            });
+
+            toInput.addEventListener('input', function () {
+                filterDropdownOptions(this.value, toOptions);
+            });
+
+            // Show dropdown when input is focused
+            fromInput.addEventListener('focus', function () {
+                fromOptions.classList.add('active');
+            });
+
+            toInput.addEventListener('focus', function () {
+                toOptions.classList.add('active');
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!fromInput.contains(e.target) && !fromOptions.contains(e.target)) {
+                    fromOptions.classList.remove('active');
+                }
+                if (!toInput.contains(e.target) && !toOptions.contains(e.target)) {
+                    toOptions.classList.remove('active');
+                }
+            });
+        }
+
+        // Populate dropdown with options
+        function populateDropdownOptions(dropdown, options) {
+            dropdown.innerHTML = '';
+
+            options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'dropdown-option';
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', function () {
+                    // Find the input associated with this dropdown
+                    const inputId = dropdown.id === 'from-options' ? 'from-location' : 'to-location';
+                    document.getElementById(inputId).value = option;
+                    dropdown.classList.remove('active');
+                });
+                dropdown.appendChild(optionElement);
+            });
+        }
+
+        // Filter dropdown options based on search input
+        function filterDropdownOptions(searchTerm, dropdown) {
+            const filteredOptions = capeTownSuburbs.filter(suburb =>
+                suburb.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            populateDropdownOptions(dropdown, filteredOptions);
+            dropdown.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>
+

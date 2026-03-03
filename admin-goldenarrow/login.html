@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Arrow Admin Login</title>
+  <link rel="stylesheet" href="../admin-common/ga-theme.css" />
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="brand">
+        <span>Golden Arrow Admin Centre</span>
+      </div>
+      <div class="demo-banner">Demo mode: localStorage only - not secure.</div>
+      <p class="notice" style="margin-top:10px;">For real security, use server-side auth + MFA + IP allowlist.</p>
+
+      <div class="grid" style="margin-top:12px;">
+        <label>Email</label>
+        <input id="email" class="input" type="email" placeholder="ga-admin@demo.com" />
+
+        <label>Password</label>
+        <input id="password" class="input" type="password" placeholder="GA#1234" />
+
+        <label>Admin Access Phrase</label>
+        <input id="phrase" class="input" type="text" placeholder="GOLDEN-ADMIN" />
+
+        <button id="login-btn" class="btn btn-primary" disabled>Login</button>
+      </div>
+
+      <div id="err" class="error"></div>
+      <div id="ok" class="success"></div>
+    </div>
+  </div>
+
+  <script src="../admin-common/ga-app.js"></script>
+  <script>
+    (function () {
+      const session = GAAdmin.getSession();
+      if (session) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
+      const phrase = document.getElementById('phrase');
+      const loginBtn = document.getElementById('login-btn');
+      const err = document.getElementById('err');
+      const ok = document.getElementById('ok');
+
+      function validateGate() {
+        loginBtn.disabled = phrase.value.trim() !== 'GOLDEN-ADMIN';
+      }
+
+      phrase.addEventListener('input', validateGate);
+      validateGate();
+
+      loginBtn.addEventListener('click', async function () {
+        err.style.display = 'none';
+        ok.style.display = 'none';
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Signing in...';
+        const res = await GAAdmin.login(email.value, password.value, phrase.value);
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+        if (!res.ok) {
+          err.textContent = res.message;
+          err.style.display = 'block';
+          return;
+        }
+        ok.textContent = 'Login successful. Redirecting...';
+        ok.style.display = 'block';
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 300);
+      });
+    })();
+  </script>
+</body>
+</html>

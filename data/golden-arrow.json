@@ -1,0 +1,24 @@
+{
+  "products": {
+    "five": { "label": "5 Ride (5 journeys)", "journeysIncluded": 5 },
+    "weekly": { "label": "Weekly (10 journeys)", "journeysIncluded": 10 },
+    "monthly": { "label": "Monthly (48 journeys)", "journeysIncluded": 48 }
+  },
+  "routePairs": [
+    {
+      "from": "Cape Town",
+      "to": "Khayelitsha",
+      "faresCents": { "five": 12650, "weekly": 23400, "monthly": 103000 }
+    },
+    {
+      "from": "Langa",
+      "to": "Cape Town",
+      "faresCents": { "five": 11450, "weekly": 21200, "monthly": 93300 }
+    },
+    {
+      "from": "Somerset West",
+      "to": "Cape Town",
+      "faresCents": { "five": 14750, "weekly": 27350, "monthly": 120300 }
+    }
+  ]
+}

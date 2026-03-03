@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyCiTi Booking - Choose Fare</title>
+  <link rel="stylesheet" href="css/flow-components.css" />
+  <style>
+    :root{
+      --navy:#0b1f3a;
+      --blue:#00a3e0;
+      --accent:#00a3e0;
+      --accent-dark:#008fc3;
+      --step-border:rgba(0,163,224,.35);
+      --ghost-bg:rgba(0,163,224,.10);
+      --ghost-border:rgba(0,163,224,.28);
+      --white:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.12);
+      --card:#f7fbff;
+      --shadow:0 16px 40px rgba(11,31,58,.18);
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Montserrat", "Trebuchet MS", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(0,163,224,.22), transparent 55%),
+        radial-gradient(900px 600px at 80% 40%, rgba(0,163,224,.14), transparent 60%),
+        var(--navy);
+    }
+    .banner{
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px; border-radius:16px;
+      background:rgba(0,163,224,.14); border:1px solid rgba(0,163,224,.35);
+      color:var(--navy); font-weight:700; margin:12px 0 0;
+    }
+    .grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
+    .fare-card{
+      display:flex; gap:12px; align-items:flex-start; padding:14px;
+      border-radius:16px; border:1px solid var(--line); background:var(--card);
+      cursor:pointer; transition:transform .08s ease, box-shadow .12s ease;
+    }
+    .fare-card:hover{ transform:translateY(-1px); }
+    .fare-card input{ margin-top:4px; }
+    .fare-title{ font-weight:900; color:var(--navy); }
+    .fare-desc{ color:var(--muted); font-size:13px; margin-top:4px; }
+    .fare-price{ font-weight:900; color:var(--navy); margin-top:6px; }
+    @media (min-width:700px){ .grid{ grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Step 2: Choose Fare Type</h1>
+      <p class="sub">Select a fare option to continue.</p>
+
+      <div class="steps">
+        <div class="step">2. Choose Fare</div>
+      </div>
+
+      <div class="banner">Single-Trip tickets are no longer available on MyCiTi.</div>
+
+      <div class="grid" role="radiogroup" aria-label="Fare types">
+        <label class="fare-card">
+          <input type="radio" name="fare" value="topup" checked aria-label="Top up pay as you go" />
+          <div>
+            <div class="fare-title">Top Up (Pay-As-You-Go - Mover)</div>
+            <div class="fare-desc">Uses distance-based fares. 1 point = R1. Fare is deducted when you tap in and tap out.</div>
+          </div>
+        </label>
+
+        <label class="fare-card">
+          <input type="radio" name="fare" value="day1" aria-label="1-day pass" />
+          <div>
+            <div class="fare-title">1-Day Pass</div>
+            <div class="fare-desc">Unlimited travel for one day.</div>
+            <div class="fare-price">R90</div>
+          </div>
+        </label>
+
+        <label class="fare-card">
+          <input type="radio" name="fare" value="day3" aria-label="3-day pass" />
+          <div>
+            <div class="fare-title">3-Day Pass</div>
+            <div class="fare-desc">Unlimited travel for three days.</div>
+            <div class="fare-price">R210</div>
+          </div>
+        </label>
+
+        <label class="fare-card">
+          <input type="radio" name="fare" value="day7" aria-label="7-day pass" />
+          <div>
+            <div class="fare-title">7-Day Pass</div>
+            <div class="fare-desc">Unlimited travel for seven days.</div>
+            <div class="fare-price">R300</div>
+          </div>
+        </label>
+
+        <label class="fare-card">
+          <input type="radio" name="fare" value="monthly" aria-label="Monthly pass" />
+          <div>
+            <div class="fare-title">Monthly Pass</div>
+            <div class="fare-desc">Unlimited travel for a calendar month.</div>
+            <div class="fare-price">R1000</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn ghost" type="button" id="btnBack">Back: Plan Trip</button>
+        <button class="btn primary" type="button" id="btnNext">Next: Results</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api-client.js"></script>
+<script src="js/cc-utils.js"></script>
+  <script>
+    const fareRadios = document.querySelectorAll('input[name="fare"]');
+    function saveFare(){
+      const selected = document.querySelector('input[name="fare"]:checked')?.value || 'topup';
+      const state = window.CCUtils.storageGet('mycitiBooking', {});
+      state.fare = selected;
+      window.CCUtils.storageSet('mycitiBooking', state);
+      return selected;
+    }
+    fareRadios.forEach(r => r.addEventListener('change', saveFare));
+
+    document.getElementById('btnBack').addEventListener('click', () => {
+      window.location.href = 'route-calculator.html';
+    });
+
+    document.getElementById('btnNext').addEventListener('click', () => {
+      saveFare();
+      window.location.href = 'results.html';
+    });
+
+    (function init(){
+      const state = window.CCUtils.storageGet('mycitiBooking', {});
+      const current = state.fare || 'topup';
+      const input = document.querySelector(`input[name="fare"][value="${current}"]`);
+      if (input) input.checked = true;
+    })();
+  </script>
+</body>
+</html>
+
+
+

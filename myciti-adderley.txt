@@ -1,0 +1,1063 @@
+
+05:04 Live	261 260 Omuramba
+05:31 Live	102 102 Salt River
+05:35 Live	102 102 Salt River
+05:41 Live	109 109 Hout Bay
+05:44 Scheduled	106 106 Camps Bay
+05:45 Scheduled	261 261 Century Rail
+05:48 Live	108 108 Hangberg
+05:52 Scheduled	261 260 Omuramba
+05:53 Scheduled	106 106 Camps Bay
+05:53 Live	103 103 Oranjezicht
+05:55 Live	107 107 Camps Bay
+05:55 Live	101 101 Vredehoek
+05:56 Live	109 109 Hout Bay
+06:00 Live	107 107 Camps Bay
+06:01 Live	102 102 Salt River
+06:04 Live	106 106 Camps Bay
+06:05 Live	108 108 Hangberg
+06:07 Live	107 107 Camps Bay
+06:10 Live	261 261 Adderley
+06:11 Scheduled	106 106 Camps Bay
+06:11 Live	105 105 Sea Point
+06:13 Live	109 109 Adderley
+06:15 Live	102 102 Salt River
+06:15 Live	109 109 Hout Bay
+06:16 Live	105 105 Sea Point
+06:16 Scheduled	107 107 Camps Bay
+06:19 Live	102 102 Civic Centre
+06:20 Scheduled	261 260 Omuramba
+06:20 Scheduled	106 106 Camps Bay
+06:22 Live	111 111 Vredehoek
+06:25 Live	261 261 Adderley
+06:25 Live	261 261 Adderley
+06:25 Live	109 109 Hout Bay
+06:26 Live	105 105 Sea Point
+06:26 Live	108 108 Hangberg
+06:27 Live	102 102 Salt River
+06:28 Live	113 113 Upper Kloof St
+06:28 Live	109 109 Adderley
+06:29 Live	261 261 Century Rail
+06:29 Scheduled	106 106 Camps Bay
+06:30 Live	107 107 Camps Bay
+06:33 Live	109 109 Hout Bay
+06:34 Live	101 101 Civic Centre
+06:34 Live	261 260 Omuramba
+06:35 Live	107 107 Camps Bay
+06:35 Live	105 105 Sea Point
+06:35 Live	109 109 Adderley
+06:35 Live	108 108 Adderley
+06:37 Live	103 103 Civic Centre
+06:37 Live	102 102 Civic Centre
+06:38 Scheduled	106 106 Camps Bay
+06:39 Live	102 102 Salt River
+06:41 Live	261 260 Omuramba
+06:43 Live	261 261 Adderley
+06:45 Live	108 108 Hangberg
+06:47 Live	107 107 Camps Bay
+06:47 Scheduled	106 106 Camps Bay
+06:47 Scheduled	106 106 Civic Centre
+06:48 Live	107 107 Civic Centre
+06:49 Scheduled	109 109 Hout Bay
+06:49 Live	105 105 Sea Point
+06:51 Live	261 261 Century Rail
+06:51 Live	109 109 Hout Bay
+06:51 Scheduled	109 109 Adderley
+06:52 Live	102 102 Salt River
+06:53 Live	105 105 Civic Centre
+06:53 Live	101 101 Vredehoek
+06:54 Live	105 105 Civic Centre
+06:54 Live	108 108 Hangberg
+06:55 Live	261 261 Adderley
+06:56 Scheduled	106 106 Camps Bay
+06:56 Scheduled	106 106 Civic Centre
+06:56 Live	107 107 Civic Centre
+06:57 Live	261 260 Omuramba
+06:58 Live	102 102 Civic Centre
+06:58 Live	108 108 Adderley
+07:00 Live	107 107 Camps Bay
+07:02 Live	107 107 Civic Centre
+07:02 Live	261 260 Omuramba
+07:02 Live	107 107 Camps Bay
+07:03 Live	261 261 Century Rail
+07:04 Live	111 111 Civic Centre
+07:04 Live	103 103 Oranjezicht
+07:04 Live	106 106 Civic Centre
+07:05 Live	105 105 Sea Point
+07:05 Scheduled	106 106 Camps Bay
+07:05 Live	102 102 Salt River
+07:07 Scheduled	109 109 Hout Bay
+07:08 Live	113 113b Waterfront
+07:09 Live	105 105 Civic Centre
+07:10 Live	107 107 Camps Bay
+07:12 Live	261 261 Adderley
+07:13 Live	105 105 Sea Point
+07:13 Live	109 109 Adderley
+07:13 Live	108 108 Adderley
+07:13 Live	109 109 Adderley
+07:14 Scheduled	106 106 Civic Centre
+07:14 Scheduled	106 106 Camps Bay
+07:15 Live	102 102 Civic Centre
+07:15 Scheduled	107 107 Civic Centre
+07:15 Live	261 261 Adderley
+07:15 Live	261 261 Century Rail
+07:16 Live	109 109 Adderley
+07:17 Live	261 261 Adderley
+07:18 Live	102 102 Salt River
+07:19 Live	109 109 Hout Bay
+07:19 Live	107 107 Civic Centre
+07:19 Live	105 105 Civic Centre
+07:20 Live	107 107 Camps Bay
+07:20 Live	261 260 Omuramba
+07:22 Live	111 111 Vredehoek
+07:23 Scheduled	106 106 Civic Centre
+07:23 Live	108 108 Hangberg
+07:23 Live	261 261 Adderley
+07:25 Live	106 106 Camps Bay
+07:25 Live	105 105 Sea Point
+07:27 Live	102 102 Civic Centre
+07:28 Scheduled	107 107 Camps Bay
+07:29 Live	261 260 Omuramba
+07:30 Live	105 105 Civic Centre
+07:30 Live	109 109 Hout Bay
+07:31 Live	107 107 Civic Centre
+07:32 Live	102 102 Salt River
+07:32 Scheduled	106 106 Camps Bay
+07:32 Scheduled	106 106 Civic Centre
+07:32 Live	108 108 Adderley
+07:32 Live	108 108 Hangberg
+07:33 Live	109 109 Adderley
+07:35 Live	261 261 Century Rail
+07:37 Live	109 109 Hout Bay
+07:37 Live	105 105 Sea Point
+07:37 Live	107 107 Camps Bay
+07:38 Live	113 113 Upper Kloof St
+07:39 Live	101 101 Civic Centre
+07:39 Live	261 261 Adderley
+07:40 Live	109 109 Hout Bay
+07:40 Live	261 260 Omuramba
+07:41 Scheduled	106 106 Civic Centre
+07:41 Scheduled	106 106 Camps Bay
+07:42 Live	107 107 Civic Centre
+07:42 Scheduled	261 261 Adderley
+07:43 Live	102 102 Salt River
+07:44 Live	102 102 Civic Centre
+07:45 Live	109 109 Hout Bay
+07:46 Live	261 260 Omuramba
+07:47 Live	107 107 Camps Bay
+07:48 Live	109 109 Adderley
+07:48 Live	108 108 Hangberg
+07:48 Live	105 105 Sea Point
+07:49 Scheduled	261 261 Adderley
+07:50 Scheduled	106 106 Camps Bay
+07:50 Scheduled	106 106 Civic Centre
+07:53 Live	109 109 Hout Bay
+07:53 Live	261 261 Century Rail
+07:53 Live	101 101 Vredehoek
+07:55 Live	103 103 Civic Centre
+07:56 Scheduled	261 261 Adderley
+07:56 Live	107 107 Camps Bay
+07:56 Live	105 105 Civic Centre
+07:58 Live	102 102 Salt River
+07:58 Scheduled	261 260 Omuramba
+07:58 Live	107 107 Civic Centre
+07:59 Live	102 102 Civic Centre
+07:59 Scheduled	106 106 Camps Bay
+07:59 Scheduled	106 106 Civic Centre
+08:01 Live	107 107 Civic Centre
+08:01 Live	108 108 Adderley
+08:03 Live	109 109 Adderley
+08:03 Live	109 109 Adderley
+08:05 Live	105 105 Civic Centre
+08:05 Scheduled	261 260 Omuramba
+08:08 Scheduled	106 106 Civic Centre
+08:08 Live	105 105 Sea Point
+08:08 Scheduled	106 106 Camps Bay
+08:08 Live	102 102 Civic Centre
+08:08 Live	107 107 Camps Bay
+08:09 Live	111 111 Civic Centre
+08:09 Live	108 108 Hangberg
+08:10 Scheduled	261 261 Adderley
+08:10 Live	102 102 Salt River
+08:11 Live	261 261 Adderley
+08:11 Live	109 109 Hout Bay
+08:12 Scheduled	261 261 Century Rail
+08:12 Live	109 109 Hout Bay
+08:13 Live	107 107 Civic Centre
+08:13 Live	103 103 Oranjezicht
+08:16 Live	105 105 Civic Centre
+08:17 Scheduled	106 106 Civic Centre
+08:17 Scheduled	106 106 Camps Bay
+08:17 Live	107 107 Camps Bay
+08:17 Live	261 261 Adderley
+08:17 Live	105 105 Sea Point
+08:18 Live	109 109 Adderley
+08:20 Live	108 108 Adderley
+08:21 Live	105 105 Civic Centre
+08:21 Live	107 107 Civic Centre
+08:21 Live	261 260 Omuramba
+08:21 Live	113 113b Waterfront
+08:22 Live	102 102 Salt River
+08:23 Live	102 102 Civic Centre
+08:23 Live	109 109 Hout Bay
+08:24 Live	111 111 Vredehoek
+08:24 Live	107 107 Camps Bay
+08:26 Scheduled	106 106 Camps Bay
+08:26 Scheduled	261 260 Omuramba
+08:27 Live	105 105 Sea Point
+08:27 Scheduled	107 107 Civic Centre
+08:28 Live	108 108 Hangberg
+08:28 Live	108 108 Adderley
+08:29 Live	109 109 Adderley
+08:29 Live	106 106 Civic Centre
+08:29 Live	105 105 Civic Centre
+08:30 Live	109 109 Adderley
+08:33 Live	107 107 Camps Bay
+08:33 Live	107 107 Civic Centre
+08:34 Live	109 109 Hout Bay
+08:35 Scheduled	106 106 Camps Bay
+08:35 Scheduled	106 106 Civic Centre
+08:35 Live	102 102 Civic Centre
+08:36 Live	102 102 Salt River
+08:37 Live	105 105 Sea Point
+08:37 Live	261 261 Adderley
+08:39 Live	109 109 Adderley
+08:40 Live	261 261 Century Rail
+08:40 Live	261 261 Adderley
+08:40 Live	261 261 Adderley
+08:40 Scheduled	107 107 Camps Bay
+08:42 Live	108 108 Hangberg
+08:44 Scheduled	106 106 Civic Centre
+08:44 Live	109 109 Hout Bay
+08:44 Live	101 101 Civic Centre
+08:47 Live	261 260 Omuramba
+08:47 Live	107 107 Civic Centre
+08:47 Live	106 106 Camps Bay
+08:48 Scheduled	109 109 Adderley
+08:48 Live	113 113 Upper Kloof St
+08:48 Live	109 109 Hout Bay
+08:49 Live	261 260 Omuramba
+08:49 Live	109 109 Adderley
+08:50 Live	102 102 Civic Centre
+08:50 Live	105 105 Sea Point
+08:50 Live	102 102 Salt River
+08:51 Live	107 107 Camps Bay
+08:51 Live	261 261 Adderley
+08:52 Live	108 108 Adderley
+08:53 Live	101 101 Vredehoek
+08:53 Scheduled	106 106 Camps Bay
+08:53 Scheduled	106 106 Civic Centre
+08:54 Live	261 261 Adderley
+08:57 Live	107 107 Civic Centre
+08:59 Live	261 261 Century Rail
+09:01 Live	102 102 Salt River
+09:01 Live	261 261 Adderley
+09:01 Live	105 105 Civic Centre
+09:01 Live	107 107 Camps Bay
+09:02 Scheduled	106 106 Camps Bay
+09:02 Live	261 261 Adderley
+09:02 Live	109 109 Hout Bay
+09:02 Live	108 108 Hangberg
+09:02 Scheduled	106 106 Civic Centre
+09:03 Live	102 102 Civic Centre
+09:04 Scheduled	109 109 Hout Bay
+09:06 Live	109 109 Adderley
+09:06 Live	105 105 Civic Centre
+09:06 Live	261 261 Adderley
+09:07 Live	261 260 Omuramba
+09:09 Live	107 107 Civic Centre
+09:09 Live	107 107 Camps Bay
+09:09 Live	261 260 Omuramba
+09:11 Scheduled	106 106 Camps Bay
+09:11 Scheduled	106 106 Civic Centre
+09:12 Live	105 105 Sea Point
+09:13 Live	103 103 Civic Centre
+09:14 Live	102 102 Salt River
+09:14 Live	108 108 Adderley
+09:14 Live	105 105 Civic Centre
+09:14 Live	105 105 Sea Point
+09:15 Live	109 109 Adderley
+09:16 Live	107 107 Civic Centre
+09:16 Live	111 111 Civic Centre
+09:16 Live	102 102 Civic Centre
+09:17 Live	105 105 Civic Centre
+09:18 Live	261 261 Adderley
+09:18 Live	261 261 Adderley
+09:20 Live	261 261 Adderley
+09:20 Scheduled	106 106 Civic Centre
+09:20 Scheduled	106 106 Camps Bay
+09:21 Live	102 102 Civic Centre
+09:22 Live	261 261 Century Rail
+09:23 Live	111 111 Vredehoek
+09:23 Live	103 103 Oranjezicht
+09:24 Live	109 109 Adderley
+09:25 Live	107 107 Camps Bay
+09:27 Live	107 107 Civic Centre
+09:28 Live	113 113b Waterfront
+09:29 Live	107 107 Civic Centre
+09:29 Scheduled	106 106 Civic Centre
+09:30 Live	102 102 Salt River
+09:31 Live	109 109 Adderley
+09:32 Live	118 118 Hangberg
+09:32 Live	108 108 Adderley
+09:34 Scheduled	106 106 Camps Bay
+09:34 Live	102 102 Civic Centre
+09:36 Live	105 105 Sea Point
+09:37 Live	108 108 Adderley
+09:37 Live	261 260 Omuramba
+09:37 Live	109 109 Hout Bay
+09:37 Live	105 105 Civic Centre
+09:37 Live	109 109 Adderley
+09:38 Scheduled	106 106 Civic Centre
+09:38 Scheduled	103 103 Civic Centre
+09:41 Scheduled	261 261 Adderley
+09:41 Live	101 101 Civic Centre
+09:46 Live	107 107 Civic Centre
+09:48 Scheduled	107 107 Civic Centre
+09:49 Live	106 106 Civic Centre
+09:51 Live	102 102 Civic Centre
+09:51 Live	261 261 Adderley
+09:51 Live	261 261 Century Rail
+09:52 Live	109 109 Adderley
+09:52 Scheduled	106 106 Camps Bay
+09:52 Live	109 109 Adderley
+09:52 Live	261 261 Adderley
+09:53 Live	108 108 Adderley
+09:54 Live	101 101 Vredehoek
+09:54 Live	118 118 Hangberg
+09:55 Live	103 103 Oranjezicht
+09:55 Scheduled	261 261 Adderley
+09:56 Scheduled	106 106 Civic Centre
+09:57 Live	107 107 Camps Bay
+09:58 Live	107 107 Civic Centre
+09:59 Live	113 113 Upper Kloof St
+10:00 Live	105 105 Civic Centre
+10:01 Live	105 105 Civic Centre
+10:01 Live	103 103 Oranjezicht
+10:01 Scheduled	107 107 Camps Bay
+10:02 Live	109 109 Hout Bay
+10:02 Live	102 102 Civic Centre
+10:05 Scheduled	106 106 Civic Centre
+10:06 Live	111 111 Civic Centre
+10:07 Live	109 109 Adderley
+10:08 Live	261 261 Adderley
+10:10 Live	107 107 Civic Centre
+10:10 Scheduled	106 106 Camps Bay
+10:11 Live	109 109 Adderley
+10:11 Live	261 260 Omuramba
+10:14 Scheduled	106 106 Civic Centre
+10:14 Live	103 103 Civic Centre
+10:15 Live	105 105 Sea Point
+10:15 Live	102 102 Civic Centre
+10:16 Scheduled	261 261 Adderley
+10:16 Live	108 108 Adderley
+10:17 Live	261 261 Century Rail
+10:17 Live	105 105 Civic Centre
+10:17 Live	109 109 Adderley
+10:18 Live	261 261 Adderley
+10:18 Live	261 261 Adderley
+10:19 Live	107 107 Camps Bay
+10:23 Live	111 111 Vredehoek
+10:23 Scheduled	106 106 Civic Centre
+10:24 Live	105 105 Sea Point
+10:24 Live	102 102 Civic Centre
+10:26 Live	107 107 Civic Centre
+10:29 Live	106 106 Camps Bay
+10:30 Live	102 102 Salt River
+10:30 Live	109 109 Adderley
+10:32 Scheduled	261 260 Omuramba
+10:32 Live	261 261 Adderley
+10:36 Scheduled	106 106 Civic Centre
+10:36 Live	108 108 Adderley
+10:36 Live	103 103 Oranjezicht
+10:36 Live	261 261 Adderley
+10:38 Live	107 107 Camps Bay
+10:38 Live	109 109 Adderley
+10:38 Live	101 101 Civic Centre
+10:40 Live	113 113b Waterfront
+10:41 Live	118 118 Hangberg
+10:42 Scheduled	106 106 Camps Bay
+10:44 Live	103 103 Civic Centre
+10:45 Live	261 261 Adderley
+10:46 Live	261 261 Century Rail
+10:46 Live	107 107 Camps Bay
+10:47 Live	102 102 Salt River
+10:48 Live	105 105 Sea Point
+10:48 Live	109 109 Adderley
+10:49 Live	109 109 Hout Bay
+10:52 Live	103 103 Oranjezicht
+10:53 Live	101 101 Vredehoek
+10:54 Live	103 103 Civic Centre
+10:54 Scheduled	106 106 Civic Centre
+10:55 Scheduled	106 106 Camps Bay
+11:00 Live	107 107 Civic Centre
+11:01 Live	105 105 Civic Centre
+11:01 Live	261 260 Omuramba
+11:02 Live	109 109 Adderley
+11:03 Scheduled	109 109 Adderley
+11:05 Scheduled	261 261 Adderley
+11:07 Live	113 113 Upper Kloof St
+11:08 Live	105 105 Civic Centre
+11:09 Scheduled	107 107 Civic Centre
+11:09 Live	103 103 Oranjezicht
+11:10 Live	107 107 Camps Bay
+11:10 Live	102 102 Salt River
+11:10 Live	111 111 Civic Centre
+11:11 Live	261 261 Adderley
+11:12 Scheduled	106 106 Civic Centre
+11:13 Scheduled	106 106 Camps Bay
+11:13 Live	105 105 Sea Point
+11:17 Live	261 261 Century Rail
+11:18 Live	107 107 Civic Centre
+11:19 Live	102 102 Salt River
+11:21 Live	118 118 Adderley
+11:22 Live	103 103 Civic Centre
+11:22 Scheduled	107 107 Camps Bay
+11:23 Live	109 109 Hout Bay
+11:24 Live	111 111 Vredehoek
+11:26 Live	102 102 Civic Centre
+11:27 Live	261 261 Adderley
+11:28 Scheduled	261 260 Omuramba
+11:29 Live	105 105 Civic Centre
+11:30 Live	106 106 Civic Centre
+11:31 Scheduled	106 106 Camps Bay
+11:36 Live	105 105 Sea Point
+11:39 Live	103 103 Civic Centre
+11:39 Live	101 101 Civic Centre
+11:40 Live	102 102 Salt River
+11:41 Live	261 261 Adderley
+11:41 Live	107 107 Civic Centre
+11:42 Live	107 107 Camps Bay
+11:43 Live	103 103 Oranjezicht
+11:44 Scheduled	106 106 Civic Centre
+11:46 Live	261 261 Century Rail
+11:47 Live	103 103 Oranjezicht
+11:48 Live	102 102 Civic Centre
+11:48 Live	118 109 Adderley
+11:49 Live	109 109 Adderley
+11:50 Live	106 106 Camps Bay
+11:51 Live	261 261 Adderley
+11:52 Live	113 113b Waterfront
+11:52 Live	107 107 Civic Centre
+11:53 Live	101 101 Vredehoek
+11:57 Scheduled	106 106 Civic Centre
+11:59 Live	261 260 Omuramba
+11:59 Live	103 103 Civic Centre
+12:00 Live	118 118 Hangberg
+12:01 Live	105 105 Civic Centre
+12:01 Live	109 109 Hout Bay
+12:01 Live	105 105 Sea Point
+12:02 Live	107 107 Camps Bay
+12:03 Live	102 102 Civic Centre
+12:03 Scheduled	106 106 Camps Bay
+12:04 Live	102 102 Salt River
+12:06 Live	107 107 Civic Centre
+12:06 Live	118 109 Adderley
+12:07 Live	107 107 Camps Bay
+12:09 Live	111 111 Civic Centre
+12:10 Live	102 102 Civic Centre
+12:15 Scheduled	106 106 Civic Centre
+12:16 Scheduled	106 106 Camps Bay
+12:18 Live	109 109 Adderley
+12:18 Live	261 261 Adderley
+12:18 Live	118 118 Hangberg
+12:19 Live	261 261 Century Rail
+12:20 Live	103 103 Oranjezicht
+12:20 Live	261 261 Adderley
+12:21 Live	113 113 Upper Kloof St
+12:24 Live	261 261 Adderley
+12:25 Live	105 105 Sea Point
+12:26 Live	105 105 Civic Centre
+12:26 Live	111 111 Vredehoek
+12:26 Live	261 260 Omuramba
+12:27 Live	107 107 Camps Bay
+12:28 Live	118 109 Adderley
+12:28 Live	261 261 Adderley
+12:30 Scheduled	107 107 Civic Centre
+12:30 Live	102 102 Salt River
+12:30 Live	103 103 Civic Centre
+12:33 Scheduled	106 106 Civic Centre
+12:34 Scheduled	106 106 Camps Bay
+12:36 Live	118 118 Hangberg
+12:37 Live	101 101 Civic Centre
+12:38 Live	261 261 Century Rail
+12:40 Live	107 107 Civic Centre
+12:41 Live	102 102 Civic Centre
+12:41 Live	109 109 Hout Bay
+12:43 Scheduled	107 107 Camps Bay
+12:44 Live	105 105 Civic Centre
+12:48 Live	105 105 Sea Point
+12:49 Live	261 261 Adderley
+12:52 Scheduled	106 106 Camps Bay
+12:53 Live	101 101 Vredehoek
+12:54 Live	103 103 Oranjezicht
+12:55 Live	106 106 Civic Centre
+12:57 Live	102 102 Salt River
+13:02 Live	107 107 Camps Bay
+13:02 Live	261 260 Omuramba
+13:03 Live	107 107 Civic Centre
+13:03 Live	113 113b Waterfront
+13:05 Scheduled	106 106 Civic Centre
+13:06 Live	102 102 Civic Centre
+13:07 Live	109 109 Adderley
+13:07 Live	261 261 Century Rail
+13:08 Live	118 109 Adderley
+13:10 Live	102 102 Salt River
+13:11 Live	106 106 Camps Bay
+13:11 Scheduled	261 261 Adderley
+13:11 Live	261 261 Adderley
+13:11 Live	107 107 Civic Centre
+13:12 Live	105 105 Sea Point
+13:13 Live	103 103 Civic Centre
+13:15 Live	105 105 Civic Centre
+13:16 Live	111 111 Civic Centre
+13:18 Live	109 109 Hout Bay
+13:18 Scheduled	106 106 Civic Centre
+13:20 Live	107 107 Camps Bay
+13:22 Live	261 260 Omuramba
+13:22 Live	102 102 Salt River
+13:24 Scheduled	106 106 Camps Bay
+13:25 Live	111 111 Vredehoek
+13:27 Live	107 107 Civic Centre
+13:28 Live	109 109 Adderley
+13:28 Live	107 107 Camps Bay
+13:28 Live	103 103 Oranjezicht
+13:28 Live	102 102 Civic Centre
+13:30 Live	108 108 Adderley
+13:30 Live	261 261 Adderley
+13:31 Live	113 113 Upper Kloof St
+13:33 Live	105 105 Civic Centre
+13:34 Scheduled	261 261 Century Rail
+13:35 Live	105 105 Sea Point
+13:36 Scheduled	106 106 Civic Centre
+13:36 Live	102 102 Salt River
+13:37 Scheduled	106 106 Camps Bay
+13:40 Live	118 118 Hangberg
+13:41 Live	261 261 Adderley
+13:42 Live	101 101 Civic Centre
+13:46 Live	107 107 Camps Bay
+13:47 Live	103 103 Civic Centre
+13:47 Live	261 260 Omuramba
+13:48 Live	102 102 Salt River
+13:50 Live	109 109 Hout Bay
+13:51 Scheduled	107 107 Civic Centre
+13:53 Live	101 101 Vredehoek
+13:54 Live	102 102 Civic Centre
+13:54 Scheduled	106 106 Civic Centre
+13:55 Scheduled	106 106 Camps Bay
+14:00 Live	105 105 Sea Point
+14:00 Live	102 102 Salt River
+14:01 Live	105 105 Civic Centre
+14:03 Live	103 103 Oranjezicht
+14:03 Live	261 261 Adderley
+14:03 Live	107 107 Civic Centre
+14:04 Scheduled	107 107 Camps Bay
+14:05 Live	118 118 Hangberg
+14:06 Live	261 261 Century Rail
+14:06 Live	118 118 Hangberg
+14:07 Live	102 102 Civic Centre
+14:10 Live	111 111 Civic Centre
+14:10 Live	113 113b Waterfront
+14:11 Live	106 106 Civic Centre
+14:12 Live	108 108 Adderley
+14:13 Scheduled	106 106 Camps Bay
+14:13 Live	109 109 Adderley
+14:14 Live	102 102 Salt River
+14:15 Live	261 261 Adderley
+14:16 Live	103 103 Civic Centre
+14:19 Live	261 260 Omuramba
+14:19 Live	102 102 Civic Centre
+14:22 Live	111 111 Vredehoek
+14:23 Live	107 107 Civic Centre
+14:23 Live	105 105 Civic Centre
+14:24 Live	108 108 Hangberg
+14:24 Live	107 107 Camps Bay
+14:25 Live	261 260 Omuramba
+14:25 Live	109 109 Hout Bay
+14:25 Live	261 260 Omuramba
+14:26 Scheduled	106 106 Civic Centre
+14:27 Live	106 106 Camps Bay
+14:27 Live	105 105 Sea Point
+14:28 Live	106 106 Camps Bay
+14:28 Live	102 102 Salt River
+14:29 Live	261 261 Adderley
+14:30 Live	261 261 Century Rail
+14:31 Live	108 108 Adderley
+14:32 Live	107 107 Civic Centre
+14:33 Live	109 109 Hout Bay
+14:35 Live	107 107 Camps Bay
+14:37 Live	101 101 Civic Centre
+14:38 Live	102 102 Civic Centre
+14:38 Live	261 260 Omuramba
+14:39 Scheduled	106 106 Civic Centre
+14:40 Live	113 113 Upper Kloof St
+14:41 Live	102 102 Salt River
+14:41 Live	107 107 Camps Bay
+14:43 Live	102 102 Civic Centre
+14:45 Scheduled	106 106 Camps Bay
+14:46 Live	109 109 Hout Bay
+14:50 Live	107 107 Camps Bay
+14:50 Scheduled	109 109 Hout Bay
+14:51 Live	107 107 Civic Centre
+14:51 Live	261 261 Century Rail
+14:53 Live	103 103 Civic Centre
+14:53 Live	102 102 Salt River
+14:54 Live	261 260 Omuramba
+14:54 Live	101 101 Vredehoek
+14:55 Live	261 261 Adderley
+14:57 Scheduled	106 106 Civic Centre
+14:58 Live	261 261 Adderley
+14:58 Scheduled	261 260 Omuramba
+14:59 Live	107 107 Camps Bay
+14:59 Live	105 105 Civic Centre
+15:00 Live	109 109 Adderley
+15:01 Live	109 109 Hout Bay
+15:03 Scheduled	106 106 Camps Bay
+15:05 Live	261 260 Omuramba
+15:05 Live	102 102 Civic Centre
+15:07 Live	106 106 Camps Bay
+15:08 Live	105 105 Sea Point
+15:09 Live	108 108 Hangberg
+15:10 Live	102 102 Salt River
+15:11 Live	105 105 Sea Point
+15:11 Live	107 107 Camps Bay
+15:11 Live	109 109 Hout Bay
+15:11 Live	111 111 Civic Centre
+15:12 Scheduled	107 107 Civic Centre
+15:12 Scheduled	106 106 Camps Bay
+15:13 Live	261 261 Century Rail
+15:13 Live	103 103 Oranjezicht
+15:14 Live	108 108 Adderley
+15:14 Live	105 105 Sea Point
+15:15 Scheduled	106 106 Civic Centre
+15:16 Live	261 261 Adderley
+15:19 Live	107 107 Camps Bay
+15:19 Live	105 105 Civic Centre
+15:21 Scheduled	106 106 Camps Bay
+15:21 Live	102 102 Salt River
+15:22 Live	261 260 Omuramba
+15:22 Live	102 102 Civic Centre
+15:23 Live	109 109 Hout Bay
+15:23 Live	108 108 Hangberg
+15:24 Live	111 111 Vredehoek
+15:25 Scheduled	107 107 Camps Bay
+15:26 Live	109 109 Hout Bay
+15:28 Live	113 113b Waterfront
+15:29 Live	261 260 Omuramba
+15:30 Scheduled	106 106 Camps Bay
+15:31 Live	105 105 Sea Point
+15:32 Live	106 106 Civic Centre
+15:33 Live	102 102 Civic Centre
+15:34 Live	261 261 Century Rail
+15:36 Live	102 102 Salt River
+15:36 Live	107 107 Civic Centre
+15:37 Live	105 105 Sea Point
+15:38 Scheduled	106 106 Civic Centre
+15:39 Live	261 261 Adderley
+15:39 Live	101 101 Civic Centre
+15:39 Scheduled	106 106 Camps Bay
+15:40 Live	261 260 Omuramba
+15:40 Live	107 107 Civic Centre
+15:43 Live	103 103 Oranjezicht
+15:44 Live	108 108 Hangberg
+15:44 Live	109 109 Adderley
+15:45 Live	102 102 Salt River
+15:45 Live	109 109 Hout Bay
+15:47 Scheduled	106 106 Civic Centre
+15:47 Live	107 107 Camps Bay
+15:49 Live	261 261 Adderley
+15:49 Live	103 103 Oranjezicht
+15:50 Live	261 261 Adderley
+15:50 Live	106 106 Camps Bay
+15:51 Live	102 102 Civic Centre
+15:52 Live	113 113 Upper Kloof St
+15:52 Live	109 109 Hout Bay
+15:52 Live	108 108 Adderley
+15:53 Live	107 107 Civic Centre
+15:53 Live	261 260 Omuramba
+15:53 Live	101 101 Vredehoek
+15:53 Live	109 109 Hout Bay
+15:54 Scheduled	261 261 Century Rail
+15:55 Live	108 108 Hangberg
+15:55 Live	107 107 Camps Bay
+15:57 Scheduled	106 106 Camps Bay
+15:57 Live	261 260 Omuramba
+15:57 Live	102 102 Civic Centre
+15:59 Live	102 102 Salt River
+15:59 Live	105 105 Civic Centre
+16:00 Live	108 108 Hangberg
+16:00 Live	261 260 Omuramba
+16:01 Live	105 105 Civic Centre
+16:01 Live	261 261 Adderley
+16:02 Live	107 107 Camps Bay
+16:02 Scheduled	109 109 Hout Bay
+16:03 Live	107 107 Civic Centre
+16:03 Live	103 103 Civic Centre
+16:04 Live	105 105 Civic Centre
+16:04 Scheduled	106 106 Civic Centre
+16:05 Live	261 261 Adderley
+16:05 Live	109 109 Adderley
+16:06 Live	111 111 Civic Centre
+16:06 Scheduled	106 106 Camps Bay
+16:11 Scheduled	109 109 Hout Bay
+16:11 Live	107 107 Camps Bay
+16:11 Live	106 106 Civic Centre
+16:11 Live	107 107 Civic Centre
+16:11 Live	102 102 Salt River
+16:13 Scheduled	106 106 Civic Centre
+16:13 Scheduled	261 261 Adderley
+16:14 Live	261 261 Century Rail
+16:15 Scheduled	108 108 Hangberg
+16:15 Live	102 102 Civic Centre
+16:15 Live	105 105 Sea Point
+16:17 Live	105 105 Civic Centre
+16:17 Live	105 105 Sea Point
+16:18 Live	106 106 Camps Bay
+16:19 Scheduled	107 107 Camps Bay
+16:20 Live	105 105 Sea Point
+16:20 Scheduled	109 109 Hout Bay
+16:21 Live	107 107 Civic Centre
+16:21 Live	261 261 Adderley
+16:21 Live	105 105 Civic Centre
+16:21 Live	102 102 Civic Centre
+16:22 Scheduled	261 260 Omuramba
+16:22 Scheduled	106 106 Civic Centre
+16:23 Scheduled	105 105 Sea Point
+16:23 Scheduled	103 103 Oranjezicht
+16:23 Scheduled	111 111 Vredehoek
+16:24 Scheduled	106 106 Camps Bay
+16:26 Scheduled	102 102 Salt River
+16:28 Live	261 261 Adderley
+16:28 Scheduled	107 107 Camps Bay
+16:29 Live	108 108 Adderley
+16:29 Scheduled	261 260 Omuramba
+16:29 Scheduled	109 109 Hout Bay
+16:30 Live	113 113b Waterfront
+16:31 Scheduled	106 106 Civic Centre
+16:31 Live	107 107 Civic Centre
+16:31 Live	103 103 Civic Centre
+16:33 Scheduled	108 108 Hangberg
+16:33 Scheduled	106 106 Camps Bay
+16:34 Scheduled	261 261 Adderley
+16:35 Scheduled	105 105 Sea Point
+16:36 Scheduled	261 261 Century Rail
+16:37 Live	109 109 Adderley
+16:38 Live	103 103 Civic Centre
+16:39 Live	101 101 Civic Centre
+16:40 Scheduled	106 106 Civic Centre
+16:40 Scheduled	102 102 Salt River
+16:41 Live	108 108 Adderley
+16:41 Scheduled	109 109 Hout Bay
+16:41 Live	102 102 Civic Centre
+16:41 Scheduled	107 107 Civic Centre
+16:42 Live	109 109 Adderley
+16:42 Scheduled	106 106 Camps Bay
+16:43 Scheduled	261 260 Omuramba
+16:45 Live	109 109 Adderley
+16:45 Scheduled	105 105 Civic Centre
+16:46 Scheduled	107 107 Camps Bay
+16:47 Scheduled	105 105 Sea Point
+16:48 Scheduled	102 102 Civic Centre
+16:49 Scheduled	106 106 Civic Centre
+16:50 Scheduled	109 109 Hout Bay
+16:50 Scheduled	261 260 Omuramba
+16:51 Scheduled	106 106 Camps Bay
+16:52 Live	261 261 Adderley
+16:53 Scheduled	101 101 Vredehoek
+16:54 Scheduled	102 102 Salt River
+16:55 Live	261 261 Adderley
+16:55 Scheduled	108 108 Hangberg
+16:55 Scheduled	107 107 Camps Bay
+16:57 Scheduled	261 261 Century Rail
+16:57 Scheduled	105 105 Civic Centre
+16:58 Scheduled	103 103 Oranjezicht
+16:58 Scheduled	113 113 Upper Kloof St
+16:58 Scheduled	106 106 Civic Centre
+16:59 Live	105 105 Civic Centre
+16:59 Scheduled	107 107 Civic Centre
+16:59 Scheduled	105 105 Sea Point
+16:59 Scheduled	109 109 Hout Bay
+17:00 Scheduled	106 106 Camps Bay
+17:03 Scheduled	109 109 Adderley
+17:04 Scheduled	261 260 Omuramba
+17:04 Live	261 261 Adderley
+17:06 Scheduled	102 102 Civic Centre
+17:07 Scheduled	106 106 Civic Centre
+17:08 Scheduled	109 109 Hout Bay
+17:08 Scheduled	107 107 Civic Centre
+17:08 Scheduled	102 102 Salt River
+17:09 Scheduled	106 106 Camps Bay
+17:09 Scheduled	105 105 Civic Centre
+17:10 Live	261 261 Adderley
+17:10 Scheduled	111 111 Civic Centre
+17:11 Scheduled	105 105 Sea Point
+17:11 Scheduled	261 260 Omuramba
+17:12 Scheduled	108 108 Hangberg
+17:12 Scheduled	109 109 Adderley
+17:13 Scheduled	107 107 Camps Bay
+17:13 Scheduled	103 103 Civic Centre
+17:14 Live	109 109 Adderley
+17:16 Scheduled	261 261 Adderley
+17:16 Scheduled	106 106 Civic Centre
+17:17 Scheduled	109 109 Hout Bay
+17:17 Scheduled	107 107 Civic Centre
+17:18 Live	261 261 Adderley
+17:18 Scheduled	261 261 Century Rail
+17:18 Scheduled	106 106 Camps Bay
+17:20 Scheduled	102 102 Civic Centre
+17:21 Scheduled	109 109 Adderley
+17:21 Scheduled	105 105 Civic Centre
+17:22 Scheduled	107 107 Camps Bay
+17:22 Scheduled	102 102 Salt River
+17:23 Scheduled	105 105 Sea Point
+17:23 Live	108 108 Adderley
+17:23 Scheduled	111 111 Vredehoek
+17:25 Scheduled	261 260 Omuramba
+17:25 Scheduled	106 106 Civic Centre
+17:26 Scheduled	109 109 Hout Bay
+17:26 Scheduled	107 107 Civic Centre
+17:27 Scheduled	106 106 Camps Bay
+17:29 Live	261 261 Adderley
+17:30 Live	108 108 Adderley
+17:30 Scheduled	109 109 Adderley
+17:30 Scheduled	108 108 Hangberg
+17:31 Scheduled	107 107 Camps Bay
+17:32 Scheduled	261 260 Omuramba
+17:33 Scheduled	105 105 Civic Centre
+17:33 Scheduled	103 103 Oranjezicht
+17:34 Scheduled	106 106 Civic Centre
+17:34 Scheduled	102 102 Civic Centre
+17:35 Scheduled	109 109 Hout Bay
+17:35 Scheduled	107 107 Civic Centre
+17:35 Scheduled	105 105 Sea Point
+17:36 Scheduled	106 106 Camps Bay
+17:36 Scheduled	102 102 Salt River
+17:37 Scheduled	261 261 Adderley
+17:39 Scheduled	109 109 Adderley
+17:39 Scheduled	101 101 Civic Centre
+17:39 Scheduled	113 113b Waterfront
+17:39 Scheduled	261 261 Century Rail
+17:40 Scheduled	107 107 Camps Bay
+17:43 Scheduled	106 106 Civic Centre
+17:44 Scheduled	261 261 Adderley
+17:44 Scheduled	109 109 Hout Bay
+17:44 Scheduled	107 107 Civic Centre
+17:45 Scheduled	106 106 Camps Bay
+17:45 Scheduled	105 105 Civic Centre
+17:46 Scheduled	261 260 Omuramba
+17:47 Scheduled	105 105 Sea Point
+17:47 Scheduled	108 108 Adderley
+17:48 Scheduled	109 109 Adderley
+17:48 Scheduled	103 103 Civic Centre
+17:48 Scheduled	102 102 Civic Centre
+17:49 Scheduled	108 108 Hangberg
+17:49 Scheduled	107 107 Camps Bay
+17:50 Scheduled	102 102 Salt River
+17:51 Scheduled	261 261 Adderley
+17:52 Scheduled	106 106 Civic Centre
+17:53 Scheduled	109 109 Hout Bay
+17:53 Scheduled	101 101 Vredehoek
+17:53 Scheduled	261 260 Omuramba
+17:54 Scheduled	106 106 Camps Bay
+17:57 Scheduled	105 105 Civic Centre
+17:57 Scheduled	109 109 Adderley
+17:58 Scheduled	261 261 Adderley
+17:58 Scheduled	107 107 Camps Bay
+17:59 Live	108 108 Adderley
+17:59 Scheduled	105 105 Sea Point
+18:00 Scheduled	261 261 Century Rail
+18:01 Scheduled	106 106 Civic Centre
+18:02 Scheduled	102 102 Civic Centre
+18:02 Scheduled	107 107 Civic Centre
+18:02 Scheduled	109 109 Hout Bay
+18:03 Scheduled	106 106 Camps Bay
+18:04 Scheduled	102 102 Salt River
+18:05 Scheduled	261 261 Adderley
+18:05 Scheduled	108 108 Adderley
+18:06 Scheduled	109 109 Adderley
+18:07 Scheduled	261 260 Omuramba
+18:07 Scheduled	108 108 Hangberg
+18:08 Scheduled	113 113 Upper Kloof St
+18:08 Scheduled	103 103 Oranjezicht
+18:09 Scheduled	105 105 Civic Centre
+18:10 Scheduled	106 106 Civic Centre
+18:10 Scheduled	111 111 Civic Centre
+18:11 Scheduled	109 109 Hout Bay
+18:11 Scheduled	107 107 Civic Centre
+18:11 Scheduled	105 105 Sea Point
+18:12 Scheduled	261 261 Adderley
+18:12 Scheduled	106 106 Camps Bay
+18:14 Scheduled	261 260 Omuramba
+18:15 Scheduled	109 109 Adderley
+18:16 Scheduled	107 107 Camps Bay
+18:16 Scheduled	102 102 Civic Centre
+18:18 Scheduled	102 102 Salt River
+18:19 Scheduled	261 261 Adderley
+18:19 Scheduled	106 106 Civic Centre
+18:20 Scheduled	109 109 Hout Bay
+18:21 Scheduled	261 261 Century Rail
+18:21 Scheduled	105 105 Civic Centre
+18:21 Scheduled	106 106 Camps Bay
+18:23 Scheduled	103 103 Civic Centre
+18:23 Scheduled	111 111 Vredehoek
+18:23 Scheduled	108 108 Adderley
+18:23 Scheduled	105 105 Sea Point
+18:24 Scheduled	109 109 Adderley
+18:25 Scheduled	108 108 Hangberg
+18:25 Scheduled	107 107 Camps Bay
+18:26 Scheduled	261 261 Adderley
+18:28 Scheduled	261 260 Omuramba
+18:28 Scheduled	106 106 Civic Centre
+18:29 Scheduled	109 109 Hout Bay
+18:29 Scheduled	107 107 Civic Centre
+18:30 Scheduled	102 102 Civic Centre
+18:30 Scheduled	106 106 Camps Bay
+18:30 Scheduled	107 107 Civic Centre
+18:32 Scheduled	102 102 Salt River
+18:33 Scheduled	109 109 Adderley
+18:33 Scheduled	105 105 Civic Centre
+18:33 Scheduled	261 261 Adderley
+18:35 Scheduled	261 260 Omuramba
+18:35 Scheduled	105 105 Sea Point
+18:36 Scheduled	106 106 Civic Centre
+18:38 Scheduled	109 109 Hout Bay
+18:39 Scheduled	107 107 Civic Centre
+18:39 Scheduled	106 106 Camps Bay
+18:39 Scheduled	101 101 Civic Centre
+18:40 Scheduled	261 261 Adderley
+18:41 Scheduled	108 108 Adderley
+18:42 Scheduled	261 261 Century Rail
+18:43 Scheduled	103 103 Oranjezicht
+18:43 Scheduled	109 109 Adderley
+18:43 Scheduled	107 107 Camps Bay
+18:43 Scheduled	108 108 Hangberg
+18:44 Scheduled	102 102 Civic Centre
+18:45 Scheduled	106 106 Civic Centre
+18:45 Scheduled	105 105 Civic Centre
+18:46 Scheduled	102 102 Salt River
+18:47 Scheduled	261 261 Adderley
+18:47 Scheduled	109 109 Hout Bay
+18:47 Scheduled	105 105 Sea Point
+18:48 Scheduled	107 107 Civic Centre
+18:48 Scheduled	106 106 Camps Bay
+18:49 Scheduled	261 260 Omuramba
+18:49 Scheduled	113 113b Waterfront
+18:52 Scheduled	109 109 Adderley
+18:52 Scheduled	108 108 Hangberg
+18:52 Scheduled	107 107 Camps Bay
+18:53 Scheduled	101 101 Vredehoek
+18:54 Scheduled	261 261 Adderley
+18:54 Scheduled	106 106 Civic Centre
+18:56 Scheduled	261 260 Omuramba
+18:56 Scheduled	109 109 Hout Bay
+18:56 Scheduled	102 102 Civic Centre
+18:57 Scheduled	107 107 Civic Centre
+18:57 Scheduled	105 105 Civic Centre
+18:58 Scheduled	103 103 Civic Centre
+18:59 Scheduled	108 108 Adderley
+19:00 Scheduled	102 102 Salt River
+19:01 Scheduled	261 261 Adderley
+19:01 Scheduled	109 109 Adderley
+19:03 Scheduled	261 261 Century Rail
+19:03 Scheduled	106 106 Civic Centre
+19:05 Scheduled	109 109 Hout Bay
+19:06 Scheduled	107 107 Civic Centre
+19:06 Scheduled	106 106 Camps Bay
+19:08 Scheduled	261 261 Adderley
+19:09 Scheduled	105 105 Civic Centre
+19:10 Scheduled	261 260 Omuramba
+19:10 Scheduled	111 111 Civic Centre
+19:10 Scheduled	109 109 Adderley
+19:10 Scheduled	107 107 Camps Bay
+19:10 Scheduled	102 102 Civic Centre
+19:11 Scheduled	105 105 Sea Point
+19:12 Scheduled	106 106 Civic Centre
+19:14 Scheduled	108 108 Hangberg
+19:15 Scheduled	261 261 Adderley
+19:17 Scheduled	261 260 Omuramba
+19:17 Scheduled	108 108 Adderley
+19:18 Scheduled	113 113 Upper Kloof St
+19:19 Scheduled	109 109 Adderley
+19:20 Scheduled	106 106 Civic Centre
+19:21 Scheduled	105 105 Civic Centre
+19:23 Scheduled	111 111 Vredehoek
+19:23 Scheduled	109 109 Hout Bay
+19:23 Scheduled	107 107 Civic Centre
+19:24 Scheduled	261 260 Omuramba
+19:24 Scheduled	106 106 Camps Bay
+19:24 Scheduled	102 102 Civic Centre
+19:28 Scheduled	109 109 Adderley
+19:28 Scheduled	102 102 Salt River
+19:29 Scheduled	261 261 Adderley
+19:29 Scheduled	106 106 Civic Centre
+19:32 Scheduled	108 108 Hangberg
+19:32 Scheduled	107 107 Civic Centre
+19:33 Scheduled	105 105 Civic Centre
+19:33 Scheduled	103 103 Civic Centre
+19:35 Scheduled	105 105 Sea Point
+19:35 Scheduled	108 108 Adderley
+19:37 Scheduled	109 109 Adderley
+19:38 Scheduled	261 260 Omuramba
+19:38 Scheduled	106 106 Civic Centre
+19:38 Scheduled	102 102 Civic Centre
+19:39 Scheduled	101 101 Civic Centre
+19:41 Scheduled	109 109 Hout Bay
+19:42 Scheduled	106 106 Camps Bay
+19:43 Scheduled	261 261 Adderley
+19:46 Scheduled	109 109 Adderley
+19:47 Scheduled	106 106 Civic Centre
+19:50 Scheduled	261 261 Adderley
+19:50 Scheduled	108 108 Hangberg
+19:50 Scheduled	107 107 Civic Centre
+19:52 Scheduled	261 260 Omuramba
+19:52 Scheduled	102 102 Civic Centre
+19:53 Scheduled	108 108 Adderley
+19:55 Scheduled	109 109 Adderley
+19:55 Scheduled	107 107 Civic Centre
+19:57 Scheduled	261 261 Adderley
+19:57 Scheduled	105 105 Civic Centre
+19:59 Scheduled	113 113b Waterfront
+19:59 Scheduled	109 109 Hout Bay
+20:00 Scheduled	106 106 Camps Bay
+20:04 Scheduled	261 261 Adderley
+20:04 Scheduled	109 109 Adderley
+20:04 Scheduled	102 102 Civic Centre
+20:05 Scheduled	106 106 Civic Centre
+20:06 Scheduled	261 260 Omuramba
+20:08 Scheduled	108 108 Hangberg
+20:10 Scheduled	111 111 Civic Centre
+20:11 Scheduled	261 261 Adderley
+20:11 Scheduled	108 108 Adderley
+20:13 Scheduled	109 109 Adderley
+20:17 Scheduled	109 109 Hout Bay
+20:17 Scheduled	107 107 Civic Centre
+20:20 Scheduled	261 260 Omuramba
+20:21 Scheduled	105 105 Civic Centre
+20:22 Scheduled	109 109 Adderley
+20:23 Scheduled	106 106 Civic Centre
+20:25 Scheduled	261 261 Adderley
+20:26 Scheduled	108 108 Hangberg
+20:27 Scheduled	261 260 Omuramba
+20:28 Scheduled	113 113 Upper Kloof St
+20:29 Scheduled	108 108 Adderley
+20:32 Scheduled	261 261 Adderley
+20:32 Scheduled	102 102 Civic Centre
+20:34 Scheduled	261 260 Omuramba
+20:35 Scheduled	109 109 Hout Bay
+20:39 Scheduled	261 261 Adderley
+20:41 Scheduled	106 106 Civic Centre
+20:47 Scheduled	108 108 Adderley
+20:48 Scheduled	261 260 Omuramba
+20:53 Scheduled	261 261 Adderley
+20:56 Scheduled	108 108 Adderley
+20:59 Scheduled	106 106 Civic Centre
+21:00 Scheduled	261 261 Adderley
+21:07 Scheduled	261 261 Adderley
+21:09 Scheduled	113 113b Adderley
+21:16 Scheduled	261 260 Omuramba
+21:18 Scheduled	108 108 Adderley
+21:21 Scheduled	261 261 Adderley
+21:30 Scheduled	261 260 Omuramba
+21:35 Scheduled	261 261 Adderley
+21:49 Scheduled	261 261 Adderley
+22:03 Scheduled	261 261 Adderley

@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Arrow Admin - Prices</title>
+  <link rel="stylesheet" href="../admin-common/ga-theme.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">Golden Arrow <small>Admin Centre</small></div>
+      <div class="demo-banner">Demo mode: localStorage only - not secure.</div>
+      <div class="nav-list" style="margin-top:14px;">
+        <a data-page="dashboard" href="dashboard.html">Dashboard</a>
+        <a data-page="timetables" href="timetables.html">Timetables</a>
+        <a data-page="prices" href="prices.html">Prices</a>
+        <a data-page="users" href="users.html">Users</a>
+        <a data-page="tickets" href="tickets.html">Tickets</a>
+        <a data-page="wallets" href="wallets.html">Wallets</a>
+        <a data-page="audit" href="audit.html">Audit</a>
+        <a data-page="settings" href="settings.html">Settings</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left"><input id="global-search" class="input search" placeholder="Search prices..." /></div>
+        <div class="topbar-right"><span id="admin-email" class="tag"></span><button id="logout-btn" class="btn btn-secondary">Logout</button></div>
+      </div>
+      <h1 id="page-title">Prices</h1>
+
+      <section class="card">
+        <div class="row-actions">
+          <button id="tab-global" class="btn btn-primary">Global Journey Products</button>
+          <button id="tab-routes" class="btn btn-secondary">Route-based Prices</button>
+        </div>
+      </section>
+
+      <section id="global-section" class="card" style="margin-top:14px;">
+        <h3>Global Journey Products</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Key</th><th>Label</th><th>Journeys</th><th>Price</th><th>Updated</th><th>Actions</th></tr></thead>
+            <tbody id="global-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="route-section" class="card hidden" style="margin-top:14px;">
+        <h3>Route-based Prices</h3>
+        <div class="grid two">
+          <div><label>From</label><input id="r-from" class="input" placeholder="Cape Town" /></div>
+          <div><label>To</label><input id="r-to" class="input" placeholder="Khayelitsha" /></div>
+          <div><label>5 Ride</label><input id="r-five" class="input" type="number" step="0.01" /></div>
+          <div><label>Weekly</label><input id="r-weekly" class="input" type="number" step="0.01" /></div>
+          <div><label>Monthly</label><input id="r-monthly" class="input" type="number" step="0.01" /></div>
+        </div>
+        <div class="row-actions" style="margin-top:10px;">
+          <button id="save-route-price" class="btn btn-primary">Save Route Price</button>
+        </div>
+        <hr class="sep" />
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>From</th><th>To</th><th>5 Ride</th><th>Weekly</th><th>Monthly</th><th>Updated</th><th>Actions</th></tr></thead>
+            <tbody id="routes-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="../admin-common/ga-app.js"></script>
+  <script>
+    (async function () {
+      GAAdmin.requireAuth();
+      await GAAdmin.initRemote(false);
+      GAAdmin.applyLayout('prices', 'Golden Arrow Prices');
+
+      const tabGlobal = document.getElementById('tab-global');
+      const tabRoutes = document.getElementById('tab-routes');
+      const globalSection = document.getElementById('global-section');
+      const routeSection = document.getElementById('route-section');
+
+      function setTab(which) {
+        const global = which === 'global';
+        globalSection.classList.toggle('hidden', !global);
+        routeSection.classList.toggle('hidden', global);
+        tabGlobal.className = `btn ${global ? 'btn-primary' : 'btn-secondary'}`;
+        tabRoutes.className = `btn ${global ? 'btn-secondary' : 'btn-primary'}`;
+      }
+
+      tabGlobal.onclick = function () { setTab('global'); };
+      tabRoutes.onclick = function () { setTab('routes'); };
+
+      function renderGlobal() {
+        const body = document.getElementById('global-body');
+        const list = GAAdmin.getPricesGlobal();
+        body.innerHTML = '';
+        list.forEach((p) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-searchable', 'true');
+          tr.innerHTML = `
+            <td>${p.key}</td><td>${p.label}</td><td>${p.journeys}</td><td>${GAAdmin.fmtCurrency(p.price)}</td>
+            <td>${GAAdmin.formatDateTime(p.updatedAt)}</td>
+            <td><button class="btn btn-secondary" data-a="edit">Edit</button></td>
+          `;
+          tr.querySelector('[data-a="edit"]').onclick = function () {
+            const n = prompt(`Update price for ${p.label}`, p.price);
+            if (n === null) return;
+            const price = Number(n);
+            if (!Number.isFinite(price) || price < 0) return alert('Invalid number.');
+            const before = { ...p };
+            p.price = price;
+            p.updatedAt = GAAdmin.nowIso();
+            GAAdmin.savePricesGlobal(list);
+            GAAdmin.logAudit('PRICE_GLOBAL_UPDATE', 'PRICE_GLOBAL', p.key, before, p);
+            renderGlobal();
+          };
+          body.appendChild(tr);
+        });
+      }
+
+      function renderRoutes() {
+        const body = document.getElementById('routes-body');
+        const list = GAAdmin.getPricesRoutes();
+        body.innerHTML = '';
+        list.forEach((r) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-searchable', 'true');
+          tr.innerHTML = `
+            <td>${r.id}</td><td>${r.from}</td><td>${r.to}</td>
+            <td>${GAAdmin.fmtCurrency(r.five_ride)}</td>
+            <td>${GAAdmin.fmtCurrency(r.weekly)}</td>
+            <td>${GAAdmin.fmtCurrency(r.monthly)}</td>
+            <td>${GAAdmin.formatDateTime(r.updatedAt)}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-secondary" data-a="edit">Edit</button>
+                <button class="btn btn-danger" data-a="delete">Delete</button>
+              </div>
+            </td>
+          `;
+          tr.querySelector('[data-a="edit"]').onclick = function () {
+            document.getElementById('r-from').value = r.from;
+            document.getElementById('r-to').value = r.to;
+            document.getElementById('r-five').value = r.five_ride;
+            document.getElementById('r-weekly').value = r.weekly;
+            document.getElementById('r-monthly').value = r.monthly;
+            tr.dataset.editing = r.id;
+          };
+          tr.querySelector('[data-a="delete"]').onclick = function () {
+            const before = { ...r };
+            const next = list.filter((x) => x.id !== r.id);
+            GAAdmin.savePricesRoutes(next);
+            GAAdmin.logAudit('PRICE_ROUTE_DELETE', 'PRICE_ROUTE', r.id, before, null);
+            renderRoutes();
+          };
+          body.appendChild(tr);
+        });
+      }
+
+      document.getElementById('save-route-price').onclick = function () {
+        const from = document.getElementById('r-from').value.trim();
+        const to = document.getElementById('r-to').value.trim();
+        if (!from || !to) return alert('From/To required');
+
+        const five = Number(document.getElementById('r-five').value);
+        const weekly = Number(document.getElementById('r-weekly').value);
+        const monthly = Number(document.getElementById('r-monthly').value);
+
+        if (![five, weekly, monthly].every((x) => Number.isFinite(x) && x >= 0)) {
+          return alert('All prices must be valid numbers.');
+        }
+
+        const list = GAAdmin.getPricesRoutes();
+        const existing = list.find((x) => x.from.toLowerCase() === from.toLowerCase() && x.to.toLowerCase() === to.toLowerCase());
+        if (existing) {
+          const before = { ...existing };
+          existing.five_ride = five;
+          existing.weekly = weekly;
+          existing.monthly = monthly;
+          existing.updatedAt = GAAdmin.nowIso();
+          GAAdmin.logAudit('PRICE_ROUTE_UPDATE', 'PRICE_ROUTE', existing.id, before, existing);
+        } else {
+          const row = { id: GAAdmin.uid('rp'), from, to, five_ride: five, weekly, monthly, updatedAt: GAAdmin.nowIso() };
+          list.unshift(row);
+          GAAdmin.logAudit('PRICE_ROUTE_CREATE', 'PRICE_ROUTE', row.id, null, row);
+        }
+        GAAdmin.savePricesRoutes(list);
+        renderRoutes();
+      };
+
+      renderGlobal();
+      renderRoutes();
+    })();
+  </script>
+</body>
+</html>

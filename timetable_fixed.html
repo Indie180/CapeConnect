@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Timetables (fixed)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      :root{ --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --text:#0f172a; --accent:#FFB300; }
+      body:not(.light-mode){
+        --bg:#0f172a;
+        --card:#111827;
+        --text:#f8fafc;
+        --muted:#cbd5e1;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+      .wrap{max-width:1100px;margin:20px auto;padding:18px}
+      .controls{display:flex;gap:12px;align-items:center}
+      .search{flex:1;padding:10px;border-radius:20px;border:1px solid #e6e9ee}
+      .chips{display:flex;gap:8px;flex-wrap:wrap}
+      .chip{padding:8px 12px;border-radius:8px;background:#f1f5f9;cursor:pointer;font-weight:700}
+      .chip.active{background:#0f172a;color:#fff}
+      .results-container{height:480px;overflow:auto;margin-top:12px}
+      .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+      .card{background:var(--card);padding:10px;border-radius:8px;border:1px solid #eef2f6}
+      .modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0}
+      .modal.show{visibility:visible;opacity:1}
+      .modal-card{background:#fff;padding:12px;border-radius:8px;width:90%;max-width:700px}
+      @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="margin:6px 0 8px">Download Network Timetables</h1>
+      <div class="controls">
+        <input id="searchInput" class="search" placeholder="Search route or suburb" />
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+        <div>Results for <strong id="currentLetter">A</strong></div>
+        <div id="countPill" style="background:#007A33;color:#fff;padding:6px 10px;border-radius:999px">0</div>
+      </div>
+
+      <div class="results-container">
+        <div class="grid" id="grid"></div>
+      </div>
+
+    </div>
+
+    <div id="modal" class="modal" role="dialog" aria-hidden="true">
+      <div class="modal-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <h3 id="modalTitle" style="margin:0"></h3>
+            <div id="modalSub" style="color:#6b7280"></div>
+          </div>
+          <div>
+            <button id="closeModal">Close</button>
+            <a id="modalDownload" href="#" style="margin-left:8px">Download PDF</a>
+          </div>
+        </div>
+        <div id="modalPreview" style="height:260px;margin-top:8px;background:#f3f4f6;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#6b7280">Preview</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      function getSelectedBus(){
+        try { return JSON.parse(localStorage.getItem('selectedBus')); } catch { return null; }
+      }
+      const selectedBus = getSelectedBus();
+      if(selectedBus){
+        document.body.classList.remove('bus-ga','bus-myciti');
+        document.body.classList.add(`bus-${selectedBus}`);
+      }
+      const chipOrder = ['All','A','B','C','D','E','F','H','K','L','M','N','O','P','R','S','T','U','V','W'];
+      const searchInput = document.getElementById('searchInput');
+      const chipsEl = document.getElementById('chips');
+      const grid = document.getElementById('grid');
+      const currentLetterEl = document.getElementById('currentLetter');
+      const countPill = document.getElementById('countPill');
+      const modal = document.getElementById('modal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalSub = document.getElementById('modalSub');
+      const modalPreview = document.getElementById('modalPreview');
+      const closeModal = document.getElementById('closeModal');
+      const modalDownload = document.getElementById('modalDownload');
+
+      const RAW_INPUT = `AIRPORT IND-BELLVILLE\nTimetable Number - 004401\n\nAIRPORT IND-BLUEDOWNS\nTimetable Number - 012901\n`;
+
+      function parseTimetables(raw){
+        const sectionRegex = /\bfill\b.*?\b(in|for)\s*([A-Za-z])\s*:/gi;
+        const sections = []; let match; let lastIndex=0; let lastLetter=null;
+        while((match=sectionRegex.exec(raw))!==null){ const letter = match[2].toUpperCase(); if(lastLetter!==null) sections.push({letter:lastLetter,text:raw.slice(lastIndex,match.index)}); lastLetter=letter; lastIndex = match.index + match[0].length; }
+        if(lastLetter!==null) sections.push({letter:lastLetter,text:raw.slice(lastIndex)});
+        if(sections.length===0) sections.push({letter:'ALL',text:raw});
+
+        const items = [];
+        for(const sec of sections){ const lines = sec.text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean); for(let i=0;i<lines.length;i++){ const route = lines[i]; const ttLine = lines[i+1]||''; const ttMatch = ttLine.match(/Timetable\s*Number\s*-\s*([0-9.]+)/i); if(!ttMatch) continue; const timetable = ttMatch[1].trim(); if(/^Timetable\s*Number/i.test(route)) continue; items.push({letter:sec.letter,route:route.toUpperCase(),timetable}); i++; } }
+
+        const seen = new Set(); const dedup = [];
+        for(const it of items){ const key = `${it.letter}||${it.route}||${it.timetable}`; if(seen.has(key)) continue; seen.add(key); dedup.push(it); }
+        dedup.sort((a,b)=>{ if(a.letter!==b.letter) return a.letter.localeCompare(b.letter); if(a.route!==b.route) return a.route.localeCompare(b.route); return a.timetable.localeCompare(b.timetable,undefined,{numeric:true}); });
+        return dedup;
+      }
+
+      let routes = [];
+      let activeLetter = 'A';
+      let searchQ = '';
+
+      function buildChips(){ chipsEl.innerHTML=''; chipOrder.forEach(c=>{ const b=document.createElement('button'); b.className='chip'+(c.toUpperCase()===activeLetter?' active':''); b.textContent=c; b.addEventListener('click', ()=>{ activeLetter=c.toUpperCase(); currentLetterEl.textContent=c; render(); }); chipsEl.appendChild(b); }); }
+
+      function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+      function render(){ const list = routes.filter(r=>{ const letterOk=(activeLetter==='ALL')||(r.letter===activeLetter); const q=searchQ.toLowerCase(); const txtOk = !q || (r.route && r.route.toLowerCase().includes(q)); return letterOk && txtOk; }); grid.innerHTML=''; list.forEach(item=>{ const card=document.createElement('div'); card.className='card'; card.innerHTML = `<div><h3>${escapeHtml(item.route)}</h3><p>Timetable - ${escapeHtml(item.timetable)}</p></div><div style="margin-top:8px"><button class="btn-view">View</button> <button class="btn-dl">Download</button></div>`; card.querySelector('.btn-view').addEventListener('click', ()=>openViewer(item)); card.querySelector('.btn-dl').addEventListener('click', ()=>downloadPdf(item)); grid.appendChild(card); }); countPill.textContent = list.length; }
+
+      function downloadPdf(item){ const filename = sanitizeFilename((item.route||'route') + '-' + (item.timetable||'')) + '.pdf'; const content = `Timetable for ${item.route}\nTimetable Number - ${item.timetable||''}\n\n(placeholder)`; const blob = new Blob([content],{type:'application/pdf'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+      function sanitizeFilename(n){ return String(n||'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'-'); }
+
+      function openViewer(item){ modalTitle.textContent = item.route||''; modalSub.textContent = 'Timetable Number - ' + (item.timetable||'N/A'); modalPreview.textContent=''; const d=document.createElement('div'); d.style.padding='12px'; d.innerHTML = `<div style="font-weight:700">Preview</div><div style="font-size:13px">${escapeHtml(item.route)}</div>`; modalPreview.appendChild(d); modal.classList.add('show'); modal.setAttribute('aria-hidden','false'); modalDownload.onclick = (e)=>{ e.preventDefault(); downloadPdf(item); }; }
+
+      document.getElementById('searchInput').addEventListener('input',(e)=>{ searchQ=e.target.value.trim(); render(); });
+      closeModal.addEventListener('click', ()=>{ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); });
+
+      function init(){
+        buildChips();
+        const storageKey = document.body.classList.contains('bus-myciti')
+          ? 'timetablesRaw_myciti'
+          : 'timetablesRaw_ga';
+        const stored = localStorage.getItem(storageKey) || localStorage.getItem('timetablesRaw');
+        if(stored && stored.trim()){
+          routes = parseTimetables(stored);
+          routes.forEach(r=>{ if(!r.letter||r.letter==='ALL'){ r.letter=(r.route&&r.route[0])?r.route[0].toUpperCase():'' } });
+          render();
+          return;
+        }
+
+        routes = parseTimetables(RAW_INPUT);
+        routes.forEach(r=>{ if(!r.letter||r.letter==='ALL'){ r.letter=(r.route&&r.route[0])?r.route[0].toUpperCase():'' } });
+        render();
+
+        fetch('timetables.raw.txt').then(r=>{ if(!r.ok) throw new Error('no local'); return r.text(); }).then(txt=>{ if(txt && txt.trim()){ routes = parseTimetables(txt); routes.forEach(r=>{ if(!r.letter||r.letter==='ALL'){ r.letter=(r.route&&r.route[0])?r.route[0].toUpperCase():'' } }); render(); } }).catch(()=>{});
+      }
+
+      init();
+    })();
+    </script>
+    <script src="js/app.js"></script>
+    <script>
+      if (window.App) {
+        App.loadTheme();
+        App.applyBusTheme();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyCiTi From→To Points Calculator (Mover + Passes)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{
+      --bg:var(--bg-main);
+      --card:var(--bg-card);
+      --text:var(--text-main);
+      --muted:var(--text-muted);
+      --line:var(--border-input);
+      --accent:var(--brand-primary);
+      --accent-dark:#0f4c81;
+    }
+    body{
+      font-family:system-ui,Arial,sans-serif;
+      margin:0;
+      max-width:none;
+      background:radial-gradient(900px 520px at 10% 0%, rgba(28,143,196,.18), transparent 55%), var(--bg);
+      color:var(--text);
+    }
+    .page-wrap{max-width:980px;margin:24px auto;padding:0 18px;}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:900px){.grid{grid-template-columns:1.1fr .9fr}}
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    label{display:block;margin:10px 0 6px;font-weight:800}
+    select,input,button{
+      width:100%;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--bg-input);
+      color:var(--text);
+      outline:none;
+    }
+    button{
+      background:var(--brand-primary);
+      border-color:var(--brand-primary);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+    }
+    button:hover{filter:brightness(0.98)}
+    .row{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
+    .result{
+      margin-top:12px;
+      background:var(--bg-input);
+      border-radius:12px;
+      padding:12px;
+      border:1px solid var(--line);
+    }
+    .mono{font-family:ui-monospace,Menlo,monospace}
+    small{color:var(--muted)}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg-input);font-size:12px}
+    .ok{border:1px solid #bbf7d0;background:#f0fdf4}
+    .warn{border:1px solid #fecaca;background:#fff1f2}
+    .error{border:1px solid #fecaca;background:#fff1f2;color:#7f1d1d}
+    .muted{color:var(--muted)}
+    .table{width:100%;border-collapse:collapse;margin-top:10px}
+    .table td,.table th{border-bottom:1px solid var(--line);padding:8px;text-align:left;font-size:13px}
+  </style>
+</head>
+<body class="bus-myciti">
+  <header>
+    <div class="nav-container">
+      <a href="dashboard.html" class="logo">
+        <img class="logo-img" src="pictures/myciti-removebg-preview.png" alt="MyCiTi">
+        <span class="logo-text">MyCiTi</span>
+      </a>
+      <nav class="nav-links" id="main-nav">
+        <a href="dashboard.html" data-link="dashboard">Dashboard</a>
+        <a href="timetable.html" data-link="timetable">Timetable & Routes</a>
+        <a href="myciti-calculator.html" data-link="calculator">Calculator</a>
+        <a href="choose-fare.html" data-link="booking">Book Ticket</a>
+        <a href="#" data-link="help">Help</a>
+      </nav>
+      <div class="nav-btns">
+        <button class="theme-toggle" aria-label="Toggle theme" onclick="App.toggleTheme()" title="Toggle Theme">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="page-wrap">
+  <h2>MyCiTi Calculator (From→To deducts points + shows points left)</h2>
+  <small>
+    Uses MyCiTi’s official Mover Peak/Saver distance-band fares (effective 1 July 2025). Peak is weekdays 06:45–08:00 and 16:15–17:30. Saver is all other times.
+    (Pass prices included too.)
+  </small>
+
+  <div class="grid">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label for="ticketType">Ticket type</label>
+          <select id="ticketType">
+            <option value="mover" selected>Mover (Top Up points) — deduct per trip</option>
+            <option value="day1">1 Day Pass</option>
+            <option value="day3">3 Day Pass</option>
+            <option value="day7">7 Day Pass</option>
+            <option value="monthly">Monthly Pass</option>
+          </select>
+          <small class="muted">Only Mover deducts points per trip. Passes are unlimited travel during validity.</small>
+        </div>
+        <div>
+          <label for="balance">Current points balance (R)</label>
+          <input id="balance" type="number" step="0.01" min="0" value="100.00" />
+          <small class="muted">MyCiTi “Mover points” are loaded in Rand value (e.g., R20+).</small>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="from">From</label>
+          <select id="from"></select>
+        </div>
+        <div>
+          <label for="to">To</label>
+          <select id="to"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="when">Fare period</label>
+          <select id="when">
+            <option value="saver" selected>Saver (off-peak)</option>
+            <option value="peak">Peak</option>
+          </select>
+          <small class="muted">Peak times are fixed by MyCiTi.</small>
+        </div>
+
+        <div>
+          <label for="routeFactor">Route factor</label>
+          <input id="routeFactor" type="number" step="0.01" min="1.00" value="1.25" />
+          <small class="muted">1.00 straight-line; 1.20–1.35 closer to roads.</small>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="trips">Trips (rides)</label>
+          <input id="trips" type="number" min="1" step="1" value="1" />
+          <small class="muted">Return trip = 2 rides.</small>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="calc">Calculate & Deduct</button>
+        </div>
+      </div>
+
+      <div class="result" id="out" role="status" aria-live="polite">Select a route and calculate.</div>
+    </div>
+
+    <div class="card">
+      <div class="pill"><b>Official fares (1 July 2025)</b></div>
+      <table class="table" aria-label="Fare summary">
+        <tr><th>Pass</th><th>Price</th></tr>
+        <tbody id="passFareRows"></tbody>
+      </table>
+
+      <table class="table" aria-label="Mover distance bands">
+        <tr><th>Distance band</th><th>Mover Peak</th><th>Mover Saver</th></tr>
+        <tbody id="moverFareRows"></tbody>
+      </table>
+
+      <small class="muted">Source: MyCiTi annual fare adjustment (effective 1 July 2025).</small>
+    </div>
+  </div>
+  </div>
+
+<script src="js/api-client.js"></script>
+<script src="js/cc-utils.js"></script>
+<script src="js/cc-validation.js"></script>
+<script src="js/data-service.js"></script>
+<script>
+  const FALLBACK_DATA = {
+    stops: [
+      { name:"Civic Centre", lat:-33.9249, lon:18.4241 },
+      { name:"Gardens", lat:-33.9353, lon:18.4148 },
+      { name:"Sea Point", lat:-33.9156, lon:18.3877 },
+      { name:"Century City", lat:-33.8920, lon:18.5110 },
+      { name:"Table View", lat:-33.8269, lon:18.4909 },
+      { name:"Dunoon", lat:-33.8642, lon:18.5366 },
+      { name:"Melkbosstrand", lat:-33.7250, lon:18.4450 },
+      { name:"Atlantis", lat:-33.5667, lon:18.4833 },
+      { name:"Hout Bay", lat:-34.0436, lon:18.3489 }
+    ],
+    moverFareBands: [
+      { min: 0, max: 5, peak: 13.5, saver: 10.5 },
+      { min: 5, max: 10, peak: 18.5, saver: 13.5 },
+      { min: 10, max: 20, peak: 23.5, saver: 18.5 },
+      { min: 20, max: 30, peak: 25.5, saver: 21.5 },
+      { min: 30, max: 40, peak: 27.5, saver: 23.5 },
+      { min: 40, max: 50, peak: 31.5, saver: 28.5 },
+      { min: 50, max: 60, peak: 36.5, saver: 31.5 },
+      { min: 60, max: 9999, peak: 39.5, saver: 33.5 }
+    ],
+    passPrices: { day1: 90, day3: 210, day7: 300, monthly: 1000 }
+  };
+
+  let PLACES = FALLBACK_DATA.stops;
+  let MOVER_FARES = FALLBACK_DATA.moverFareBands;
+  let PASS_PRICES = FALLBACK_DATA.passPrices;
+
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => window.CCUtils.formatZarFromCents(Math.round(Number(n || 0) * 100));
+
+  function toRad(d){ return d * Math.PI / 180; }
+  function kmBetween(a,b){
+    const R = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const la1 = toRad(a.lat), la2 = toRad(b.lat);
+    const x = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+
+  function pickBand(km){
+    return MOVER_FARES.find(b => km >= b.min && km < b.max) || MOVER_FARES[MOVER_FARES.length-1];
+  }
+
+  const fromSel = $("from"), toSel = $("to");
+
+  function renderStops(){
+    const opts = PLACES.map(p => `<option value="${p.name}">${p.name}</option>`).join("");
+    fromSel.innerHTML = opts;
+    toSel.innerHTML = opts;
+    toSel.selectedIndex = Math.min(1, Math.max(0, PLACES.length - 1));
+  }
+
+  function renderFareTables(){
+    const passRows = $("passFareRows");
+    const moverRows = $("moverFareRows");
+    passRows.innerHTML = `
+      <tr><td>Monthly Pass</td><td class="mono">${money(PASS_PRICES.monthly)}</td></tr>
+      <tr><td>1 Day Pass</td><td class="mono">${money(PASS_PRICES.day1)}</td></tr>
+      <tr><td>3 Day Pass</td><td class="mono">${money(PASS_PRICES.day3)}</td></tr>
+      <tr><td>7 Day Pass</td><td class="mono">${money(PASS_PRICES.day7)}</td></tr>
+    `;
+    moverRows.innerHTML = MOVER_FARES.map(b => {
+      const label = b.max >= 9999 ? "60+ km" : `${b.min}-${b.max} km`;
+      return `<tr><td>${label}</td><td class="mono">${money(b.peak)}</td><td class="mono">${money(b.saver)}</td></tr>`;
+    }).join("");
+  }
+
+  async function loadMycitiData(){
+    try {
+      const data = window.CCDataService && typeof window.CCDataService.loadMycitiWithMeta === "function"
+        ? await window.CCDataService.loadMycitiWithMeta()
+        : null;
+      if (data && Array.isArray(data.stops) && data.stops.length) PLACES = data.stops;
+      if (data && Array.isArray(data.moverFareBands) && data.moverFareBands.length) MOVER_FARES = data.moverFareBands;
+      if (data && data.passPrices && typeof data.passPrices === "object") PASS_PRICES = data.passPrices;
+    } catch (err) {
+      console.warn("Using fallback MyCiTi dataset:", err.message);
+    }
+    renderStops();
+    renderFareTables();
+  }
+
+  function ticketIsMover(){ return $("ticketType").value === "mover"; }
+  function refreshWhenEnabled(){
+    $("when").disabled = !ticketIsMover();
+    $("routeFactor").disabled = !ticketIsMover();
+    $("trips").disabled = !ticketIsMover();
+  }
+  $("ticketType").addEventListener("change", refreshWhenEnabled);
+  refreshWhenEnabled();
+
+  $("calc").addEventListener("click", () => {
+    const type = $("ticketType").value;
+    const balance = Math.max(0, Number($("balance").value || 0));
+    const from = PLACES.find(p => p.name === fromSel.value);
+    const to = PLACES.find(p => p.name === toSel.value);
+    const routeFactor = Number($("routeFactor").value || 1.25);
+    const tripsRaw = Number($("trips").value || 1);
+    const trips = window.CCValidation.intFromInput($("trips"), 1, 1);
+
+    const pairCheck = window.CCValidation.validateSelectPair(fromSel, toSel);
+    if (!pairCheck.ok) {
+      $("out").innerHTML = `<div class="error result">${pairCheck.msg}</div>`;
+      return;
+    }
+    if (!Number.isFinite(balance) || balance < 0) {
+      $("out").innerHTML = `<div class="error result">Current points balance must be 0 or more.</div>`;
+      return;
+    }
+    if (!Number.isFinite(routeFactor) || routeFactor < 1) {
+      $("out").innerHTML = `<div class="error result">Route factor must be 1.00 or more.</div>`;
+      return;
+    }
+    const tripsCheck = window.CCValidation.validateWholeNumber(tripsRaw, 1, "Trips");
+    if (!tripsCheck.ok) {
+      $("out").innerHTML = `<div class="error result">${tripsCheck.msg}</div>`;
+      return;
+    }
+
+    if(type !== "mover"){
+      const passPrice = PASS_PRICES[type];
+      $("out").innerHTML = `
+        <div class="ok result">
+          <b>Ticket type:</b> <span class="mono">${type.toUpperCase()}</span><br>
+          <b>Trip:</b> ${from.name} → ${to.name}<br>
+          <b>Pass price:</b> <span class="mono">${money(passPrice)}</span><br>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0;">
+          <b>Points deducted:</b> <span class="mono">R 0.00</span> (passes are unlimited travel)<br>
+          <b>Points remaining:</b> <span class="mono">${money(balance)}</span> (your top-up balance stays the same)
+        </div>
+      `;
+      return;
+    }
+
+    const when = $("when").value;
+    const safeRouteFactor = Math.max(1, routeFactor);
+
+    const straightKm = kmBetween(from,to);
+    const routeKm = straightKm * safeRouteFactor;
+
+    const band = pickBand(routeKm);
+    const fareOneTrip = (when === "peak") ? band.peak : band.saver;
+    const totalFare = fareOneTrip * trips;
+
+    const remaining = balance - totalFare;
+    const klass = remaining < 0 ? "warn" : "ok";
+
+    $("out").innerHTML = `
+      <div class="${klass} result">
+        <b>Ticket type:</b> <span class="mono">MOVER (Top Up)</span><br>
+        <b>Trip:</b> ${from.name} → ${to.name}<br>
+        <b>Straight-line distance:</b> <span class="mono">${straightKm.toFixed(2)} km</span><br>
+        <b>Estimated route distance:</b> <span class="mono">${routeKm.toFixed(2)} km</span> (factor ${safeRouteFactor})<br>
+        <b>Distance band used:</b> <span class="mono">${band.min}-${band.max >= 9999 ? "60+" : band.max} km</span><br>
+        <b>Fare period:</b> <span class="mono">${when.toUpperCase()}</span><br>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0;">
+        <b>Current points:</b> <span class="mono">${money(balance)}</span><br>
+        <b>Fare per trip:</b> <span class="mono">${money(fareOneTrip)}</span><br>
+        <b>Trips:</b> <span class="mono">${trips}</span><br>
+        <b>Total deducted:</b> <span class="mono">${money(totalFare)}</span><br>
+        <b>Points left:</b> <span class="mono">${money(remaining)}</span><br>
+        <small>${remaining < 0 ? "Not enough points — top up more value." : "Enough points for this trip."}</small>
+      </div>
+    `;
+  });
+
+  loadMycitiData();
+</script>
+<script src="js/app.js"></script>
+<script>
+  (function(){
+    if (window.App) {
+      App.loadTheme();
+      App.applyBusTheme();
+    }
+    const path = location.pathname.split('/').pop();
+    document.querySelectorAll('#main-nav a').forEach(a => {
+      const href = a.getAttribute('href');
+      if (href === path) a.classList.add('active');
+    });
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Golden Arrow | Step 3 Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/ga-experience.css" />
+</head>
+<body class="ga-flow">
+  <div class="ga-wrap">
+    <div class="ga-topbar">
+      <a class="ga-brand" href="dashboard.html">
+        <img src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
+        <strong>Golden Arrow Flow</strong>
+      </a>
+      <nav class="ga-nav">
+        <a href="ga-route-calculator.html">Step 1</a>
+        <a href="ga-choose-fare.html">Step 2</a>
+        <a class="active" href="ga-results.html">Step 3</a>
+        <a href="ga-payment.html">Step 4</a>
+      </nav>
+    </div>
+
+    <div class="ga-layout">
+      <section class="ga-card">
+        <h1 class="ga-title">Trip and Fare Results</h1>
+        <p class="ga-sub">Step 3 of 4. Review estimate quality and total before payment.</p>
+
+        <div class="ga-steps">
+          <div class="ga-step">1. Plan</div>
+          <div class="ga-step">2. Fare</div>
+          <div class="ga-step active">3. Results</div>
+          <div class="ga-step">4. Payment</div>
+        </div>
+
+        <div id="alertBox" class="ga-alert"></div>
+
+        <div class="ga-results">
+          <div class="ga-row"><span>Route</span><strong id="routeOut">-</strong></div>
+          <div class="ga-row"><span>Distance</span><strong id="distanceOut">-</strong></div>
+          <div class="ga-row"><span>Travel time</span><strong id="timeOut">-</strong></div>
+          <div class="ga-row"><span>Selected fare</span><strong id="fareOut">-</strong></div>
+          <div class="ga-row"><span>Quantity</span><strong id="qtyOut">-</strong></div>
+          <div class="ga-row"><span>Estimated total</span><strong id="totalOut">-</strong></div>
+        </div>
+
+        <div class="ga-grid two">
+          <label class="ga-field">
+            <span>Adjust quantity</span>
+            <input id="qtyInput" type="number" min="1" step="1" />
+            <small>Changes total and journey capacity immediately.</small>
+          </label>
+          <label class="ga-field">
+            <span>Adjust planned trips</span>
+            <input id="plannedTripsInput" type="number" min="1" step="1" />
+            <small>Useful when your travel pattern changes.</small>
+          </label>
+        </div>
+
+        <div class="ga-actions">
+          <button id="backBtn" class="ga-btn soft" type="button">Back: Choose Fare</button>
+          <button id="nextBtn" class="ga-btn primary" type="button">Next: Payment</button>
+        </div>
+      </section>
+
+      <aside class="ga-card ga-summary-card">
+        <h2 class="ga-summary-title">Coverage Check</h2>
+        <p class="ga-sub">Journeys and coverage for your selected fare.</p>
+        <div class="ga-results">
+          <div class="ga-row"><span>Total journeys</span><strong id="journeysOut">-</strong></div>
+          <div class="ga-row"><span>Planned trips</span><strong id="planOut">-</strong></div>
+          <div class="ga-row"><span>Remaining</span><strong id="remainingOut">-</strong></div>
+          <div class="ga-row"><span>Recommendation</span><strong id="recommendOut">-</strong></div>
+        </div>
+        <div class="ga-note">If remaining goes negative, increase quantity or choose a larger fare.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="js/data-service.js"></script>
+  <script src="js/ga-booking-state.js"></script>
+  <script>
+    let dataset = null;
+    const $ = (id) => document.getElementById(id);
+    const alertBox = $("alertBox");
+    const qtyInput = $("qtyInput");
+    const plannedTripsInput = $("plannedTripsInput");
+
+    function showError(message) {
+      alertBox.className = "ga-alert error";
+      alertBox.textContent = message;
+    }
+
+    function clearAlert() {
+      alertBox.className = "ga-alert";
+      alertBox.textContent = "";
+    }
+
+    function readState() {
+      return window.GABookingState.readState();
+    }
+
+    function hydrate() {
+      const state = readState();
+      if (!state?.estimate?.routeLabel || !state?.fare) {
+        window.location.href = "ga-choose-fare.html";
+        return false;
+      }
+      qtyInput.value = Math.max(1, Number(state.quantity || 1));
+      plannedTripsInput.value = Math.max(1, Number(state.plannedTrips || 10));
+      return true;
+    }
+
+    function recalculate() {
+      const state = readState();
+      const fare = state.fare;
+      const qty = Math.max(1, Number(qtyInput.value || 1));
+      const planned = Math.max(1, Number(plannedTripsInput.value || 1));
+      const routeFareCents = window.GABookingState.getRouteFare(dataset, state.from, state.to, fare);
+      const totalCents = routeFareCents ? routeFareCents * qty : 0;
+      const journeys = window.GABookingState.fareJourneys(dataset, fare) * qty;
+      const remaining = journeys - planned;
+      const recommend = window.GABookingState.recommendFare(dataset, planned, qty);
+
+      $("routeOut").textContent = state.estimate.routeLabel || "-";
+      $("distanceOut").textContent = state.estimate.distanceKm ? `${state.estimate.distanceKm.toFixed(1)} km` : "-";
+      $("timeOut").textContent = state.estimate.travelMinutes ? `${state.estimate.travelMinutes} min` : "-";
+      $("fareOut").textContent = window.GABookingState.fareLabel(dataset, fare);
+      $("qtyOut").textContent = String(qty);
+      $("totalOut").textContent = routeFareCents ? window.GABookingState.formatZar(totalCents) : "No route fare";
+
+      $("journeysOut").textContent = `${journeys} journeys`;
+      $("planOut").textContent = `${planned} planned`;
+      $("remainingOut").textContent = remaining >= 0 ? `${remaining} left` : `${Math.abs(remaining)} short`;
+      $("recommendOut").textContent = window.GABookingState.fareLabel(dataset, recommend);
+
+      window.GABookingState.patchState({
+        quantity: qty,
+        plannedTrips: planned,
+        routeFareCents: routeFareCents || null,
+        totalFareCents: totalCents,
+        resultsComputedAt: new Date().toISOString()
+      });
+    }
+
+    function bind() {
+      [qtyInput, plannedTripsInput].forEach((el) => {
+        el.addEventListener("input", () => {
+          clearAlert();
+          recalculate();
+        });
+        el.addEventListener("change", () => {
+          clearAlert();
+          recalculate();
+        });
+      });
+
+      $("backBtn").addEventListener("click", () => {
+        recalculate();
+        window.location.href = "ga-choose-fare.html";
+      });
+
+      $("nextBtn").addEventListener("click", () => {
+        recalculate();
+        const state = readState();
+        if (!state.routeFareCents) {
+          showError("This route does not have a fare configured for the selected product.");
+          return;
+        }
+        window.location.href = "ga-payment.html";
+      });
+    }
+
+    (async function init() {
+      if (!hydrate()) return;
+      dataset = await window.GABookingState.loadDataset();
+      bind();
+      recalculate();
+    })();
+  </script>
+</body>
+</html>

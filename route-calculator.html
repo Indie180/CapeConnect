@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyCiTi Booking - Plan Trip</title>
+  <link rel="stylesheet" href="css/flow-components.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    :root{
+      --navy:#0b1f3a;
+      --blue:#00a3e0;
+      --accent:#00a3e0;
+      --accent-dark:#008fc3;
+      --step-border:rgba(0,163,224,.35);
+      --ghost-bg:rgba(0,163,224,.10);
+      --ghost-border:rgba(0,163,224,.28);
+      --white:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.12);
+      --card:#f7fbff;
+      --shadow:0 16px 40px rgba(11,31,58,.18);
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Montserrat", "Trebuchet MS", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(0,163,224,.22), transparent 55%),
+        radial-gradient(900px 600px at 80% 40%, rgba(0,163,224,.14), transparent 60%),
+        var(--navy);
+    }
+    .two{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
+    .controls{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
+    .field span{ display:block; font-size:12px; font-weight:800; color:var(--navy); margin-bottom:6px; }
+    input{ width:100%; padding:12px; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--ink); font-family:inherit; }
+    .helper{ font-size:12px; color:var(--muted); margin:6px 0 0; }
+    .results{ margin-top:12px; padding:14px; border-radius:16px; background:rgba(0,163,224,.10); border:1px solid rgba(0,163,224,.28); }
+    .results-row{ display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed rgba(15,23,42,.12); font-size:14px; }
+    .results-row:last-child{ border-bottom:none; }
+    @media (min-width:700px){ .two{ grid-template-columns:1fr 1fr; } .controls{ grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Step 1: Plan Trip</h1>
+      <p class="sub">Choose your stops so we can estimate distance and time.</p>
+
+      <div class="steps">
+        <div class="step">1. Plan Trip</div>
+      </div>
+      <div id="pageNotice" class="cc-alert cc-alert-error" style="display:none; margin: 10px 0;"></div>
+
+      <div class="two">
+        <label class="field">
+          <span>From (Bus Stop)</span>
+          <input id="fromStop" list="stopList" placeholder="Search a stop" />
+        </label>
+        <label class="field">
+          <span>To (Bus Stop)</span>
+          <input id="toStop" list="stopList" placeholder="Search a stop" />
+        </label>
+      </div>
+      <datalist id="stopList"></datalist>
+
+      <div class="controls">
+        <label class="field">
+          <span>Average bus speed (km/h)</span>
+          <input id="speedInput" type="number" min="5" step="1" value="25" />
+          <div class="helper">Time is an estimate. Change this to match your reality.</div>
+        </label>
+        <label class="field">
+          <span>Route factor</span>
+          <input id="factorInput" type="number" min="1" step="0.05" value="1.25" />
+          <div class="helper">1.00 = straight-line; 1.20-1.35 often feels closer to real routes.</div>
+        </label>
+      </div>
+
+      <div class="results" id="quickResults">
+        <div class="results-row"><span>Estimated distance</span><strong id="distanceOut">-</strong></div>
+        <div class="results-row"><span>Estimated travel time</span><strong id="timeOut">-</strong></div>
+        <div class="results-row"><span>Fare period</span><strong id="periodOut">-</strong></div>
+        <div class="results-row"><span>Estimated deducted amount</span><strong id="amountOut">-</strong></div>
+        <div class="results-row"><span>Points deducted (1 point = R1)</span><strong id="pointsOut">-</strong></div>
+      </div>
+
+      <div class="results" id="activeTicketBox" style="margin-top:14px;">
+        <div class="results-row"><span>Active ticket</span><strong id="ticketTitleOut">-</strong></div>
+        <div class="results-row"><span>Route</span><strong id="ticketRouteOut">-</strong></div>
+        <div class="results-row"><span>Date</span><strong id="ticketDateOut">-</strong></div>
+        <div class="results-row"><span>Status</span><strong id="ticketStatusOut">-</strong></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn ghost" type="button" id="btnBack">Back to Dashboard</button>
+        <button class="btn primary" type="button" id="btnNext">Next: Choose Fare</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api-client.js"></script>
+<script src="js/cc-utils.js"></script>
+  <script src="js/data-service.js"></script>
+  <script src="js/cc-components.js"></script>
+  <script>
+    const FALLBACK_STOPS = [
+      { name: "Civic Centre", lat: -33.917, lon: 18.429 },
+      { name: "Cape Town Station", lat: -33.925, lon: 18.424 },
+      { name: "Table View Station", lat: -33.828, lon: 18.503 },
+      { name: "Atlantis Station", lat: -33.566, lon: 18.483 },
+      { name: "Airport", lat: -33.969, lon: 18.600 },
+      { name: "Khayelitsha", lat: -34.038, lon: 18.675 },
+      { name: "Mitchells Plain", lat: -34.050, lon: 18.630 },
+      { name: "Sea Point", lat: -33.918, lon: 18.389 },
+      { name: "Hout Bay", lat: -34.043, lon: 18.341 },
+      { name: "Century City", lat: -33.892, lon: 18.516 }
+    ];
+    const FALLBACK_BANDS = [
+      { max: 5,  peak: 13.50, saver: 10.50 },
+      { max: 10, peak: 18.50, saver: 13.50 },
+      { max: 20, peak: 23.50, saver: 18.50 },
+      { max: 30, peak: 25.50, saver: 21.50 },
+      { max: 40, peak: 27.50, saver: 23.50 },
+      { max: 50, peak: 31.50, saver: 28.50 },
+      { max: 60, peak: 36.50, saver: 31.50 },
+      { max: Infinity, peak: 39.50, saver: 33.50 }
+    ];
+    let STOPS = [...FALLBACK_STOPS];
+    let FARE_BANDS = [...FALLBACK_BANDS];
+
+    const datalist = document.getElementById("stopList");
+    function renderStops(){
+      datalist.innerHTML = "";
+      STOPS.forEach(stop => {
+        const opt = document.createElement("option");
+        opt.value = stop.name;
+        datalist.appendChild(opt);
+      });
+    }
+
+    async function loadMycitiData(){
+      try {
+        const data = window.CCDataService && typeof window.CCDataService.loadMycitiWithMeta === "function"
+          ? await window.CCDataService.loadMycitiWithMeta()
+          : null;
+        if (data && Array.isArray(data.stops) && data.stops.length) {
+          STOPS = data.stops.map(s => ({ name: s.name, lat: Number(s.lat), lon: Number(s.lon) }));
+        }
+        if (data && Array.isArray(data.moverFareBands) && data.moverFareBands.length) {
+          FARE_BANDS = data.moverFareBands.map(b => ({
+            max: Number(b.max) >= 9999 ? Infinity : Number(b.max),
+            peak: Number(b.peak),
+            saver: Number(b.saver)
+          }));
+        }
+      } catch (err) {
+        console.warn("Using fallback MyCiTi dataset:", err.message);
+      }
+      renderStops();
+    }
+
+    const fromStop = document.getElementById("fromStop");
+    const toStop = document.getElementById("toStop");
+    const speedInput = document.getElementById("speedInput");
+    const factorInput = document.getElementById("factorInput");
+
+    const distanceOut = document.getElementById("distanceOut");
+    const timeOut = document.getElementById("timeOut");
+    const periodOut = document.getElementById("periodOut");
+    const amountOut = document.getElementById("amountOut");
+    const pointsOut = document.getElementById("pointsOut");
+    const ticketTitleOut = document.getElementById("ticketTitleOut");
+    const ticketRouteOut = document.getElementById("ticketRouteOut");
+    const ticketDateOut = document.getElementById("ticketDateOut");
+    const ticketStatusOut = document.getElementById("ticketStatusOut");
+    const pageNotice = document.getElementById("pageNotice");
+
+    function toRadians(val){ return (val * Math.PI) / 180; }
+
+    function haversineKm(a, b){
+      const R = 6371;
+      const dLat = toRadians(b.lat - a.lat);
+      const dLon = toRadians(b.lon - a.lon);
+      const lat1 = toRadians(a.lat);
+      const lat2 = toRadians(b.lat);
+      const h = Math.sin(dLat/2)**2 + Math.sin(dLon/2)**2 * Math.cos(lat1) * Math.cos(lat2);
+      const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+      return R * c;
+    }
+
+    function isPeakTime(date = new Date()){
+      const day = date.getDay();
+      if(day === 0 || day === 6) return false;
+      const minutes = date.getHours() * 60 + date.getMinutes();
+      const morningStart = 6 * 60 + 45;
+      const morningEnd = 8 * 60;
+      const afternoonStart = 16 * 60 + 15;
+      const afternoonEnd = 17 * 60 + 30;
+      return (minutes >= morningStart && minutes <= morningEnd) ||
+             (minutes >= afternoonStart && minutes <= afternoonEnd);
+    }
+
+    function getBand(distanceKm){
+      return FARE_BANDS.find(b => distanceKm <= b.max) || FARE_BANDS[FARE_BANDS.length - 1];
+    }
+
+    function getStopByName(name){
+      return STOPS.find(s => s.name.toLowerCase() === String(name || "").toLowerCase());
+    }
+
+    function calculate(){
+      const from = getStopByName(fromStop.value);
+      const to = getStopByName(toStop.value);
+      const speed = Math.max(5, Number(speedInput.value) || 25);
+      const factor = Math.max(1, Number(factorInput.value) || 1.25);
+
+      if(!from || !to || from.name === to.name){
+        distanceOut.textContent = "-";
+        timeOut.textContent = "-";
+        periodOut.textContent = "-";
+        amountOut.textContent = "-";
+        pointsOut.textContent = "-";
+        return null;
+      }
+
+      const straightKm = haversineKm(from, to);
+      const distanceKm = straightKm * factor;
+      const travelMinutes = Math.round((distanceKm / speed) * 60);
+      const peak = isPeakTime();
+      const band = getBand(distanceKm);
+      const fare = peak ? band.peak : band.saver;
+
+      distanceOut.textContent = `${distanceKm.toFixed(1)} km`;
+      timeOut.textContent = `${travelMinutes} min`;
+      periodOut.textContent = peak ? "Peak" : "Saver";
+      amountOut.textContent = `R ${fare.toFixed(2)}`;
+      pointsOut.textContent = `${Math.round(fare)} points`;
+
+      return { from, to, distanceKm, travelMinutes, period: peak ? "Peak" : "Saver", fare, points: Math.round(fare), bandLabel: `${band.max === Infinity ? "60+" : `0-${band.max}`} km` };
+    }
+
+    function saveState(estimate){
+      const state = window.CCUtils.storageGet('mycitiBooking', {});
+      state.from = fromStop.value;
+      state.to = toStop.value;
+      state.speed = Number(speedInput.value) || 25;
+      state.factor = Number(factorInput.value) || 1.25;
+      if (estimate) {
+        state.estimate = estimate;
+      }
+      window.CCUtils.storageSet('mycitiBooking', state);
+    }
+
+    function loadActiveTicket(){
+      const active = window.CCUtils.getActiveTicket();
+      if (!active) {
+        ticketTitleOut.textContent = "No active ticket";
+        ticketRouteOut.textContent = "-";
+        ticketDateOut.textContent = "-";
+        ticketStatusOut.textContent = "-";
+        return;
+      }
+      const parts = String(active.route || "").split("-");
+      const from = parts[0] ? parts[0].trim() : "Pass";
+      const to = parts.slice(1).join("-").trim() || (active.type ? String(active.type) : "Pass");
+      ticketTitleOut.textContent = active.type ? String(active.type).replace(/(^\w|\s\w)/g, m => m.toUpperCase()) : "Active Ticket";
+      ticketRouteOut.textContent = `${from} to ${to}`;
+      ticketDateOut.textContent = active.date || "-";
+      ticketStatusOut.textContent = active.status || "Active";
+    }
+
+    [fromStop, toStop, speedInput, factorInput].forEach(input => {
+      input.addEventListener('input', () => {
+        if (window.CCComponents?.alert) window.CCComponents.alert.clear(pageNotice);
+        const estimate = calculate();
+        saveState(estimate);
+      });
+      input.addEventListener('change', () => {
+        if (window.CCComponents?.alert) window.CCComponents.alert.clear(pageNotice);
+        const estimate = calculate();
+        saveState(estimate);
+      });
+    });
+
+    document.getElementById('btnBack').addEventListener('click', () => {
+      window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('btnNext').addEventListener('click', () => {
+      const estimate = calculate();
+      if (!estimate) {
+        if (window.CCComponents?.alert) {
+          window.CCComponents.alert.show(pageNotice, "error", "Please select two different stops.");
+        }
+        return;
+      }
+      if (window.CCComponents?.alert) window.CCComponents.alert.clear(pageNotice);
+      saveState(estimate);
+      window.location.href = 'choose-fare.html';
+    });
+
+    (async function init(){
+      await loadMycitiData();
+      const state = window.CCUtils.storageGet('mycitiBooking', {});
+      if (state.from) fromStop.value = state.from;
+      if (state.to) toStop.value = state.to;
+      if (state.speed) speedInput.value = state.speed;
+      if (state.factor) factorInput.value = state.factor;
+      const estimate = calculate();
+      saveState(estimate);
+      loadActiveTicket();
+    })();
+  </script>
+</body>
+</html>
+
+
+

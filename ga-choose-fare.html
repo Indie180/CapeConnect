@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Golden Arrow | Step 2 Choose Fare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/ga-experience.css" />
+</head>
+<body class="ga-flow">
+  <div class="ga-wrap">
+    <div class="ga-topbar">
+      <a class="ga-brand" href="dashboard.html">
+        <img src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
+        <strong>Golden Arrow Flow</strong>
+      </a>
+      <nav class="ga-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="ga-route-calculator.html">Step 1</a>
+        <a class="active" href="ga-choose-fare.html">Step 2</a>
+        <a href="ga-results.html">Step 3</a>
+      </nav>
+    </div>
+
+    <div class="ga-layout">
+      <section class="ga-card">
+        <h1 class="ga-title">Choose Your Fare</h1>
+        <p class="ga-sub">Step 2 of 4. Select fare type and quantity for your planned travel.</p>
+
+        <div class="ga-steps">
+          <div class="ga-step">1. Plan</div>
+          <div class="ga-step active">2. Fare</div>
+          <div class="ga-step">3. Results</div>
+          <div class="ga-step">4. Payment</div>
+        </div>
+
+        <div id="alertBox" class="ga-alert"></div>
+
+        <div class="ga-fares">
+          <label class="ga-fare">
+            <input type="radio" name="fare" value="ride5" />
+            <strong>5-Ride Ticket</strong>
+            <p id="ride5Range">-</p>
+          </label>
+          <label class="ga-fare">
+            <input type="radio" name="fare" value="weekly" />
+            <strong>Weekly Ticket</strong>
+            <p id="weeklyRange">-</p>
+          </label>
+          <label class="ga-fare">
+            <input type="radio" name="fare" value="monthly" />
+            <strong>Monthly Ticket</strong>
+            <p id="monthlyRange">-</p>
+          </label>
+        </div>
+
+        <div class="ga-grid two">
+          <label class="ga-field">
+            <span>Quantity</span>
+            <input id="qtyInput" type="number" min="1" step="1" value="1" />
+            <small>Buy multiple tickets in one checkout.</small>
+          </label>
+          <label class="ga-field">
+            <span>Planned trips</span>
+            <input id="plannedTripsInput" type="number" min="1" step="1" value="10" />
+            <small>Used to estimate journey coverage.</small>
+          </label>
+        </div>
+
+        <div class="ga-results">
+          <div class="ga-row"><span>Recommended fare</span><strong id="recommendedOut">-</strong></div>
+          <div class="ga-row"><span>Total journey capacity</span><strong id="capacityOut">-</strong></div>
+          <div class="ga-row"><span>Coverage after plan</span><strong id="coverageOut">-</strong></div>
+        </div>
+
+        <div class="ga-actions">
+          <button id="backBtn" class="ga-btn soft" type="button">Back: Plan Trip</button>
+          <button id="nextBtn" class="ga-btn primary" type="button">Next: Results</button>
+        </div>
+      </section>
+
+      <aside class="ga-card ga-summary-card">
+        <h2 class="ga-summary-title">Route Context</h2>
+        <p class="ga-sub">Fare ranges are dataset-driven and auto-updated.</p>
+        <div class="ga-results">
+          <div class="ga-row"><span>Route</span><strong id="routeOut">-</strong></div>
+          <div class="ga-row"><span>Distance</span><strong id="distanceOut">-</strong></div>
+          <div class="ga-row"><span>Travel time</span><strong id="timeOut">-</strong></div>
+        </div>
+        <div class="ga-note">Select the fare that best matches your expected rides.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="js/data-service.js"></script>
+  <script src="js/ga-booking-state.js"></script>
+  <script>
+    let dataset = null;
+    let ranges = null;
+    const state = window.GABookingState.readState();
+
+    const $ = (id) => document.getElementById(id);
+    const alertBox = $("alertBox");
+    const qtyInput = $("qtyInput");
+    const plannedTripsInput = $("plannedTripsInput");
+
+    function showError(message) {
+      alertBox.className = "ga-alert error";
+      alertBox.textContent = message;
+    }
+
+    function clearAlert() {
+      alertBox.className = "ga-alert";
+      alertBox.textContent = "";
+    }
+
+    function selectedFare() {
+      return document.querySelector('input[name="fare"]:checked')?.value || "";
+    }
+
+    function syncSummary() {
+      const estimate = window.GABookingState.readState().estimate || {};
+      $("routeOut").textContent = estimate.routeLabel || "-";
+      $("distanceOut").textContent = estimate.distanceKm ? `${estimate.distanceKm.toFixed(1)} km` : "-";
+      $("timeOut").textContent = estimate.travelMinutes ? `${estimate.travelMinutes} min` : "-";
+    }
+
+    function paintRanges() {
+      $("ride5Range").textContent = ranges.ride5 || "-";
+      $("weeklyRange").textContent = ranges.weekly || "-";
+      $("monthlyRange").textContent = ranges.monthly || "-";
+    }
+
+    function updateCapacity() {
+      const fare = selectedFare();
+      const qty = Math.max(1, Number(qtyInput.value || 1));
+      const planned = Math.max(1, Number(plannedTripsInput.value || 1));
+      const recommended = window.GABookingState.recommendFare(dataset, planned, qty);
+      const recommendedLabel = window.GABookingState.fareLabel(dataset, recommended);
+
+      $("recommendedOut").textContent = recommendedLabel;
+      if (!fare) {
+        $("capacityOut").textContent = "-";
+        $("coverageOut").textContent = "-";
+        return;
+      }
+      const journeys = window.GABookingState.fareJourneys(dataset, fare) * qty;
+      const left = journeys - planned;
+      $("capacityOut").textContent = `${journeys} journeys`;
+      $("coverageOut").textContent = left >= 0 ? `${left} journeys left` : `${Math.abs(left)} short`;
+    }
+
+    function hydrate() {
+      if (!state?.estimate?.routeLabel) {
+        window.location.href = "ga-route-calculator.html";
+        return false;
+      }
+      if (state.fare) {
+        const radio = document.querySelector(`input[name="fare"][value="${state.fare}"]`);
+        if (radio) radio.checked = true;
+      }
+      qtyInput.value = state.quantity || 1;
+      plannedTripsInput.value = state.plannedTrips || 10;
+      return true;
+    }
+
+    function persist() {
+      window.GABookingState.patchState({
+        fare: selectedFare() || null,
+        quantity: Math.max(1, Number(qtyInput.value || 1)),
+        plannedTrips: Math.max(1, Number(plannedTripsInput.value || 1))
+      });
+      updateCapacity();
+    }
+
+    function bind() {
+      document.querySelectorAll('input[name="fare"]').forEach((el) => {
+        el.addEventListener("change", () => {
+          clearAlert();
+          persist();
+        });
+      });
+
+      [qtyInput, plannedTripsInput].forEach((el) => {
+        el.addEventListener("input", () => {
+          clearAlert();
+          persist();
+        });
+        el.addEventListener("change", () => {
+          clearAlert();
+          persist();
+        });
+      });
+
+      $("backBtn").addEventListener("click", () => {
+        persist();
+        window.location.href = "ga-route-calculator.html";
+      });
+
+      $("nextBtn").addEventListener("click", () => {
+        const fare = selectedFare();
+        if (!fare) {
+          showError("Select a fare type before continuing.");
+          return;
+        }
+        persist();
+        window.location.href = "ga-results.html";
+      });
+    }
+
+    (async function init() {
+      if (!hydrate()) return;
+      dataset = await window.GABookingState.loadDataset();
+      ranges = window.GABookingState.priceRanges(dataset);
+      paintRanges();
+      syncSummary();
+      bind();
+      persist();
+    })();
+  </script>
+</body>
+</html>

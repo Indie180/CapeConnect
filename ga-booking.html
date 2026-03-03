@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Golden Arrow — Plan Trip → Journeys → Payment → Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{
+      --bg:var(--bg-main);
+      --card:var(--bg-card);
+      --text:var(--text-main);
+      --muted:var(--text-muted);
+      --line:var(--border-input);
+      --accent:var(--brand-primary);
+      --ok:#16a34a;
+      --warn:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:0; max-width:none;
+      font-family:system-ui,Arial,sans-serif;
+      background: radial-gradient(1000px 650px at 20% 0%, rgba(245,200,76,.22), transparent 55%), var(--bg);
+      color:var(--text);
+    }
+    .page-wrap{max-width:1100px;margin:24px auto;padding:0 18px;}
+    h1{margin:0 0 6px; font-size:22px}
+    p{margin:0 0 16px; color:var(--muted)}
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
+    .pill{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:7px 10px; border-radius:999px; border:1px solid var(--line);
+      background: var(--bg-input); color: var(--muted); font-size:12px;
+    }
+    .pill b{color:var(--text)}
+    .btnSmall{
+      width:auto; padding:10px 12px; border-radius:12px; border:1px solid var(--line);
+      background: var(--bg-input); color:var(--text); cursor:pointer; font-weight:800;
+    }
+
+    .grid{display:grid; grid-template-columns: 1fr; gap:14px}
+    @media(min-width: 900px){ .grid{grid-template-columns: 1.2fr .8fr} }
+
+    .card{
+      border:1px solid var(--line); border-radius:16px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .head{
+      padding:14px; border-bottom:1px solid var(--line);
+      display:flex; align-items:center; gap:10px; background: var(--bg-input);
+      font-weight:900;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--accent)}
+    .body{padding:14px}
+    .row{display:grid; grid-template-columns:1fr; gap:10px}
+    @media(min-width:720px){ .row{grid-template-columns:1fr 1fr} }
+    label{display:block;margin:10px 0 6px;font-weight:750}
+    input,select,button{
+      width:100%; padding:11px 12px; border-radius:12px;
+      border:1px solid var(--line); background:var(--bg-input); color:var(--text); outline:none;
+    }
+    /* Keep dropdown text readable in all themes/browsers */
+    select{
+      background:#1f2e47;
+      color:#ffffff;
+      border-color:#3a4f73;
+    }
+    select option{
+      background:#ffffff;
+      color:#0f172a;
+    }
+    input::placeholder{color:rgba(234,240,255,.55)}
+    .btn{
+      margin-top:12px; font-weight:900; cursor:pointer;
+      background: var(--brand-primary); border-color: var(--brand-primary); color: var(--text-dark, #1e293b);
+    }
+    .btnGhost{
+      margin-top:12px; font-weight:900; cursor:pointer;
+      background: var(--bg-input);
+    }
+    .side{position:sticky; top:14px}
+    .ticketCard{
+      border:1px solid var(--line); border-radius:16px; padding:14px;
+      background: var(--bg-card);
+    }
+    .mono{font-family:ui-monospace,Menlo,monospace}
+    .muted{color:var(--muted)}
+    .line{height:1px;background:var(--line);margin:10px 0}
+    .tiny{font-size:12px;color:var(--muted)}
+    .msgOk{border:1px solid rgba(110,243,165,.35); background: rgba(110,243,165,.10); padding:10px 12px; border-radius:12px; color:#d7ffea}
+    .msgWarn{border:1px solid rgba(255,92,122,.35); background: rgba(255,92,122,.10); padding:10px 12px; border-radius:12px; color:#ffd7df}
+    .fieldError{margin-top:10px}
+    .stepTitle{font-weight:900; margin:0 0 6px}
+    .hidden{display:none !important}
+    .ticketList{display:grid; gap:10px; margin-top:10px}
+    .ticketItem{
+      border:1px solid var(--line); border-radius:14px; padding:12px;
+      background: var(--bg-card);
+    }
+    .ticketItem .top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .ticketItem .top b{font-size:14px}
+    .tag{display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted)}
+  </style>
+</head>
+<body class="bus-ga">
+  <header>
+    <div class="nav-container">
+      <a href="dashboard.html" class="logo">
+        <img class="logo-img" src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
+        <span class="logo-text">CapeConnect</span>
+      </a>
+      <nav class="nav-links" id="main-nav">
+        <a href="dashboard.html" data-link="dashboard">Dashboard</a>
+        <a href="timetable.html" data-link="timetable">Timetable & Routes</a>
+        <a href="ga-calculator.html" data-link="calculator">Calculator</a>
+        <a href="ga-booking.html" data-link="booking">Book Ticket</a>
+        <a href="#" data-link="help">Help</a>
+      </nav>
+      <div class="nav-btns">
+        <button class="theme-toggle" aria-label="Toggle theme" onclick="App.toggleTheme()" title="Toggle Theme">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-wrap">
+  <div id="resumeBanner" class="msgOk tiny hidden" style="margin-bottom:12px;" role="status" aria-live="polite">
+    We found an in-progress booking. It has been restored.
+    <button id="clearBooking" class="btnGhost" style="margin-left:10px; width:auto;">Clear booking</button>
+  </div>
+  <div class="topbar">
+    <div class="pill"><b>Golden Arrow</b> Demo flow — Plan Trip → Journeys → Payment → Dashboard</div>
+    <button class="btnSmall" id="resetBtn" title="Clears saved tickets">Reset Demo</button>
+  </div>
+  <div id="dataStatus" class="msgOk tiny" role="status" aria-live="polite">Loading route and fare data...</div>
+
+  <h1>Golden Arrow Booking</h1>
+  <p>Complete the steps below to buy your ticket.</p>
+
+  <div class="grid">
+    <!-- LEFT: Booking Flow -->
+    <section class="card">
+      <div class="head"><span class="dot"></span> Golden Arrow Booking Flow</div>
+      <div class="body">
+
+        <!-- STEP 1: PLAN TRIP -->
+        <div id="step1">
+          <div class="stepTitle">1) Plan a trip</div>
+
+          <div class="row">
+            <div>
+              <label for="from">From</label>
+              <select id="from"></select>
+              <div class="tiny">Demo list. Replace with your real Golden Arrow stops/groups later.</div>
+            </div>
+            <div>
+              <label for="to">To</label>
+              <select id="to"></select>
+              <div class="tiny">Choose a matching route pair from the demo fares.</div>
+            </div>
+          </div>
+
+          <button class="btn" id="goStep2">Continue</button>
+          <div id="step1Error" class="msgWarn tiny hidden fieldError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <!-- STEP 2: CHOOSE TICKET -->
+        <div id="step2" class="hidden">
+          <div class="stepTitle">2) Choose ticket type (journeys)</div>
+
+          <label for="product">Ticket product</label>
+          <select id="product"></select>
+
+          <div class="row">
+            <div>
+              <label for="qty">Quantity</label>
+              <input id="qty" type="number" min="1" step="1" value="1" />
+              <div class="tiny">Buy more than one ticket (demo).</div>
+            </div>
+            <div>
+              <label for="plannedTrips">Planned trips (optional)</label>
+              <input id="plannedTrips" type="number" min="1" step="1" value="10" />
+              <div class="tiny">We’ll show journeys left for your plan.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btnGhost" id="backTo1">Back</button>
+            <button class="btn" id="goStep3">Continue to Payment</button>
+          </div>
+          <div id="step2Error" class="msgWarn tiny hidden fieldError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <!-- STEP 3: PAYMENT (DEMO) -->
+        <div id="step3" class="hidden">
+          <div class="stepTitle">3) Payment</div>
+          <div class="msgOk tiny">
+            Demo payment screen. Click “Pay now” to simulate a successful payment and add the ticket to your dashboard.
+          </div>
+
+          <label for="payMethod" style="margin-top:10px">Payment method (demo)</label>
+          <select id="payMethod">
+            <option>Wallet</option>
+            <option>Saved Card (Mastercard •••• 9876)</option>
+            <option>New Card</option>
+          </select>
+
+          <div class="row">
+            <button class="btnGhost" id="backTo2">Back</button>
+            <button class="btn" id="payNow">Pay now (Demo)</button>
+          </div>
+          <div id="step3Error" class="msgWarn tiny hidden fieldError" role="alert" aria-live="polite"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT: Ticket preview -->
+    <aside class="side">
+      <div class="ticketCard">
+        <div class="pill"><b style="color:var(--text)">Ticket</b><span>preview</span></div>
+        <div class="line"></div>
+
+        <div><b>Operator:</b> Golden Arrow</div>
+        <div><b>Trip:</b> <span id="tripOut">—</span></div>
+
+        <div class="line"></div>
+
+        <div><b>Product:</b> <span id="typeOut">5 Ride (5 journeys)</span></div>
+        <div><b>Journeys included:</b> <span id="journeysOut">5</span></div>
+        <div><b>Planned trips:</b> <span id="planOut">10</span></div>
+        <div><b>Journeys left:</b> <span id="leftOut">-5</span></div>
+
+        <div class="line"></div>
+
+        <div><b>Unit price:</b> <span class="mono" id="unitOut">—</span></div>
+        <div><b>Quantity:</b> <span id="qtyOut">1</span></div>
+        <div><b>Total:</b> <span class="mono" id="totalOut">—</span></div>
+
+        <div class="line"></div>
+        <div class="tiny muted">Demo fares available</div>
+        <div class="tiny" id="routePairsHint">Loading routes...</div>
+      </div>
+    </aside>
+  </div>
+  </div>
+
+<script src="js/api-client.js"></script>
+<script src="js/cc-utils.js"></script>
+<script src="js/cc-validation.js"></script>
+<script src="js/cc-components.js"></script>
+<script src="js/data-service.js"></script>
+<script>
+  // ---------------- Storage keys ----------------
+  const STORAGE_KEY = window.CCUtils.TICKET_KEY;
+  const FALLBACK_DATA = {
+    products: {
+      five: { label: "5 Ride (5 journeys)", journeysIncluded: 5 },
+      weekly: { label: "Weekly (10 journeys)", journeysIncluded: 10 },
+      monthly: { label: "Monthly (48 journeys)", journeysIncluded: 48 }
+    },
+    routePairs: [
+      { from: "Cape Town", to: "Khayelitsha", faresCents: { five: 12650, weekly: 23400, monthly: 103000 } },
+      { from: "Langa", to: "Cape Town", faresCents: { five: 11450, weekly: 21200, monthly: 93300 } },
+      { from: "Somerset West", to: "Cape Town", faresCents: { five: 14750, weekly: 27350, monthly: 120300 } }
+    ]
+  };
+  let PRODUCTS = FALLBACK_DATA.products;
+  let ROUTE_PAIRS = FALLBACK_DATA.routePairs;
+  let FARES = {};
+  let JOURNEYS_INCLUDED = {};
+
+  function setDataStatus(message, kind){
+    const box = document.getElementById("dataStatus");
+    if (!box) return;
+    box.className = `tiny ${kind === "error" ? "msgWarn" : "msgOk"}`;
+    box.textContent = message;
+  }
+
+  // ---------------- Helpers ----------------
+  const $ = (id) => document.getElementById(id);
+  const moneyZAR = (cents) => window.CCUtils.formatZarFromCents(cents);
+  const nowISO = () => window.CCUtils.nowIso();
+  const BOOKING_KEY = "ccBooking_v1";
+  const isGolden = (ticket) => String(ticket?.operator || ticket?.service || "").toLowerCase().includes("golden");
+
+  function normalizeGaTicket(ticket){
+    if (!ticket || typeof ticket !== "object" || !isGolden(ticket)) return null;
+
+    const amountCents = Number(ticket.amountCents);
+    if (!Number.isFinite(amountCents) || amountCents <= 0) return null;
+
+    const rawType = String(ticket.type || "").toLowerCase();
+    const typeLabel = rawType === "five" || rawType === "ride5"
+      ? "5 Ride (5 journeys)"
+      : (rawType === "weekly" ? "Weekly (10 journeys)" : (rawType === "monthly" ? "Monthly (48 journeys)" : ""));
+
+    let title = String(ticket.title || "").trim();
+    if (!title || title.toLowerCase() === "undefined") {
+      if (!typeLabel) return null;
+      title = `Golden Arrow ${typeLabel}`;
+    }
+
+    let trip = String(ticket.trip || ticket.route || "").trim();
+    if (!trip || trip.toLowerCase() === "undefined") return null;
+
+    const createdRaw = ticket.createdAt || ticket.purchasedAt || "";
+    const createdDate = new Date(createdRaw);
+    if (!createdRaw || Number.isNaN(createdDate.getTime())) return null;
+
+    let journeysIncluded = Number(ticket.journeysIncluded);
+    if (!Number.isFinite(journeysIncluded) || journeysIncluded <= 0) {
+      journeysIncluded = rawType === "five" || rawType === "ride5" ? 5 : (rawType === "weekly" ? 10 : (rawType === "monthly" ? 48 : NaN));
+    }
+    if (!Number.isFinite(journeysIncluded) || journeysIncluded <= 0) return null;
+
+    return {
+      ...ticket,
+      title,
+      trip,
+      amountCents,
+      journeysIncluded,
+      createdAt: createdDate.toISOString(),
+      status: ticket.status || "Active"
+    };
+  }
+
+  function loadTickets(){
+    const list = window.CCUtils.getTickets();
+    const rebuilt = [];
+    let changed = false;
+
+    list.forEach(ticket => {
+      if (!isGolden(ticket)) {
+        rebuilt.push(ticket);
+        return;
+      }
+      const normalized = normalizeGaTicket(ticket);
+      if (!normalized) {
+        changed = true;
+        return;
+      }
+      if (
+        normalized.title !== ticket.title ||
+        normalized.trip !== ticket.trip ||
+        normalized.amountCents !== ticket.amountCents ||
+        normalized.journeysIncluded !== ticket.journeysIncluded ||
+        normalized.createdAt !== ticket.createdAt
+      ) {
+        changed = true;
+      }
+      rebuilt.push(normalized);
+    });
+
+    if (changed) {
+      window.CCUtils.saveTickets(rebuilt);
+    }
+    return rebuilt.filter(isGolden);
+  }
+  function saveTickets(arr){
+    window.CCUtils.saveTickets(arr);
+  }
+  function show(id){ $(id).classList.remove("hidden"); }
+  function hide(id){ $(id).classList.add("hidden"); }
+  function setStepError(stepId, msg){
+    const box = $(stepId);
+    if (!box) return;
+    if (!msg) {
+      if (window.CCComponents?.alert) window.CCComponents.alert.clear(box);
+      box.classList.add("hidden");
+      return;
+    }
+    box.classList.remove("hidden");
+    if (window.CCComponents?.alert) {
+      window.CCComponents.alert.show(box, "error", msg);
+    } else {
+      window.CCValidation.setError(stepId, msg);
+    }
+  }
+  function intVal(id, min=1){
+    return window.CCValidation.intFromInput($(id), min, min);
+  }
+  function routeKey(){ return `${$("from").value}→${$("to").value}`; }
+
+  function productLabel(p){
+    return PRODUCTS[p]?.label || p;
+  }
+
+  function validStep1(){
+    const pairCheck = window.CCValidation.validateSelectPair($("from"), $("to"));
+    if (!pairCheck.ok) return pairCheck;
+    const from = $("from").value;
+    const to = $("to").value;
+    if (!FARES[`${from}→${to}`]) return { ok: false, msg: "No fare available for this route pair." };
+    return { ok: true };
+  }
+
+  function validStep2(){
+    const product = $("product").value;
+    const qty = Number($("qty").value);
+    const planned = Number($("plannedTrips").value);
+    if (!(product in PRODUCTS)) return { ok: false, msg: "Select a valid ticket product." };
+    const qtyCheck = window.CCValidation.validateWholeNumber(qty, 1, "Quantity");
+    if (!qtyCheck.ok) return qtyCheck;
+    const plannedCheck = window.CCValidation.validateWholeNumber(planned, 1, "Planned trips");
+    if (!plannedCheck.ok) return plannedCheck;
+    return { ok: true };
+  }
+
+  function rebuildFareMaps(){
+    FARES = {};
+    JOURNEYS_INCLUDED = {};
+    Object.keys(PRODUCTS).forEach(k => {
+      JOURNEYS_INCLUDED[k] = Number(PRODUCTS[k].journeysIncluded || 0);
+    });
+    ROUTE_PAIRS.forEach(pair => {
+      FARES[`${pair.from}→${pair.to}`] = pair.faresCents || {};
+    });
+  }
+
+  function renderDatasetUI(){
+    const fromOptions = [...new Set(ROUTE_PAIRS.map(p => p.from))];
+    const toOptions = [...new Set(ROUTE_PAIRS.map(p => p.to))];
+    $("from").innerHTML = fromOptions.map(name => `<option>${name}</option>`).join("");
+    $("to").innerHTML = toOptions.map(name => `<option>${name}</option>`).join("");
+    const currentProduct = $("product").value || "five";
+    $("product").innerHTML = Object.keys(PRODUCTS).map(id => `<option value="${id}">${PRODUCTS[id].label}</option>`).join("");
+    if (PRODUCTS[currentProduct]) $("product").value = currentProduct;
+    $("routePairsHint").innerHTML = ROUTE_PAIRS.map(p => `${p.from} → ${p.to}`).join("<br>");
+  }
+
+  async function loadGaDataset(){
+    setDataStatus("Loading route and fare data...", "ok");
+    try {
+      const data = window.CCDataService && typeof window.CCDataService.loadGoldenArrowWithMeta === "function"
+        ? await window.CCDataService.loadGoldenArrowWithMeta()
+        : { ...FALLBACK_DATA, meta: { source: "fallback-inline", fallbackUsed: true, datasetPath: "ga-booking.html", lastUpdated: new Date().toISOString() } };
+      if (data.products && typeof data.products === "object") PRODUCTS = data.products;
+      if (Array.isArray(data.routePairs) && data.routePairs.length) ROUTE_PAIRS = data.routePairs;
+      const lastUpdated = new Date(data.meta?.lastUpdated || Date.now()).toLocaleString();
+      if (data.meta?.fallbackUsed) {
+        setDataStatus(`Using fallback demo data. Source: ${data.meta?.datasetPath || "inline"} | Updated: ${lastUpdated}`, "error");
+      } else {
+        setDataStatus(`Data source: ${data.meta?.datasetPath || "data/golden-arrow.json"} | Last updated: ${lastUpdated}`, "ok");
+      }
+    } catch (err) {
+      console.warn("Using fallback Golden Arrow dataset:", err.message);
+      PRODUCTS = FALLBACK_DATA.products;
+      ROUTE_PAIRS = FALLBACK_DATA.routePairs;
+      setDataStatus("Could not load data/golden-arrow.json. Using fallback demo data.", "error");
+    }
+    rebuildFareMaps();
+    renderDatasetUI();
+  }
+
+  // ---------------- Preview / quote ----------------
+  function getQuote(){
+    const rk = routeKey();
+    const product = $("product").value;
+    const qty = intVal("qty", 1);
+    const planned = intVal("plannedTrips", 1);
+
+    const row = FARES[rk] || null;
+    const unit = row ? (row[product] || 0) : 0;
+    const total = unit * qty;
+
+    const included = JOURNEYS_INCLUDED[product];
+    const left = included - planned;
+
+    return {
+      trip: rk.replace("→", " → "),
+      rk,
+      product,
+      qty,
+      planned,
+      included,
+      left,
+      unit,
+      total,
+      hasFare: !!row
+    };
+  }
+
+  function updatePreview(){
+    const q = getQuote();
+
+    $("tripOut").textContent = q.trip;
+    $("typeOut").textContent = productLabel(q.product);
+    $("journeysOut").textContent = String(q.included);
+    $("planOut").textContent = String(q.planned);
+    $("leftOut").textContent = String(q.left);
+
+    $("qtyOut").textContent = String(q.qty);
+
+    if(!q.hasFare){
+      $("unitOut").textContent = "—";
+      $("totalOut").textContent = "—";
+      saveBookingState(q);
+      return q;
+    }
+    $("unitOut").textContent = moneyZAR(q.unit);
+    $("totalOut").textContent = moneyZAR(q.total);
+    saveBookingState(q);
+    return q;
+  }
+
+  function saveBookingState(q){
+    const state = {
+      operator: "Golden Arrow",
+      from: $("from").value,
+      to: $("to").value,
+      product: $("product").value,
+      qty: Number($("qty").value || 1),
+      plannedTrips: Number($("plannedTrips").value || 1),
+      totalCents: q?.total || 0,
+      updatedAt: nowISO()
+    };
+    window.CCUtils.storageSet(BOOKING_KEY, state);
+  }
+
+  function restoreBookingState(){
+    try {
+      const state = window.CCUtils.storageGet(BOOKING_KEY, {});
+      if (!state || state.operator !== "Golden Arrow") return;
+      if (state.from) $("from").value = state.from;
+      if (state.to) $("to").value = state.to;
+      if (state.product) $("product").value = state.product;
+      if (Number.isFinite(state.qty)) $("qty").value = state.qty || 1;
+      if (Number.isFinite(state.plannedTrips)) $("plannedTrips").value = state.plannedTrips || 10;
+      show("resumeBanner");
+    } catch {}
+  }
+
+  // ---------------- Steps ----------------
+  function goToStep(step){
+    ["step1","step2","step3"].forEach(hide);
+    show(step);
+    updatePreview();
+  }
+
+  // ---------------- Events ----------------
+  $("goStep2").addEventListener("click", () => {
+    const check = validStep1();
+    setStepError("step1Error", check.ok ? "" : check.msg);
+    if (!check.ok) return;
+    goToStep("step2");
+  });
+  $("backTo1").addEventListener("click", () => goToStep("step1"));
+  $("goStep3").addEventListener("click", () => {
+    const check = validStep2();
+    setStepError("step2Error", check.ok ? "" : check.msg);
+    if (!check.ok) {
+      return;
+    }
+    goToStep("step3");
+  });
+  $("backTo2").addEventListener("click", () => goToStep("step2"));
+
+  ["change","input"].forEach(evt=>{
+    $("from").addEventListener(evt, () => {
+      setStepError("step1Error", "");
+      updatePreview();
+    });
+    $("to").addEventListener(evt, () => {
+      setStepError("step1Error", "");
+      updatePreview();
+    });
+    $("product").addEventListener(evt, () => {
+      setStepError("step2Error", "");
+      updatePreview();
+    });
+    $("qty").addEventListener(evt, () => {
+      setStepError("step2Error", "");
+      updatePreview();
+    });
+    $("plannedTrips").addEventListener(evt, () => {
+      setStepError("step2Error", "");
+      updatePreview();
+    });
+  });
+
+  $("payNow").addEventListener("click", () => {
+    const check1 = validStep1();
+    setStepError("step1Error", check1.ok ? "" : check1.msg);
+    if (!check1.ok) {
+      goToStep("step1");
+      return;
+    }
+    const check2 = validStep2();
+    setStepError("step2Error", check2.ok ? "" : check2.msg);
+    if (!check2.ok) {
+      goToStep("step2");
+      return;
+    }
+    const q = updatePreview();
+    if(!q.hasFare){
+      setStepError("step3Error", "No fare found for this route pair.");
+      return;
+    }
+    setStepError("step3Error", "");
+
+    const allTickets = window.CCUtils.getTickets();
+    const now = new Date();
+    const expiryDays = q.product === "weekly" ? 7 : 30;
+    allTickets.unshift({
+      operator: "Golden Arrow",
+      service: "Golden Arrow",
+      trip: q.trip,
+      type: q.product,
+      title: `Golden Arrow ${productLabel(q.product)} x${q.qty}`,
+      amountCents: q.total,
+      journeysIncluded: q.included,
+      remainingUses: q.included,
+      status: "ACTIVE",
+      createdAt: nowISO(),
+      purchasedAt: now.toISOString(),
+      validFrom: now.toISOString(),
+      expiresAt: new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000).toISOString()
+    });
+    saveTickets(allTickets);
+    window.location.href = "dashboard.html";
+  });
+
+  $("resetBtn").addEventListener("click", () => {
+    window.CCUtils.storageRemove(STORAGE_KEY);
+    window.CCUtils.storageRemove(BOOKING_KEY);
+    goToStep("step1");
+    hide("resumeBanner");
+  });
+
+  $("clearBooking").addEventListener("click", () => {
+    window.CCUtils.storageRemove(BOOKING_KEY);
+    hide("resumeBanner");
+  });
+
+  // ---------------- Init ----------------
+  (async function init(){
+    await loadGaDataset();
+    restoreBookingState();
+    goToStep("step1");
+  })();
+</script>
+<script src="js/app.js"></script>
+<script>
+  (function(){
+    if (window.App) {
+      App.loadTheme();
+      App.applyBusTheme();
+    }
+    const path = location.pathname.split('/').pop();
+    document.querySelectorAll('#main-nav a').forEach(a => {
+      const href = a.getAttribute('href');
+      if (href === path) a.classList.add('active');
+    });
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+

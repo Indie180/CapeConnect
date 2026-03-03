@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Arrow Admin - Dashboard</title>
+  <link rel="stylesheet" href="../admin-common/ga-theme.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">Golden Arrow <small>Admin Centre</small></div>
+      <div class="demo-banner">Demo mode: localStorage only - not secure.</div>
+      <div class="nav-list" style="margin-top:14px;">
+        <a data-page="dashboard" href="dashboard.html">Dashboard</a>
+        <a data-page="timetables" href="timetables.html">Timetables</a>
+        <a data-page="prices" href="prices.html">Prices</a>
+        <a data-page="users" href="users.html">Users</a>
+        <a data-page="tickets" href="tickets.html">Tickets</a>
+        <a data-page="wallets" href="wallets.html">Wallets</a>
+        <a data-page="audit" href="audit.html">Audit</a>
+        <a data-page="settings" href="settings.html">Settings</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <input id="global-search" class="input search" placeholder="Search rows..." />
+        </div>
+        <div class="topbar-right">
+          <span id="admin-email" class="tag"></span>
+          <button id="logout-btn" class="btn btn-secondary">Logout</button>
+        </div>
+      </div>
+
+      <h1 id="page-title">Dashboard</h1>
+      <p class="notice">For real security, use server-side auth + MFA + IP allowlist.</p>
+
+      <section class="grid kpis" style="margin-top:14px;">
+        <div class="card"><div class="kpi-title">Total Tickets Sold</div><div id="kpi-tickets" class="kpi-value">0</div></div>
+        <div class="card"><div class="kpi-title">Total Revenue</div><div id="kpi-revenue" class="kpi-value">R 0.00</div></div>
+        <div class="card"><div class="kpi-title">Active Users</div><div id="kpi-active-users" class="kpi-value">0</div></div>
+        <div class="card"><div class="kpi-title">Blacklisted Users</div><div id="kpi-blacklisted" class="kpi-value">0</div></div>
+        <div class="card"><div class="kpi-title">Wallet Balances Total</div><div id="kpi-wallets" class="kpi-value">R 0.00</div></div>
+      </section>
+
+      <section class="grid two" style="margin-top:14px;">
+        <div class="card"><h3>Revenue by Day (14 days)</h3><canvas id="chart-revenue" height="120"></canvas></div>
+        <div class="card"><h3>Tickets by Product</h3><canvas id="chart-product" height="120"></canvas></div>
+      </section>
+
+      <section class="card" style="margin-top:14px;">
+        <h3>Top Routes by Ticket Count</h3>
+        <canvas id="chart-routes" height="100"></canvas>
+      </section>
+
+      <section class="card" style="margin-top:14px;">
+        <h3>Quick Actions</h3>
+        <div class="row-actions">
+          <a class="btn btn-primary" href="prices.html">Add Route Price</a>
+          <a class="btn btn-secondary" href="timetables.html">Publish Draft Timetable</a>
+          <button id="export-reports" class="btn btn-secondary" type="button">Export Reports</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="../admin-common/ga-app.js"></script>
+  <script src="../admin-common/charts.js"></script>
+  <script src="../admin-common/export.js"></script>
+  <script>
+    (async function () {
+      GAAdmin.requireAuth();
+      await GAAdmin.initRemote(false);
+      GAAdmin.applyLayout('dashboard', 'Golden Arrow Dashboard');
+
+      const metrics = GAAdmin.dashboardMetrics();
+      document.getElementById('kpi-tickets').textContent = metrics.ticketsSold;
+      document.getElementById('kpi-revenue').textContent = GAAdmin.fmtCurrency(metrics.totalRevenue);
+      document.getElementById('kpi-active-users').textContent = metrics.activeUsers;
+      document.getElementById('kpi-blacklisted').textContent = metrics.blacklisted;
+      document.getElementById('kpi-wallets').textContent = GAAdmin.fmtCurrency(metrics.walletTotal);
+
+      const tickets = GAAdmin.getTickets();
+
+      const r = GACharts.groupByDay(tickets, 14);
+      new Chart(document.getElementById('chart-revenue'), {
+        type: 'line',
+        data: { labels: r.labels, datasets: [{ label: 'Revenue (R)', data: r.out, borderColor: '#f5c84c', backgroundColor: 'rgba(245,200,76,0.2)' }] },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#f4f4f4' } } }, scales: { x: { ticks: { color: '#b8b8b8' } }, y: { ticks: { color: '#b8b8b8' } } } }
+      });
+
+      const byP = GACharts.byProduct(tickets);
+      new Chart(document.getElementById('chart-product'), {
+        type: 'pie',
+        data: {
+          labels: Object.keys(byP),
+          datasets: [{ data: Object.values(byP), backgroundColor: ['#f5c84c', '#dba92f', '#aa8120', '#6e5516'] }]
+        },
+        options: { plugins: { legend: { labels: { color: '#f4f4f4' } } } }
+      });
+
+      const tr = GACharts.topRoutes(tickets, 6);
+      new Chart(document.getElementById('chart-routes'), {
+        type: 'bar',
+        data: {
+          labels: tr.map((x) => x[0]),
+          datasets: [{ label: 'Tickets', data: tr.map((x) => x[1]), backgroundColor: '#f5c84c' }]
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#f4f4f4' } } },
+          scales: { x: { ticks: { color: '#b8b8b8' } }, y: { ticks: { color: '#b8b8b8' } } }
+        }
+      });
+
+      document.getElementById('export-reports').addEventListener('click', function () {
+        const rows = tickets.map((t) => ({
+          id: t.id,
+          userId: t.userId,
+          product: t.productName,
+          route: `${t.routeFrom} -> ${t.routeTo}`,
+          amount: t.amount,
+          status: t.status,
+          purchasedAt: t.purchasedAt
+        }));
+        GAExport.exportXlsx('ga-dashboard-report.xlsx', rows, 'Report');
+        GAAdmin.logAudit('EXPORT_REPORT', 'DASHBOARD', 'report', null, { rows: rows.length });
+      });
+    })();
+  </script>
+</body>
+</html>

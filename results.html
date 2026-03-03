@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyCiTi Booking - Results</title>
+  <link rel="stylesheet" href="css/flow-components.css" />
+  <style>
+    :root{
+      --navy:#0b1f3a;
+      --blue:#00a3e0;
+      --accent:#00a3e0;
+      --accent-dark:#008fc3;
+      --step-border:rgba(0,163,224,.35);
+      --ghost-bg:rgba(0,163,224,.10);
+      --ghost-border:rgba(0,163,224,.28);
+      --white:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.12);
+      --shadow:0 16px 40px rgba(11,31,58,.18);
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Montserrat", "Trebuchet MS", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(0,163,224,.22), transparent 55%),
+        radial-gradient(900px 600px at 80% 40%, rgba(0,163,224,.14), transparent 60%),
+        var(--navy);
+    }
+    .results{
+      margin-top:12px;
+      padding:14px;
+      border-radius:16px;
+      background:rgba(0,163,224,.10);
+      border:1px solid rgba(0,163,224,.28);
+    }
+    .results-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:6px 0;
+      border-bottom:1px dashed rgba(15,23,42,.12);
+      font-size:14px;
+    }
+    .results-row:last-child{ border-bottom:none; }
+    .disclaimer{ margin-top:10px; font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Step 3: Results</h1>
+      <p class="sub">Review estimated fare and trip summary.</p>
+
+      <div class="steps">
+        <div class="step">3. Results</div>
+      </div>
+
+      <div class="results">
+        <div class="results-row"><span>Selected route</span><strong id="routeOut">-</strong></div>
+        <div class="results-row"><span>Estimated distance</span><strong id="distanceOut">-</strong></div>
+        <div class="results-row"><span>Estimated travel time</span><strong id="timeOut">-</strong></div>
+        <div class="results-row"><span>Fare period</span><strong id="periodOut">-</strong></div>
+        <div class="results-row"><span>Fare band</span><strong id="bandOut">-</strong></div>
+        <div class="results-row"><span>Estimated deducted amount</span><strong id="amountOut">-</strong></div>
+        <div class="results-row"><span>Points deducted (1 point = R1)</span><strong id="pointsOut">-</strong></div>
+        <div class="disclaimer">Final fare is calculated by MyCiTi when you tap in and tap out.</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn ghost" type="button" id="btnBack">Back: Choose Fare</button>
+        <button class="btn primary" type="button" id="btnNext">Next: Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api-client.js"></script>
+<script src="js/cc-utils.js"></script>
+  <script src="js/data-service.js"></script>
+  <script>
+    let PASS_PRICES = { day1: 90, day3: 210, day7: 300, monthly: 1000 };
+    const PASS_LABELS = { day1: "1-Day Pass", day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
+
+    const routeOut = document.getElementById("routeOut");
+    const distanceOut = document.getElementById("distanceOut");
+    const timeOut = document.getElementById("timeOut");
+    const periodOut = document.getElementById("periodOut");
+    const bandOut = document.getElementById("bandOut");
+    const amountOut = document.getElementById("amountOut");
+    const pointsOut = document.getElementById("pointsOut");
+
+    async function loadPassPrices(){
+      try {
+        const data = window.CCDataService && typeof window.CCDataService.loadMycitiWithMeta === "function"
+          ? await window.CCDataService.loadMycitiWithMeta()
+          : null;
+        if (data && data.passPrices && typeof data.passPrices === "object") {
+          PASS_PRICES = data.passPrices;
+        }
+      } catch (err) {
+        console.warn("Using fallback pass prices:", err.message);
+      }
+    }
+
+    function render(){
+      const state = window.CCUtils.storageGet('mycitiBooking', {});
+      const fare = state.fare || 'topup';
+      if (fare !== 'topup') {
+        const price = PASS_PRICES[fare] || 0;
+        const label = PASS_LABELS[fare] || 'Pass';
+        routeOut.textContent = label;
+        distanceOut.textContent = '-';
+        timeOut.textContent = '-';
+        periodOut.textContent = 'Pass';
+        bandOut.textContent = '-';
+        amountOut.textContent = `R ${price.toFixed(2)}`;
+        pointsOut.textContent = `${Math.round(price)} points`;
+        state.estimate = { routeLabel: label, amount: price, period: 'Pass', bandLabel: '-', distanceKm: 0, travelMinutes: 0 };
+        window.CCUtils.storageSet('mycitiBooking', state);
+        return;
+      }
+
+      const estimate = state.estimate;
+      if (!estimate) {
+        window.location.href = 'route-calculator.html';
+        return;
+      }
+
+      routeOut.textContent = estimate.routeLabel || '-';
+      distanceOut.textContent = estimate.distanceKm ? `${estimate.distanceKm.toFixed(1)} km` : '-';
+      timeOut.textContent = estimate.travelMinutes ? `${estimate.travelMinutes} min` : '-';
+      periodOut.textContent = estimate.period || '-';
+      bandOut.textContent = estimate.bandLabel || '-';
+      amountOut.textContent = estimate.amount ? `R ${estimate.amount.toFixed(2)}` : '-';
+      pointsOut.textContent = estimate.amount ? `${estimate.amount.toFixed(0)} points` : '-';
+    }
+
+    document.getElementById('btnBack').addEventListener('click', () => {
+      window.location.href = 'choose-fare.html';
+    });
+
+    document.getElementById('btnNext').addEventListener('click', () => {
+      window.location.href = 'payment.html';
+    });
+
+    (async function init(){
+      await loadPassPrices();
+      render();
+    })();
+  </script>
+</body>
+</html>
+
+
+

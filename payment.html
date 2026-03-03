@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Payment + Wallet (Demo)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.12);
+      --shadow:0 16px 40px rgba(2,6,23,.18);
+      --radius:18px;
+      --accent:#00a3e0;
+      --accent-soft:rgba(0,163,224,.14);
+      --success:#16a34a;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Montserrat", "Trebuchet MS", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg, #0b1a33 0%, #0b1220 40%, #0b1220 100%);
+    }
+
+    .page{ max-width:1120px; margin:20px auto 40px; padding:0 16px; }
+
+    .panel{
+      background:#ffffff;
+      border-radius:16px;
+      box-shadow:0 18px 50px rgba(2,6,23,.25);
+      overflow:hidden;
+    }
+    .panel-header{
+      background:#1e8cc4;
+      color:#fff;
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .panel-title{
+      font-size:14px;
+      text-transform:uppercase;
+    }
+    .panel-tabs{
+      display:flex;
+      background:#f4f6f8;
+      border-bottom:1px solid var(--line);
+    }
+    .panel-tab{
+      flex:1;
+      padding:12px 14px;
+      font-weight:900;
+      font-size:13px;
+      border:none;
+      background:transparent;
+      cursor:default;
+      text-align:left;
+    }
+    .panel-tab.active{
+      background:#1e8cc4;
+      color:#fff;
+    }
+    .panel-body{
+      padding:18px;
+      background:#f9fbfd;
+    }
+
+    .grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:none; padding:18px; }
+    .section-title{ margin:0 0 4px; font-size:20px; font-weight:900; }
+    .section-sub{ margin:0; color:var(--muted); font-size:13px; font-weight:600; }
+    .badge{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:#0b2d48; border:1px solid rgba(255,255,255,.25); color:#ffffff; font-weight:900; font-size:12px; }
+    .demo-note{ margin-top:10px; padding:10px 12px; border-radius:12px; background:#fff7e6; border:1px solid #f6c56f; color:#7a5200; font-weight:700; font-size:12px; }
+    .summary-row{ display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed var(--line); font-size:14px; }
+    .summary-row:last-child{ border-bottom:none; }
+    .wallet-box{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border-radius:14px; background:rgba(0,163,224,.08); border:1px solid rgba(0,163,224,.22); }
+    .wallet-balance{ font-weight:900; font-size:18px; }
+    .btn{ border:1px solid var(--line); padding:12px 14px; border-radius:12px; font-weight:900; cursor:pointer; background:#fff; }
+    .btn.primary{ background:linear-gradient(180deg, var(--accent), #008fc3); color:#fff; border-color:rgba(0,163,224,.40); }
+    .btn.ghost{ background:rgba(0,163,224,.10); color:#0b1f3a; border-color:rgba(0,163,224,.28); }
+    .btn.danger{ background:rgba(239,68,68,.12); color:#7f1d1d; border-color:rgba(239,68,68,.32); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+    .radio-list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .radio-item{ display:flex; gap:10px; align-items:flex-start; padding:12px; border-radius:14px; border:1px solid var(--line); background:#fafcff; }
+    .radio-title{ font-weight:900; }
+    .radio-sub{ color:var(--muted); font-size:12px; margin-top:2px; }
+    .cards-list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .card-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--line); border-radius:12px; padding:10px; background:#fff; }
+    .card-main{ display:flex; align-items:center; gap:10px; }
+    .card-pill{ padding:4px 8px; border-radius:999px; font-size:11px; font-weight:800; background:rgba(0,163,224,.12); border:1px solid rgba(0,163,224,.28); }
+    .tag-default{ margin-left:6px; padding:3px 6px; border-radius:999px; font-size:10px; font-weight:900; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.32); color:#065f46; }
+    .field span{ display:block; font-size:12px; font-weight:800; color:#0b1f3a; margin-bottom:6px; }
+    input, select{ width:100%; padding:12px; border-radius:12px; border:1px solid var(--line); outline:none; background:#fff; color:var(--ink); font-family:inherit; }
+    .grid-2{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .grid-3{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .inline-error{ color:#b91c1c; font-size:12px; margin-top:6px; display:none; }
+    .sticky-pay{ position:fixed; left:0; right:0; bottom:0; background:rgba(11,18,32,.9); backdrop-filter:blur(12px); padding:12px 18px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:center; }
+    .sticky-pay .btn{ width:min(520px, 96%); }
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(2,6,23,.6); display:none; align-items:center; justify-content:center; z-index:1000; padding:18px; }
+    .modal{ background:#fff; border-radius:18px; width:min(720px, 100%); box-shadow:var(--shadow); padding:18px; position:relative; }
+    .modal-close{ position:absolute; right:14px; top:12px; border:none; background:transparent; font-size:20px; cursor:pointer; }
+    .toast{ position:fixed; bottom:90px; right:18px; background:#0b1f3a; color:#fff; padding:10px 14px; border-radius:12px; font-weight:800; display:none; z-index:1200; }
+    .receipt{ margin-top:12px; padding:14px; border-radius:16px; border:1px solid rgba(16,185,129,.32); background:rgba(16,185,129,.08); }
+    @media (min-width:820px){
+      .grid{ grid-template-columns:1.1fr .9fr; }
+      .grid-2{ grid-template-columns:1fr 1fr; }
+      .grid-3{ grid-template-columns:1fr 1fr 1fr; }
+      .panel-body{ padding:24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Book A Ticket Payment</div>
+        <span class="badge" id="operatorBadge">Operator</span>
+      </div>
+      <div class="panel-tabs">
+        <button class="panel-tab active" type="button">Payment + Wallet</button>
+      </div>
+      <div class="panel-body">
+        <div class="grid">
+          <section class="card">
+        <h2 class="section-title">Checkout Summary</h2>
+        <p class="section-sub">Review your purchase details.</p>
+
+        <div class="demo-note">Demo only - no real card processing.</div>
+
+        <div style="margin-top:12px">
+          <div class="summary-row"><span>Operator</span><strong id="summaryOperator">-</strong></div>
+          <div class="summary-row"><span>Purchase</span><strong id="summaryTitle">-</strong></div>
+          <div class="summary-row"><span>Amount</span><strong id="summaryAmount">-</strong></div>
+          <div class="summary-row"><span>Reference</span><strong id="summaryRef">-</strong></div>
+        </div>
+
+        <div class="wallet-box" style="margin-top:14px;">
+          <div>
+            <div class="section-sub">Wallet balance</div>
+            <div class="wallet-balance" id="walletBalance">R 0.00</div>
+          </div>
+          <button class="btn ghost" id="btnTopUp">Top up wallet</button>
+        </div>
+
+        <div id="walletAction" style="margin-top:10px;"></div>
+          </section>
+
+          <section class="card">
+        <h2 class="section-title">Payment Method</h2>
+        <p class="section-sub">Choose how you want to pay.</p>
+
+        <div class="radio-list" role="radiogroup" aria-label="Payment method">
+          <label class="radio-item">
+            <input type="radio" name="payMethod" value="wallet" checked aria-label="Pay with wallet" />
+            <div>
+              <div class="radio-title">Wallet</div>
+              <div class="radio-sub">Use your stored balance.</div>
+            </div>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="payMethod" value="saved" aria-label="Pay with saved card" />
+            <div>
+              <div class="radio-title">Saved card</div>
+              <div class="radio-sub">Pay with a card you saved before.</div>
+            </div>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="payMethod" value="new" aria-label="Pay with new card" />
+            <div>
+              <div class="radio-title">New card</div>
+              <div class="radio-sub">Pay with a new card and optionally save it.</div>
+            </div>
+          </label>
+        </div>
+
+        <div id="savedCardsSection" style="margin-top:14px; display:none;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <h3 class="section-title" style="font-size:16px;">Saved Cards</h3>
+            <button class="btn ghost" id="btnManageCards" type="button">Manage cards</button>
+          </div>
+          <div class="cards-list" id="savedCardsList"></div>
+          <div class="section-sub" id="cardsLimitMsg" style="margin-top:8px; display:none;">
+            You can save up to 3 cards. Remove one to add another.
+          </div>
+        </div>
+
+        <div id="newCardSection" style="margin-top:14px; display:none;">
+          <h3 class="section-title" style="font-size:16px;">New Card Details</h3>
+          <div class="grid-2" style="margin-top:10px;">
+            <label class="field">
+              <span>Cardholder name</span>
+              <input id="newName" type="text" placeholder="e.g., Lindiwe Ndlovu" />
+              <div class="inline-error" id="errName">Enter the cardholder name.</div>
+            </label>
+            <label class="field">
+              <span>Card number</span>
+              <input id="newNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" />
+              <div class="inline-error" id="errNumber">Enter a valid card number.</div>
+            </label>
+          </div>
+          <div class="grid-3" style="margin-top:12px;">
+            <label class="field">
+              <span>Expiry (MM/YY)</span>
+              <input id="newExpiry" type="text" placeholder="MM/YY" maxlength="5" />
+              <div class="inline-error" id="errExpiry">Expiry must be valid.</div>
+            </label>
+            <label class="field">
+              <span>CVV</span>
+              <input id="newCvv" type="text" inputmode="numeric" placeholder="123" maxlength="3" />
+              <div class="inline-error" id="errCvv">CVV must be 3 digits.</div>
+            </label>
+            <label class="field">
+              <span>Save this card</span>
+              <div style="display:flex; gap:8px; align-items:center; padding-top:4px;">
+                <input id="saveCardCheckbox" type="checkbox" />
+                <span class="section-sub">Save this card for next time</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="receipt" id="receipt" style="display:none;"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-pay">
+    <button class="btn primary" id="btnPayNow">Pay now</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Wallet topped up (demo)</div>
+
+  <div class="modal-backdrop" id="topupModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Top up wallet" tabindex="-1">
+      <button class="modal-close" id="topupClose" aria-label="Close">×</button>
+      <h3 class="section-title" style="font-size:18px;">Top up wallet</h3>
+      <p class="section-sub">Choose amount and funding source.</p>
+
+      <label class="field" style="margin-top:12px;">
+        <span>Top up amount (ZAR)</span>
+        <input id="topupAmount" type="number" min="1" step="1" placeholder="e.g., 150" />
+      </label>
+
+      <div class="radio-list" style="margin-top:10px;" role="radiogroup" aria-label="Top up funding source">
+        <label class="radio-item">
+          <input type="radio" name="topupSource" value="saved" checked aria-label="Top up with saved card" />
+          <div>
+            <div class="radio-title">Saved card</div>
+            <div class="radio-sub">Use a saved card for top up.</div>
+          </div>
+        </label>
+        <label class="radio-item">
+          <input type="radio" name="topupSource" value="new" aria-label="Top up with new card" />
+          <div>
+            <div class="radio-title">New card</div>
+            <div class="radio-sub">Use a new card for top up.</div>
+          </div>
+        </label>
+      </div>
+
+      <div id="topupSavedList" style="margin-top:10px;"></div>
+
+      <div id="topupNewCard" style="margin-top:10px; display:none;">
+        <div class="grid-2">
+          <label class="field">
+            <span>Cardholder name</span>
+            <input id="topupName" type="text" placeholder="e.g., Lindiwe Ndlovu" />
+          </label>
+          <label class="field">
+            <span>Card number</span>
+            <input id="topupNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" />
+          </label>
+        </div>
+        <div class="grid-3" style="margin-top:10px;">
+          <label class="field">
+            <span>Expiry (MM/YY)</span>
+            <input id="topupExpiry" type="text" placeholder="MM/YY" maxlength="5" />
+          </label>
+          <label class="field">
+            <span>CVV</span>
+            <input id="topupCvv" type="text" inputmode="numeric" placeholder="123" maxlength="3" />
+          </label>
+          <label class="field">
+            <span>Save this card</span>
+            <div style="display:flex; gap:8px; align-items:center; padding-top:4px;">
+              <input id="topupSave" type="checkbox" />
+              <span class="section-sub">Save this card for next time</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn ghost" id="topupCancel" type="button">Cancel</button>
+        <button class="btn primary" id="topupConfirm" type="button">Top up</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="manageModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Manage cards" tabindex="-1">
+      <button class="modal-close" id="manageClose" aria-label="Close">×</button>
+      <h3 class="section-title" style="font-size:18px;">Manage cards</h3>
+      <p class="section-sub">Set default, remove, or add a card (max 3).</p>
+
+      <div id="manageList" style="margin-top:10px;"></div>
+
+      <div class="section-sub" id="manageLimitMsg" style="margin-top:8px; display:none;">
+        You can save up to 3 cards. Remove one to add another.
+      </div>
+
+      <div id="manageAdd" style="margin-top:12px;">
+        <h4 class="section-title" style="font-size:16px;">Add new card</h4>
+        <div class="grid-2" style="margin-top:8px;">
+          <label class="field">
+            <span>Cardholder name</span>
+            <input id="manageName" type="text" placeholder="e.g., Lindiwe Ndlovu" />
+          </label>
+          <label class="field">
+            <span>Card number</span>
+            <input id="manageNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" />
+          </label>
+        </div>
+        <div class="grid-3" style="margin-top:10px;">
+          <label class="field">
+            <span>Expiry (MM/YY)</span>
+            <input id="manageExpiry" type="text" placeholder="MM/YY" maxlength="5" />
+          </label>
+          <label class="field">
+            <span>CVV</span>
+            <input id="manageCvv" type="text" inputmode="numeric" placeholder="123" maxlength="3" />
+          </label>
+          <label class="field">
+            <span>Set as default</span>
+            <div style="display:flex; gap:8px; align-items:center; padding-top:4px;">
+              <input id="manageDefault" type="checkbox" />
+              <span class="section-sub">Make this the default</span>
+            </div>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="manageAddBtn" type="button">Add card</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api-client.js"></script>
+  <script src="js/cc-utils.js"></script>
+  <script src="js/data-service.js"></script>
+  <script>
+    // =========================
+    // CONFIG (edit for app)
+    // =========================
+    const CHECKOUT_CONFIG = {
+      operator: "MyCiTi", // or "GoldenArrow"
+      purchaseTitle: "1 Day Pass",
+      amountCents: 9000,
+      currency: "ZAR",
+      reference: "DEMO-ORDER-001"
+    };
+    // If booking flow stored data exists, prefer it for summary + ticket creation.
+    let PASS_PRICES = { day1: 90, day3: 210, day7: 300, monthly: 1000 };
+    const PASS_LABELS = { day1: "1-Day Pass", day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
+
+    function getBookingState(){
+      return window.CCUtils.storageGet("mycitiBooking", {});
+    }
+
+    async function loadMycitiPassPrices(){
+      try {
+        const data = window.CCDataService && typeof window.CCDataService.loadMycitiWithMeta === "function"
+          ? await window.CCDataService.loadMycitiWithMeta()
+          : null;
+        if (data.passPrices && typeof data.passPrices === "object") {
+          PASS_PRICES = data.passPrices;
+        }
+      } catch (err) {
+        console.warn("Using fallback pass prices:", err.message);
+      }
+    }
+
+    function applyBookingToConfig(){
+      const state = getBookingState();
+      const fare = state.fare || "topup";
+      if (fare === "topup" && state.estimate) {
+        CHECKOUT_CONFIG.purchaseTitle = "Top Up (Mover)";
+        CHECKOUT_CONFIG.amountCents = Math.round((state.estimate.amount || 0) * 100);
+      } else if (fare !== "topup") {
+        CHECKOUT_CONFIG.purchaseTitle = PASS_LABELS[fare] || "Pass";
+        CHECKOUT_CONFIG.amountCents = Math.round((PASS_PRICES[fare] || 0) * 100);
+      }
+    }
+
+    // =========================
+    // Helpers
+    // =========================
+    const fmtZar = cents => `R ${(cents / 100).toFixed(2)}`;
+    const nowStamp = () => new Date().toLocaleString();
+
+    function luhnCheck(value){
+      const digits = value.replace(/\D/g, "");
+      let sum = 0;
+      let shouldDouble = false;
+      for (let i = digits.length - 1; i >= 0; i--) {
+        let digit = parseInt(digits[i], 10);
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+      }
+      return digits.length >= 12 && sum % 10 === 0;
+    }
+
+    function parseExpiry(value){
+      const match = value.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+      if (!match) return null;
+      const month = parseInt(match[1], 10);
+      const year = 2000 + parseInt(match[2], 10);
+      return { month, year };
+    }
+
+    function expiryValid(exp){
+      if (!exp) return false;
+      const now = new Date();
+      const expDate = new Date(exp.year, exp.month, 0, 23, 59, 59);
+      return expDate >= now;
+    }
+
+    function fallbackExpiry(){
+      const now = new Date();
+      return { month: 12, year: now.getFullYear() + 1 };
+    }
+
+    function cardBrand(number){
+      const n = number.replace(/\D/g, "");
+      if (/^4/.test(n)) return "Visa";
+      if (/^(5[1-5])/.test(n)) return "Mastercard";
+      return "Card";
+    }
+
+    function makeToken(){
+      return `tok_${Math.random().toString(36).slice(2, 10)}_demo`;
+    }
+
+    // =========================
+    // Storage
+    // =========================
+    const Storage = {
+      getWallet(){ return parseInt(localStorage.getItem("walletBalanceCents") || "0", 10); },
+      setWallet(cents){ localStorage.setItem("walletBalanceCents", String(cents)); },
+      getCards(){
+        try { return JSON.parse(localStorage.getItem("savedCards") || "[]"); }
+        catch { return []; }
+      },
+      setCards(list){ localStorage.setItem("savedCards", JSON.stringify(list)); },
+      getDefaultCardId(){ return localStorage.getItem("defaultCardId") || ""; },
+      setDefaultCardId(id){ localStorage.setItem("defaultCardId", id); }
+    };
+    const WalletState = { balanceCents: 0, source: "local" };
+
+    function hasApiAuth(){
+      return Boolean(window.CCApi && typeof window.CCApi.getToken === "function" && window.CCApi.getToken());
+    }
+
+    async function loadWalletBalance(){
+      if (!hasApiAuth() || !window.CCApi || typeof window.CCApi.getWalletMe !== "function") {
+        WalletState.balanceCents = Storage.getWallet();
+        WalletState.source = "local";
+        return WalletState.balanceCents;
+      }
+      try {
+        const resp = await window.CCApi.getWalletMe();
+        WalletState.balanceCents = Number(resp?.wallet?.balance_cents || 0);
+        WalletState.source = "api";
+        Storage.setWallet(WalletState.balanceCents);
+        return WalletState.balanceCents;
+      } catch (_err) {
+        WalletState.balanceCents = Storage.getWallet();
+        WalletState.source = "local-fallback";
+        return WalletState.balanceCents;
+      }
+    }
+
+    function getWalletBalance(){
+      return Number(WalletState.balanceCents || 0);
+    }
+
+    async function topupWallet(amountCents){
+      if (hasApiAuth() && window.CCApi && typeof window.CCApi.walletTopup === "function") {
+        const resp = await window.CCApi.walletTopup({ amountCents, note: "Checkout top up" });
+        WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
+        WalletState.source = "api";
+        Storage.setWallet(WalletState.balanceCents);
+        return WalletState.balanceCents;
+      }
+      WalletState.balanceCents = getWalletBalance() + amountCents;
+      WalletState.source = "local";
+      Storage.setWallet(WalletState.balanceCents);
+      return WalletState.balanceCents;
+    }
+
+    async function spendWallet(amountCents){
+      if (hasApiAuth() && window.CCApi && typeof window.CCApi.walletSpend === "function") {
+        const resp = await window.CCApi.walletSpend({ amountCents, note: "Ticket purchase" });
+        WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
+        WalletState.source = "api";
+        Storage.setWallet(WalletState.balanceCents);
+        return WalletState.balanceCents;
+      }
+      const next = getWalletBalance() - amountCents;
+      if (next < 0) throw new Error("Insufficient wallet balance");
+      WalletState.balanceCents = next;
+      WalletState.source = "local";
+      Storage.setWallet(WalletState.balanceCents);
+      return WalletState.balanceCents;
+    }
+
+    // =========================
+    // UI Elements
+    // =========================
+    const operatorBadge = document.getElementById("operatorBadge");
+    const summaryOperator = document.getElementById("summaryOperator");
+    const summaryTitle = document.getElementById("summaryTitle");
+    const summaryAmount = document.getElementById("summaryAmount");
+    const summaryRef = document.getElementById("summaryRef");
+    const walletBalance = document.getElementById("walletBalance");
+    const walletAction = document.getElementById("walletAction");
+    const btnTopUp = document.getElementById("btnTopUp");
+    const btnPayNow = document.getElementById("btnPayNow");
+
+    const savedCardsSection = document.getElementById("savedCardsSection");
+    const savedCardsList = document.getElementById("savedCardsList");
+    const cardsLimitMsg = document.getElementById("cardsLimitMsg");
+    const btnManageCards = document.getElementById("btnManageCards");
+
+    const newCardSection = document.getElementById("newCardSection");
+    const saveCardCheckbox = document.getElementById("saveCardCheckbox");
+
+    const receipt = document.getElementById("receipt");
+
+    const newName = document.getElementById("newName");
+    const newNumber = document.getElementById("newNumber");
+    const newExpiry = document.getElementById("newExpiry");
+    const newCvv = document.getElementById("newCvv");
+    const errName = document.getElementById("errName");
+    const errNumber = document.getElementById("errNumber");
+    const errExpiry = document.getElementById("errExpiry");
+    const errCvv = document.getElementById("errCvv");
+
+    const topupModal = document.getElementById("topupModal");
+    const topupClose = document.getElementById("topupClose");
+    const topupCancel = document.getElementById("topupCancel");
+    const topupConfirm = document.getElementById("topupConfirm");
+    const topupAmount = document.getElementById("topupAmount");
+    const topupSavedList = document.getElementById("topupSavedList");
+    const topupNewCard = document.getElementById("topupNewCard");
+    const topupName = document.getElementById("topupName");
+    const topupNumber = document.getElementById("topupNumber");
+    const topupExpiry = document.getElementById("topupExpiry");
+    const topupCvv = document.getElementById("topupCvv");
+    const topupSave = document.getElementById("topupSave");
+
+    const manageModal = document.getElementById("manageModal");
+    const manageClose = document.getElementById("manageClose");
+    const manageList = document.getElementById("manageList");
+    const manageLimitMsg = document.getElementById("manageLimitMsg");
+    const manageName = document.getElementById("manageName");
+    const manageNumber = document.getElementById("manageNumber");
+    const manageExpiry = document.getElementById("manageExpiry");
+    const manageCvv = document.getElementById("manageCvv");
+    const manageDefault = document.getElementById("manageDefault");
+    const manageAddBtn = document.getElementById("manageAddBtn");
+
+    const toast = document.getElementById("toast");
+
+    function applyOperatorTheme(){
+      const isMyCiTi = CHECKOUT_CONFIG.operator.toLowerCase() === "myciti";
+      if (!isMyCiTi) {
+        document.documentElement.style.setProperty("--accent", "#f5b000");
+        document.documentElement.style.setProperty("--accent-soft", "rgba(245,176,0,.18)");
+        operatorBadge.textContent = "Golden Arrow";
+      } else {
+        operatorBadge.textContent = "MyCiTi";
+      }
+    }
+
+    function renderSummary(){
+      summaryOperator.textContent = CHECKOUT_CONFIG.operator;
+      summaryTitle.textContent = CHECKOUT_CONFIG.purchaseTitle;
+      summaryAmount.textContent = fmtZar(CHECKOUT_CONFIG.amountCents);
+      summaryRef.textContent = CHECKOUT_CONFIG.reference;
+    }
+
+    function renderWallet(){
+      const balance = getWalletBalance();
+      walletBalance.textContent = fmtZar(balance);
+      walletAction.innerHTML = "";
+      if (balance >= CHECKOUT_CONFIG.amountCents) {
+        const btn = document.createElement("button");
+        btn.className = "btn primary";
+        btn.textContent = "Pay with Wallet";
+        btn.addEventListener("click", () => payWithWallet());
+        walletAction.appendChild(btn);
+      } else {
+        const msg = document.createElement("div");
+        msg.className = "section-sub";
+        msg.textContent = "Insufficient balance — Top up now";
+        walletAction.appendChild(msg);
+      }
+    }
+
+    function renderSavedCards(){
+      const cards = Storage.getCards();
+      savedCardsList.innerHTML = "";
+      const defaultId = Storage.getDefaultCardId();
+      if (!cards.length) {
+        const empty = document.createElement("div");
+        empty.className = "section-sub";
+        empty.textContent = "No saved cards yet.";
+        savedCardsList.appendChild(empty);
+      } else {
+        cards.forEach(card => {
+          const row = document.createElement("label");
+          row.className = "card-row";
+          row.innerHTML = `
+            <div class="card-main">
+              <input type="radio" name="savedCardPick" value="${card.id}" ${card.id === defaultId ? "checked" : ""} aria-label="${card.brand} ending ${card.last4}" />
+              <div>
+                <div><strong>${card.brand}</strong> •••• ${card.last4} ${card.id === defaultId ? '<span class="tag-default">Default</span>' : ''}</div>
+                <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
+              </div>
+            </div>
+            <span class="card-pill">Saved</span>
+          `;
+          savedCardsList.appendChild(row);
+        });
+      }
+      const maxed = cards.length >= 3;
+      cardsLimitMsg.style.display = maxed ? "block" : "none";
+      saveCardCheckbox.disabled = maxed;
+      saveCardCheckbox.checked = maxed ? false : saveCardCheckbox.checked;
+      topupSave.disabled = maxed;
+      topupSave.checked = maxed ? false : topupSave.checked;
+      manageLimitMsg.style.display = maxed ? "block" : "none";
+      manageAddBtn.disabled = maxed;
+    }
+
+    function renderTopupSavedCards(){
+      const cards = Storage.getCards();
+      topupSavedList.innerHTML = "";
+      if (!cards.length) {
+        const empty = document.createElement("div");
+        empty.className = "section-sub";
+        empty.textContent = "No saved cards available.";
+        topupSavedList.appendChild(empty);
+        return;
+      }
+      cards.forEach(card => {
+        const row = document.createElement("label");
+        row.className = "card-row";
+        row.innerHTML = `
+          <div class="card-main">
+            <input type="radio" name="topupCardPick" value="${card.id}" aria-label="${card.brand} ending ${card.last4}" />
+            <div>
+              <div><strong>${card.brand}</strong> •••• ${card.last4}</div>
+              <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
+            </div>
+          </div>
+        `;
+        topupSavedList.appendChild(row);
+      });
+      const first = topupSavedList.querySelector('input[name="topupCardPick"]');
+      if (first) first.checked = true;
+    }
+
+    function renderManageCards(){
+      const cards = Storage.getCards();
+      manageList.innerHTML = "";
+      const defaultId = Storage.getDefaultCardId();
+      if (!cards.length) {
+        const empty = document.createElement("div");
+        empty.className = "section-sub";
+        empty.textContent = "No saved cards.";
+        manageList.appendChild(empty);
+      } else {
+        cards.forEach(card => {
+          const row = document.createElement("div");
+          row.className = "card-row";
+          row.innerHTML = `
+            <div class="card-main">
+              <div>
+                <div><strong>${card.brand}</strong> •••• ${card.last4} ${card.id === defaultId ? '<span class="tag-default">Default</span>' : ''}</div>
+                <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn ghost" data-action="default" data-id="${card.id}">Set default</button>
+              <button class="btn danger" data-action="remove" data-id="${card.id}">Remove</button>
+            </div>
+          `;
+          manageList.appendChild(row);
+        });
+      }
+    }
+
+    function updateMethodVisibility(){
+      const selected = document.querySelector('input[name="payMethod"]:checked')?.value || "wallet";
+      savedCardsSection.style.display = selected === "saved" ? "block" : "none";
+      newCardSection.style.display = selected === "new" ? "block" : "none";
+    }
+
+    function showToast(message){
+      toast.textContent = message;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 1800);
+    }
+
+    function storeTicket(ticket){
+      window.CCUtils.addTicket(ticket);
+    }
+
+    function createTicketFromBooking(){
+      const state = getBookingState();
+      const fare = state.fare || "topup";
+      const now = new Date();
+      const operatorRaw = (CHECKOUT_CONFIG.operator || "MyCiTi").toLowerCase();
+      const operator = operatorRaw.includes("golden") ? "GoldenArrow" : "MyCiTi";
+      const routeLabel = fare === "topup"
+        ? (state.estimate?.routeLabel || "MyCiTi Route")
+        : `Pass - ${PASS_LABELS[fare] || "MyCiTi"}`;
+      const amount = fare === "topup"
+        ? (state.estimate?.amount || 0)
+        : (PASS_PRICES[fare] || 0);
+      const ticketId = `TCK-${Date.now()}`;
+      const expiryDays = fare === "day1" ? 1 : fare === "day3" ? 3 : fare === "day7" ? 7 : fare === "monthly" ? 30 : 365;
+      return {
+        id: ticketId,
+        operator,
+        service: operator === "GoldenArrow" ? "Golden Arrow" : "MyCiTi Bus",
+        route: routeLabel,
+        date: now.toISOString().slice(0,10),
+        time: `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`,
+        type: fare,
+        passengers: 1,
+        total: `R ${amount.toFixed(2)}`,
+        status: "Active",
+        purchasedAt: now.toISOString(),
+        validFrom: now.toISOString(),
+        expiresAt: new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+        qrData: JSON.stringify({ id: ticketId, route: routeLabel, amount })
+      };
+    }
+
+    function finishPayment(paidWithDisplay){
+      const ticket = createTicketFromBooking();
+      storeTicket(ticket);
+      window.location.href = "dashboard.html";
+    }
+
+    async function payWithWallet(){
+      const balance = getWalletBalance();
+      if (balance < CHECKOUT_CONFIG.amountCents) {
+        alert("Insufficient wallet balance. Top up first.");
+        return;
+      }
+      try {
+        await spendWallet(CHECKOUT_CONFIG.amountCents);
+        renderWallet();
+        finishPayment("Wallet");
+      } catch (err) {
+        alert(err?.message || "Could not pay with wallet.");
+      }
+    }
+
+    function payWithSavedCard(){
+      const cardId = document.querySelector('input[name="savedCardPick"]:checked')?.value;
+      const card = Storage.getCards().find(c => c.id === cardId);
+      if (!card) {
+        alert("Select a saved card first.");
+        return;
+      }
+      finishPayment(`Saved Card (${card.brand} ****${card.last4})`);
+    }
+
+    function validateCardFields(nameValue, numberValue, expiryValue, cvvValue){
+      const name = String(nameValue || "").trim();
+      const digits = String(numberValue || "").replace(/\D/g, "");
+      const exp = parseExpiry(String(expiryValue || "").trim());
+      const cvv = String(cvvValue || "").trim();
+      const errors = {
+        name: name.length < 2 ? "Enter the cardholder name." : "",
+        number: luhnCheck(digits) ? "" : "Enter a valid card number.",
+        expiry: exp && expiryValid(exp) ? "" : "Expiry must be valid.",
+        cvv: /^\d{3}$/.test(cvv) ? "" : "CVV must be 3 digits."
+      };
+      return { ok: !errors.name && !errors.number && !errors.expiry && !errors.cvv, errors, exp, digits };
+    }
+
+    function validateNewCard(){
+      errName.style.display = "none";
+      errNumber.style.display = "none";
+      errExpiry.style.display = "none";
+      errCvv.style.display = "none";
+      const result = validateCardFields(newName.value, newNumber.value, newExpiry.value, newCvv.value);
+      if (result.errors.name) { errName.textContent = result.errors.name; errName.style.display = "block"; }
+      if (result.errors.number) { errNumber.textContent = result.errors.number; errNumber.style.display = "block"; }
+      if (result.errors.expiry) { errExpiry.textContent = result.errors.expiry; errExpiry.style.display = "block"; }
+      if (result.errors.cvv) { errCvv.textContent = result.errors.cvv; errCvv.style.display = "block"; }
+      return { valid: result.ok, exp: result.exp, digits: result.digits };
+    }
+
+    function saveNewCardIfNeeded(exp){
+      const cards = Storage.getCards();
+      if (cards.length >= 3) return null;
+      if (!saveCardCheckbox.checked) return null;
+      const digits = newNumber.value.replace(/\D/g, "") || "0000";
+      const card = {
+        id: `card_${Date.now()}`,
+        brand: cardBrand(digits),
+        last4: digits.slice(-4),
+        expMonth: exp.month,
+        expYear: exp.year,
+        createdAt: new Date().toISOString(),
+        fakeToken: makeToken()
+      };
+      const next = [card, ...cards];
+      Storage.setCards(next);
+      if (!Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
+      return card;
+    }
+
+    function payWithNewCard(){
+      const { valid, exp, digits } = validateNewCard();
+      if (!valid) return;
+      const savedCard = saveNewCardIfNeeded(exp);
+      renderSavedCards();
+      const brand = cardBrand(digits);
+      finishPayment(`New Card (${brand} ****${digits.slice(-4)})`);
+      if (savedCard) showToast("Card saved (demo)");
+    }
+
+    function showReceipt(paidWithLabel, paidWithDisplay){
+      receipt.style.display = "block";
+      receipt.innerHTML = `
+        <div class="summary-row"><span>Status</span><strong>Payment successful (demo)</strong></div>
+        <div class="summary-row"><span>Operator</span><strong>${CHECKOUT_CONFIG.operator}</strong></div>
+        <div class="summary-row"><span>Purchase</span><strong>${CHECKOUT_CONFIG.purchaseTitle}</strong></div>
+        <div class="summary-row"><span>Amount</span><strong>${fmtZar(CHECKOUT_CONFIG.amountCents)}</strong></div>
+        <div class="summary-row"><span>Paid with</span><strong>${paidWithDisplay}</strong></div>
+        <div class="summary-row"><span>Timestamp</span><strong>${nowStamp()}</strong></div>
+        <div style="margin-top:10px;">
+          <button class="btn ghost" id="btnReset">Reset demo</button>
+        </div>
+      `;
+      const reset = receipt.querySelector("#btnReset");
+      if (reset) {
+        reset.addEventListener("click", () => window.location.reload());
+      }
+    }
+
+    let lastModalFocus = null;
+    let releaseModalTrap = null;
+
+    function getFocusableElements(root){
+      return Array.from(root.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true');
+    }
+
+    function trapFocus(root, onClose){
+      function handleKeydown(ev){
+        if (ev.key === 'Escape') {
+          ev.preventDefault();
+          if (onClose) onClose();
+          return;
+        }
+        if (ev.key !== 'Tab') return;
+        const focusable = getFocusableElements(root);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (ev.shiftKey && document.activeElement === first) {
+          ev.preventDefault();
+          last.focus();
+        } else if (!ev.shiftKey && document.activeElement === last) {
+          ev.preventDefault();
+          first.focus();
+        }
+      }
+      root.addEventListener('keydown', handleKeydown);
+      return () => root.removeEventListener('keydown', handleKeydown);
+    }
+
+    function openModal(modal){
+      if (!modal) return;
+      lastModalFocus = document.activeElement;
+      modal.style.display = "flex";
+      modal.setAttribute('aria-hidden', 'false');
+      const dialog = modal.querySelector('[role="dialog"]');
+      if (dialog) dialog.focus();
+      releaseModalTrap = trapFocus(modal, () => closeModal(modal));
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(modal){
+      if (!modal) return;
+      modal.style.display = "none";
+      modal.setAttribute('aria-hidden', 'true');
+      if (releaseModalTrap) {
+        releaseModalTrap();
+        releaseModalTrap = null;
+      }
+      document.body.style.overflow = '';
+      if (lastModalFocus) lastModalFocus.focus();
+    }
+
+    document.querySelectorAll('input[name="payMethod"]').forEach(r => {
+      r.addEventListener("change", updateMethodVisibility);
+    });
+
+    btnPayNow.addEventListener("click", async () => {
+      const method = document.querySelector('input[name="payMethod"]:checked')?.value || "wallet";
+      if (method === "wallet") return payWithWallet();
+      if (method === "saved") return payWithSavedCard();
+      if (method === "new") return payWithNewCard();
+    });
+
+    btnTopUp.addEventListener("click", () => {
+      renderTopupSavedCards();
+      topupAmount.value = "";
+      topupNewCard.style.display = "none";
+      openModal(topupModal);
+    });
+
+    topupClose.addEventListener("click", () => closeModal(topupModal));
+    topupCancel.addEventListener("click", () => closeModal(topupModal));
+    topupModal.addEventListener("click", (e) => {
+      if (e.target === topupModal) closeModal(topupModal);
+    });
+
+    document.querySelectorAll('input[name="topupSource"]').forEach(r => {
+      r.addEventListener("change", () => {
+        const source = document.querySelector('input[name="topupSource"]:checked')?.value;
+        topupNewCard.style.display = source === "new" ? "block" : "none";
+      });
+    });
+
+    topupNumber.addEventListener("input", () => {
+      topupNumber.value = topupNumber.value.replace(/[^\d]/g, "").slice(0, 16).replace(/(\d{4})/g, "$1 ").trim();
+    });
+    topupExpiry.addEventListener("input", () => {
+      const raw = topupExpiry.value.replace(/[^\d]/g, "").slice(0, 4);
+      topupExpiry.value = raw.length >= 3 ? `${raw.slice(0,2)}/${raw.slice(2)}` : raw;
+    });
+    topupCvv.addEventListener("input", () => {
+      topupCvv.value = topupCvv.value.replace(/[^\d]/g, "").slice(0, 3);
+    });
+
+    topupConfirm.addEventListener("click", async () => {
+      const amount = parseInt(topupAmount.value || "0", 10);
+      if (!amount || amount <= 0) {
+        alert("Enter a valid top up amount.");
+        return;
+      }
+      const source = document.querySelector('input[name="topupSource"]:checked')?.value;
+      if (source === "new") {
+        const check = validateCardFields(topupName.value, topupNumber.value, topupExpiry.value, topupCvv.value);
+        if (!check.ok) {
+          alert(check.errors.name || check.errors.number || check.errors.expiry || check.errors.cvv || "Enter valid card details.");
+          return;
+        }
+        const exp = check.exp;
+        if (topupSave.checked && Storage.getCards().length < 3) {
+          const digits = check.digits || "0000";
+          const card = {
+            id: `card_${Date.now()}`,
+            brand: cardBrand(digits),
+            last4: digits.slice(-4),
+            expMonth: exp.month,
+            expYear: exp.year,
+            createdAt: new Date().toISOString(),
+            fakeToken: makeToken()
+          };
+          const next = [card, ...Storage.getCards()];
+          Storage.setCards(next);
+          if (!Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
+          renderSavedCards();
+        }
+      }
+      try {
+        await topupWallet(amount * 100);
+        renderWallet();
+        closeModal(topupModal);
+        showToast("Wallet topped up");
+      } catch (err) {
+        alert(err?.message || "Top up failed.");
+      }
+    });
+
+    btnManageCards.addEventListener("click", () => {
+      renderManageCards();
+      openModal(manageModal);
+    });
+
+    manageClose.addEventListener("click", () => closeModal(manageModal));
+    manageModal.addEventListener("click", (e) => {
+      if (e.target === manageModal) closeModal(manageModal);
+    });
+
+    manageList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (action === "default") {
+        Storage.setDefaultCardId(id);
+        renderSavedCards();
+        renderManageCards();
+      }
+      if (action === "remove") {
+        const ok = confirm("Remove this card?");
+        if (!ok) return;
+        const cards = Storage.getCards().filter(c => c.id !== id);
+        Storage.setCards(cards);
+        if (Storage.getDefaultCardId() === id) Storage.setDefaultCardId(cards[0]?.id || "");
+        renderSavedCards();
+        renderManageCards();
+      }
+    });
+
+    manageNumber.addEventListener("input", () => {
+      manageNumber.value = manageNumber.value.replace(/[^\d]/g, "").slice(0, 16).replace(/(\d{4})/g, "$1 ").trim();
+    });
+    manageExpiry.addEventListener("input", () => {
+      const raw = manageExpiry.value.replace(/[^\d]/g, "").slice(0, 4);
+      manageExpiry.value = raw.length >= 3 ? `${raw.slice(0,2)}/${raw.slice(2)}` : raw;
+    });
+    manageCvv.addEventListener("input", () => {
+      manageCvv.value = manageCvv.value.replace(/[^\d]/g, "").slice(0, 3);
+    });
+
+    manageAddBtn.addEventListener("click", () => {
+      if (Storage.getCards().length >= 3) return;
+      const check = validateCardFields(manageName.value, manageNumber.value, manageExpiry.value, manageCvv.value);
+      if (!check.ok) {
+        alert(check.errors.name || check.errors.number || check.errors.expiry || check.errors.cvv || "Enter valid card details.");
+        return;
+      }
+      const exp = check.exp;
+      const digits = check.digits || "0000";
+      const card = {
+        id: `card_${Date.now()}`,
+        brand: cardBrand(digits),
+        last4: digits.slice(-4),
+        expMonth: exp.month,
+        expYear: exp.year,
+        createdAt: new Date().toISOString(),
+        fakeToken: makeToken()
+      };
+      const next = [card, ...Storage.getCards()];
+      Storage.setCards(next);
+      if (manageDefault.checked || !Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
+
+      manageName.value = "";
+      manageNumber.value = "";
+      manageExpiry.value = "";
+      manageCvv.value = "";
+      manageDefault.checked = false;
+
+      renderSavedCards();
+      renderManageCards();
+    });
+
+    async function init(){
+      await loadMycitiPassPrices();
+      applyBookingToConfig();
+      applyOperatorTheme();
+      renderSummary();
+      await loadWalletBalance();
+      renderWallet();
+      renderSavedCards();
+      updateMethodVisibility();
+    }
+
+    init();
+  </script>
+</body>
+</html>
