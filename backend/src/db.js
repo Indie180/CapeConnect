@@ -7,12 +7,20 @@ export const pool = new Pool({
   connectionString: config.databaseUrl
 });
 
+let testDoubles = null;
+
 export async function query(text, params = []) {
+  if (testDoubles?.query) {
+    return testDoubles.query(text, params);
+  }
   const result = await pool.query(text, params);
   return result;
 }
 
 export async function withTransaction(work) {
+  if (testDoubles?.withTransaction) {
+    return testDoubles.withTransaction(work);
+  }
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -29,4 +37,12 @@ export async function withTransaction(work) {
   } finally {
     client.release();
   }
+}
+
+export function __setDbTestDoubles(doubles) {
+  testDoubles = doubles || null;
+}
+
+export function __clearDbTestDoubles() {
+  testDoubles = null;
 }
