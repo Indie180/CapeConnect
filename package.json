@@ -1,0 +1,12 @@
+{
+  "name": "capeconnect-root",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  },
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  }
+}

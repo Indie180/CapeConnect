@@ -7,6 +7,43 @@ on:
     branches: [main, develop]
 
 jobs:
+  root-static:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Run root static tests
+        run: npm test
+
+  root-e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run root Playwright tests
+        run: npm run test:e2e
+
   backend:
     runs-on: ubuntu-latest
     
