@@ -2,48 +2,82 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
   pull_request:
+    branches: [main, develop]
 
 jobs:
   backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: capeconnect_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
-      - name: Setup Node
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
           cache-dependency-path: backend/package-lock.json
-
-      - name: Install
+      
+      - name: Install dependencies
+        working-directory: backend
         run: npm ci
+      
+      - name: Run linter
+        working-directory: backend
+        run: npm run lint
+      
+      - name: Setup database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/capeconnect_test
+        run: |
+          psql $DATABASE_URL -f sql/schema.sql
+          psql $DATABASE_URL -f sql/seed.sql
+      
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/capeconnect_test
+          NODE_ENV: test
+        run: npm test
 
-      - name: Check
-        run: npm run check
-
-  frontend-smoke:
+  frontend:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: JavaScript syntax checks
-        run: |
-          node --check js/app.js
-          node --check js/api-client.js
-          node --check js/data-service.js
-          node --check admin-common/ga-app.js
-          node --check admin-common/mc-app.js
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend-react/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend-react
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: frontend-react
+        run: npm run lint
+      
+      - name: Build
+        working-directory: frontend-react
+        run: npm run build

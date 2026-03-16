@@ -7,16 +7,24 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
-    "lint": "node -e \"console.log('No linter configured yet')\"",
-    "check": "npm run lint && npm run test"
+    "lint": "eslint src/**/*.js",
+    "check": "npm run lint && npm run test",
+    "db:setup": "psql $DATABASE_URL -f sql/schema.sql && psql $DATABASE_URL -f sql/seed.sql",
+    "db:migrate": "psql $DATABASE_URL -f sql/migrations/2026-03-03_add_operator_to_audit_logs.sql"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "sql.js": "^1.12.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.17.0"
   }
 }

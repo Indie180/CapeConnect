@@ -1,20 +1,30 @@
-node_modules/
-**/node_modules/
-
+# Environment files
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
 
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
 dist/
 build/
-coverage/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
 
-.vscode/
+# Database
+*.db
+*.sqlite
+
+# Test coverage
+coverage/

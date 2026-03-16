@@ -1,0 +1,353 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap");
+
+:root {
+  --ga-bg: #081222;
+  --ga-bg-alt: #0e1f36;
+  --ga-card: rgba(255, 255, 255, 0.96);
+  --ga-text: #101827;
+  --ga-muted: #5d6b82;
+  --ga-line: rgba(16, 24, 39, 0.12);
+  --ga-gold: #ffb300;
+  --ga-gold-strong: #f59e0b;
+  --ga-ok: #157347;
+  --ga-error: #b42318;
+  --ga-shadow: 0 20px 48px rgba(6, 16, 30, 0.28);
+  --ga-radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.ga-flow {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito Sans", "Segoe UI", Tahoma, sans-serif;
+  color: var(--ga-text);
+  background:
+    radial-gradient(1200px 680px at 15% 5%, rgba(255, 179, 0, 0.2), transparent 56%),
+    radial-gradient(900px 620px at 90% 24%, rgba(245, 158, 11, 0.15), transparent 62%),
+    linear-gradient(140deg, var(--ga-bg), var(--ga-bg-alt));
+}
+
+.ga-wrap {
+  max-width: 1120px;
+  margin: 28px auto;
+  padding: 0 18px 36px;
+}
+
+.ga-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ga-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.ga-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.ga-brand strong {
+  font-family: "Nunito Sans", "Segoe UI", Tahoma, sans-serif;
+  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.ga-nav {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ga-nav a {
+  text-decoration: none;
+  color: #dbe4f1;
+  font-weight: 700;
+  font-size: 0.84rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 11px;
+  border-radius: 999px;
+}
+
+.ga-nav a:hover,
+.ga-nav a.active {
+  color: #1b2535;
+  background: var(--ga-gold);
+  border-color: rgba(255, 179, 0, 0.8);
+}
+
+.ga-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .ga-layout {
+    grid-template-columns: 1.25fr 0.75fr;
+  }
+}
+
+.ga-card {
+  background: var(--ga-card);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: var(--ga-radius);
+  box-shadow: var(--ga-shadow);
+  padding: 18px;
+}
+
+.ga-title {
+  margin: 0;
+  font-family: "Nunito Sans", "Segoe UI", Tahoma, sans-serif;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+  color: #101827;
+  font-weight: 900;
+}
+
+.ga-sub {
+  margin: 6px 0 0;
+  color: var(--ga-muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.ga-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+@media (max-width: 620px) {
+  .ga-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ga-step {
+  border-radius: 12px;
+  border: 1px solid rgba(16, 24, 39, 0.12);
+  background: #fff7e2;
+  color: #8a5b00;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 8px 6px;
+}
+
+.ga-step.active {
+  background: linear-gradient(180deg, var(--ga-gold), var(--ga-gold-strong));
+  color: #1e293b;
+  border-color: rgba(245, 158, 11, 0.42);
+}
+
+.ga-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (min-width: 700px) {
+  .ga-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ga-field span {
+  display: block;
+  margin-bottom: 6px;
+  color: #0f172a;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ga-field input,
+.ga-field select {
+  width: 100%;
+  border: 1px solid var(--ga-line);
+  border-radius: 12px;
+  padding: 12px;
+  font: inherit;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.ga-field small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ga-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.ga-results {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(255, 179, 0, 0.14);
+  padding: 12px;
+}
+
+.ga-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.92rem;
+  border-bottom: 1px dashed rgba(16, 24, 39, 0.15);
+  padding: 7px 0;
+}
+
+.ga-row:last-child {
+  border-bottom: none;
+}
+
+.ga-row strong {
+  color: #111827;
+}
+
+.ga-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.ga-btn {
+  border-radius: 12px;
+  border: 1px solid var(--ga-line);
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  font-weight: 900;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+
+.ga-btn.primary {
+  background: linear-gradient(180deg, var(--ga-gold), var(--ga-gold-strong));
+  border-color: rgba(245, 158, 11, 0.42);
+}
+
+.ga-btn.soft {
+  background: #fff7e2;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.ga-note {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.36);
+  background: rgba(255, 179, 0, 0.16);
+  color: #7a5200;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 10px 11px;
+}
+
+.ga-alert {
+  margin-top: 10px;
+  border-radius: 12px;
+  padding: 10px 11px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: none;
+}
+
+.ga-alert.error {
+  display: block;
+  color: var(--ga-error);
+  background: #fee4e2;
+  border: 1px solid #fecdca;
+}
+
+.ga-alert.success {
+  display: block;
+  color: var(--ga-ok);
+  background: #dcfae6;
+  border: 1px solid #abefc6;
+}
+
+.ga-summary-card {
+  position: sticky;
+  top: 16px;
+}
+
+.ga-summary-title {
+  margin: 0;
+  font-family: "Nunito Sans", "Segoe UI", Tahoma, sans-serif;
+  font-size: 1.25rem;
+  color: #111827;
+  font-weight: 900;
+}
+
+.ga-chip {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #8a5b00;
+  background: #fff7e2;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.ga-fares {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (min-width: 720px) {
+  .ga-fares {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.ga-fare {
+  border-radius: 14px;
+  border: 1px solid rgba(16, 24, 39, 0.12);
+  background: #fffaf0;
+  padding: 11px;
+}
+
+.ga-fare input {
+  margin-right: 6px;
+}
+
+.ga-fare strong {
+  color: #111827;
+}
+
+.ga-fare p {
+  margin: 4px 0 0;
+  color: var(--ga-muted);
+  font-size: 0.8rem;
+}
+
+.ga-kbd {
+  font-family: Consolas, monospace;
+  font-size: 0.73rem;
+  border: 1px solid rgba(16, 24, 39, 0.2);
+  border-radius: 7px;
+  padding: 2px 5px;
+  color: #374151;
+  background: #f8fafc;
+}

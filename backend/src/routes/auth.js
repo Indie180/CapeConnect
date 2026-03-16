@@ -11,6 +11,13 @@ let refreshSchemaReady = null;
 
 async function ensureRefreshSchema() {
   if (refreshSchemaReady) return refreshSchemaReady;
+  
+  // Skip for SQLite - table already created in init-db.js
+  if (config.useSqlite) {
+    refreshSchemaReady = Promise.resolve();
+    return refreshSchemaReady;
+  }
+  
   refreshSchemaReady = (async () => {
     await query(`
       CREATE TABLE IF NOT EXISTS refresh_sessions (
@@ -44,12 +51,14 @@ async function issueAccessToken(userId) {
   const tokenHash = getTokenHash(token);
   const expiresAt = new Date(Date.now() + config.sessionTtlMinutes * 60 * 1000);
 
+  const sessionId = crypto.randomBytes(16).toString('hex');
+
   await query(
     `
     INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at)
-    VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+    VALUES ($1, $2, $3, $4, datetime('now'))
     `,
-    [userId, tokenHash, expiresAt.toISOString()]
+    [sessionId, userId, tokenHash, expiresAt.toISOString()]
   );
 
   return { token, expiresAt: expiresAt.toISOString(), tokenHash };
@@ -61,12 +70,14 @@ async function issueRefreshToken(userId) {
   const refreshTokenHash = getTokenHash(refreshToken);
   const refreshExpiresAt = new Date(Date.now() + config.refreshTtlDays * 24 * 60 * 60 * 1000);
 
+  const refreshId = crypto.randomBytes(16).toString('hex');
+
   await query(
     `
     INSERT INTO refresh_sessions (id, user_id, token_hash, expires_at, created_at)
-    VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+    VALUES ($1, $2, $3, $4, datetime('now'))
     `,
-    [userId, refreshTokenHash, refreshExpiresAt.toISOString()]
+    [refreshId, userId, refreshTokenHash, refreshExpiresAt.toISOString()]
   );
 
   return {
