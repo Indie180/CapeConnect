@@ -1,9 +1,19 @@
+import { log, serializeError } from "../utils/logger.js";
+import { config } from "../config.js";
+
 export const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
+  log("error", "request_failed", {
+    requestId: req?.requestId || null,
+    method: req?.method || null,
+    path: req?.originalUrl || req?.url || null,
+    userId: req?.auth?.userId || null,
+    error: serializeError(err),
+  });
 
   if (err.name === 'ZodError') {
     return res.status(400).json({
       error: 'Validation failed',
+      requestId: req?.requestId || null,
       details: err.errors.map(e => ({ path: e.path.join('.'), message: e.message }))
     });
   }
@@ -13,7 +23,8 @@ export const errorHandler = (err, req, res, next) => {
 
   res.status(statusCode).json({
     error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    requestId: req?.requestId || null,
+    ...(config.env === 'development' && { stack: err.stack })
   });
 };
 

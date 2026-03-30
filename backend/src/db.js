@@ -1,22 +1,27 @@
 ﻿import pg from "pg";
 import { config } from "./config.js";
+import { log, serializeError } from "./utils/logger.js";
 import initSqlJs from 'sql.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { initializeDatabase } from './init-db.js';
 
 const { Pool } = pg;
 
 let pool, db, usingSqlite;
 
-if (config.useSqlite) {
+if (config.useSqlite || config.env === 'test') {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   const dbPath = join(__dirname, '..', 'capeconnect.db');
   
   const SQL = await initSqlJs();
   
-  // Load existing database or create new one
+  // Initialize database with proper schema first
+  await initializeDatabase();
+  
+  // Now load the properly initialized database
   if (existsSync(dbPath)) {
     const buffer = readFileSync(dbPath);
     db = new SQL.Database(buffer);
@@ -24,28 +29,32 @@ if (config.useSqlite) {
     db = new SQL.Database();
   }
   
-  // Save database periodically
-  setInterval(() => {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    writeFileSync(dbPath, buffer);
-  }, 5000);
+  // Save database periodically (skip in test mode)
+  if (config.env !== 'test') {
+    setInterval(() => {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      writeFileSync(dbPath, buffer);
+    }, 5000);
+  }
   
   // Save on exit
   process.on('exit', () => {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    writeFileSync(dbPath, buffer);
+    if (config.env !== 'test') {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      writeFileSync(dbPath, buffer);
+    }
   });
   
   usingSqlite = true;
-  console.log('📦 Using SQLite database (sql.js)');
+  log('info', 'Using SQLite database (sql.js) with proper schema');
 } else {
   pool = new Pool({
     connectionString: config.databaseUrl
   });
   usingSqlite = false;
-  console.log('🐘 Using PostgreSQL database');
+  log('info', 'Using PostgreSQL database');
 }
 
 export { pool };
@@ -64,6 +73,10 @@ export async function query(text, params = []) {
         .replace(/gen_random_uuid\(\)/g, "lower(hex(randomblob(16)))")
         .replace(/UUID/g, "TEXT")
         .replace(/TIMESTAMPTZ/g, "DATETIME")
+        .replace(/BIGINT/g, "INTEGER")
+        .replace(/BOOLEAN/g, "INTEGER")
+        .replace(/JSONB/g, "TEXT")
+        .replace(/'(\[\]|\{\})'::jsonb/g, "'$1'")
         .replace(/NOW\(\)/g, "datetime('now')")
         .replace(/CURRENT_TIMESTAMP/g, "datetime('now')")
         .replace(/ON DELETE CASCADE/g, "")
@@ -71,32 +84,9 @@ export async function query(text, params = []) {
       
       // Replace $1, $2 with ? for SQLite
       params.forEach((_, index) => {
-        sqliteQuery = sqliteQuery.replace(`$${index + 1}`, '?');
+        sqliteQuery = sqliteQuery.replace(new RegExp(`\\$${index + 1}(?!\\d)`, "g"), "?");
       });
-      
-      // Handle RETURNING clause
-      if (sqliteQuery.includes('RETURNING')) {
-        const cleanQuery = sqliteQuery.replace(/RETURNING \*/g, '');
-        db.run(cleanQuery, params);
-        
-        // Get last inserted row
-        const tableName = sqliteQuery.match(/INSERT INTO (\w+)/i)?.[1];
-        if (tableName) {
-          const result = db.exec(`SELECT * FROM ${tableName} WHERE id = last_insert_rowid()`);
-          if (result.length > 0) {
-            const columns = result[0].columns;
-            const values = result[0].values[0];
-            const row = {};
-            columns.forEach((col, idx) => {
-              row[col] = values[idx];
-            });
-            return { rows: [row] };
-          }
-        }
-        return { rows: [] };
-      }
-      
-      // Regular query
+
       const result = db.exec(sqliteQuery, params);
       
       if (result.length === 0) {
@@ -114,9 +104,7 @@ export async function query(text, params = []) {
       
       return { rows };
     } catch (error) {
-      console.error('SQLite query error:', error);
-      console.error('Query:', text);
-      console.error('Params:', params);
+      log('error', 'SQLite query error', { error: serializeError(error), query: text, params });
       throw error;
     }
   }

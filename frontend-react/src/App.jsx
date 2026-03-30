@@ -319,7 +319,7 @@ function AuthForm({ opId, onLogin, onBack }) {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {Object.entries(op.fares).map(([type, amt]) => (
               <div key={type} style={{ textAlign: "center", padding: "10px 14px", borderRadius: 10, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.09)" }}>
-                <div style={{ fontSize: 17, fontWeight: 900, color: op.accent }}}>R{amt}</div>
+                <div style={{ fontSize: 17, fontWeight: 900, color: op.accent }}>R{amt}</div>
                 <div style={{ fontSize: 9, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>{type}</div>
               </div>
             ))}

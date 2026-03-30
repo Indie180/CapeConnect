@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getTickets, request } from '../lib/authClient';
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState([]);
@@ -12,25 +13,10 @@ export default function TicketsPage() {
 
   const fetchTickets = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login');
-          return;
-        }
-        throw new Error('Failed to fetch tickets');
-      }
-
-      const data = await response.json();
+      const data = await getTickets();
       setTickets(data);
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      if (error?.status === 401) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -38,20 +24,11 @@ export default function TicketsPage() {
 
   const useTicket = async (ticketId) => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticketId}/use`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to use ticket');
-      
+      await request(`/api/tickets/${ticketId}/use`, { method: 'POST' });
       fetchTickets();
     } catch (error) {
-      console.error('Error using ticket:', error);
-      alert('Failed to use ticket');
+      if (error?.status === 401) navigate('/login');
+      else alert('Failed to use ticket');
     }
   };
 

@@ -1,5 +1,6 @@
 ﻿import crypto from "crypto";
 import { query } from "../db.js";
+import { config } from "../config.js";
 
 function hashToken(rawToken) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -17,7 +18,7 @@ export async function requireAuth(req, res, next) {
 
     const sessionResult = await query(
       `
-      SELECT s.user_id, s.expires_at, u.email, u.full_name, u.role, u.status
+      SELECT s.user_id, s.expires_at, u.email, u.full_name, u.phone, u.role, u.status, u.operator
       FROM sessions s
       JOIN users u ON u.id = s.user_id
       WHERE s.token_hash = $1
@@ -36,13 +37,31 @@ export async function requireAuth(req, res, next) {
     if (expiresAt <= Date.now()) {
       return res.status(401).json({ error: "Session expired" });
     }
+    if (String(session.status || "").toUpperCase() !== "ACTIVE") {
+      return res.status(403).json({ error: "User is not active" });
+    }
+
+    // Update session activity (SQLite compatible)
+    if (config.useSqlite) {
+      await query(
+        'UPDATE sessions SET last_activity = datetime(\'now\') WHERE token_hash = $1',
+        [tokenHash]
+      );
+    } else {
+      await query(
+        'UPDATE sessions SET last_activity = NOW() WHERE token_hash = $1',
+        [tokenHash]
+      );
+    }
 
     req.auth = {
       userId: session.user_id,
       email: session.email,
       fullName: session.full_name,
+      phone: session.phone || "",
       role: session.role,
       status: session.status,
+      operator: session.operator || null,
       tokenHash
     };
 
@@ -59,16 +78,19 @@ export function requireAdmin(req, res, next) {
   return next();
 }
 
-function operatorFromAdminEmail(email) {
-  const e = String(email || "").toLowerCase();
-  if (e.includes("ga-admin")) return "Golden Arrow";
-  if (e.includes("myciti-admin")) return "MyCiTi";
-  return "";
+function normalizeOperator(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return "";
+  if (raw === "myciti") return "MyCiTi";
+  if (raw === "ga" || raw === "goldenarrow" || raw === "golden_arrow" || raw === "golden-arrow" || raw === "golden arrow") {
+    return "Golden Arrow";
+  }
+  return String(value || "").trim();
 }
 
 export function requireAdminOperatorScope(resolveOperator) {
   return (req, res, next) => {
-    const requestedOperator = String(resolveOperator(req) || "").trim();
+    const requestedOperator = normalizeOperator(resolveOperator(req));
     if (!requestedOperator) {
       return res.status(400).json({ error: "operator is required" });
     }
@@ -76,7 +98,7 @@ export function requireAdminOperatorScope(resolveOperator) {
     const role = String(req?.auth?.role || "").toLowerCase();
     if (role === "super_admin") return next();
 
-    const adminOperator = operatorFromAdminEmail(req?.auth?.email);
+    const adminOperator = normalizeOperator(req?.auth?.operator);
     if (!adminOperator) {
       return res.status(403).json({ error: "Admin operator scope not recognized" });
     }
@@ -92,8 +114,6 @@ export function requireAdminOperatorScope(resolveOperator) {
 
 const roleAliasMap = {
   user: ["passenger"],
-  "admin-ga": ["operator_admin", "super_admin"],
-  "admin-myciti": ["operator_admin", "super_admin"],
   admin: ["operator_admin", "super_admin"],
   super_admin: ["super_admin"],
   operator_admin: ["operator_admin", "super_admin"],
