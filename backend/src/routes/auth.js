@@ -17,6 +17,25 @@ import {
   handleFailedLogin,
   handleSuccessfulLogin,
 } from "../middleware/accountSecurity.js";
+import { log, logAlert, serializeError } from "../utils/logger.js";
+
+function logAuthRouteError(req, code, error, severity = "high") {
+  const meta = {
+    requestId: req.requestId,
+    error: serializeError(error),
+  };
+
+  if (error?.name === "ZodError") {
+    log("info", code, meta);
+    return;
+  }
+
+  logAlert(code, meta, {
+    category: "auth",
+    severity,
+    code,
+  });
+}
 
 const router = express.Router();
 
@@ -420,17 +439,35 @@ router.post("/login", checkAccountLockout, async (req, res, next) => {
     );
 
     if (!userResult.rows.length) {
+      log("info", "auth_login_failed", {
+        requestId: req.requestId,
+        reason: "user_not_found",
+        email,
+      });
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const user = userResult.rows[0];
     if (user.status !== "ACTIVE") {
+      log("info", "auth_login_blocked", {
+        requestId: req.requestId,
+        reason: "inactive_user",
+        userId: user.id,
+        email: user.email,
+        status: user.status,
+      });
       return res.status(403).json({ error: "User is not active" });
     }
 
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
       await handleFailedLogin(user.email);
+      log("info", "auth_login_failed", {
+        requestId: req.requestId,
+        reason: "invalid_password",
+        userId: user.id,
+        email: user.email,
+      });
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -441,6 +478,13 @@ router.post("/login", checkAccountLockout, async (req, res, next) => {
 
     const frontendUser = await buildFrontendUser(user);
 
+    log("info", "auth_login_succeeded", {
+      requestId: req.requestId,
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
     return res.json({
       token: access.token,
       expiresAt: access.expiresAt,
@@ -449,6 +493,7 @@ router.post("/login", checkAccountLockout, async (req, res, next) => {
       user: frontendUser,
     });
   } catch (error) {
+    logAuthRouteError(req, "auth_login_error", error, "high");
     return next(error);
   }
 });
@@ -475,6 +520,10 @@ router.post("/register", async (req, res, next) => {
     );
 
     if (existingUser.rows.length) {
+      log("info", "auth_register_conflict", {
+        requestId: req.requestId,
+        email,
+      });
       return res.status(409).json({ error: "An account with that email already exists" });
     }
 
@@ -502,6 +551,12 @@ router.post("/register", async (req, res, next) => {
       operator: null,
     });
 
+    log("info", "auth_register_succeeded", {
+      requestId: req.requestId,
+      userId,
+      email,
+    });
+
     return res.status(201).json({
       token: access.token,
       expiresAt: access.expiresAt,
@@ -510,6 +565,7 @@ router.post("/register", async (req, res, next) => {
       user: frontendUser,
     });
   } catch (error) {
+    logAuthRouteError(req, "auth_register_error", error, "high");
     return next(error);
   }
 });
@@ -538,6 +594,10 @@ router.post("/forgot-password", async (req, res, next) => {
     };
 
     if (!userResult.rows.length || String(userResult.rows[0].status || "").toUpperCase() !== "ACTIVE") {
+      log("info", "auth_forgot_password_ignored", {
+        requestId: req.requestId,
+        email,
+      });
       return res.json(genericResponse);
     }
 
@@ -565,8 +625,15 @@ router.post("/forgot-password", async (req, res, next) => {
       payload.resetToken = reset.token;
       payload.resetUrl = `/reset-password.html?token=${encodeURIComponent(reset.token)}`;
     }
+
+    log("info", "auth_forgot_password_issued", {
+      requestId: req.requestId,
+      userId: user.id,
+      email: user.email,
+    });
     return res.json(payload);
   } catch (error) {
+    logAuthRouteError(req, "auth_forgot_password_error", error, "medium");
     return next(error);
   }
 });
@@ -593,15 +660,35 @@ router.post("/reset-password", async (req, res, next) => {
 
     const resetRow = resetResult.rows[0];
     if (!resetRow) {
+      log("info", "auth_reset_password_failed", {
+        requestId: req.requestId,
+        reason: "token_not_found",
+      });
       return res.status(400).json({ error: "Reset token is invalid" });
     }
     if (resetRow.used_at) {
+      log("info", "auth_reset_password_failed", {
+        requestId: req.requestId,
+        reason: "token_used",
+        userId: resetRow.user_id,
+      });
       return res.status(400).json({ error: "Reset token has already been used" });
     }
     if (new Date(resetRow.expires_at).getTime() <= Date.now()) {
+      log("info", "auth_reset_password_failed", {
+        requestId: req.requestId,
+        reason: "token_expired",
+        userId: resetRow.user_id,
+      });
       return res.status(400).json({ error: "Reset token has expired" });
     }
     if (String(resetRow.status || "").toUpperCase() !== "ACTIVE") {
+      log("info", "auth_reset_password_blocked", {
+        requestId: req.requestId,
+        reason: "inactive_user",
+        userId: resetRow.user_id,
+        status: resetRow.status,
+      });
       return res.status(403).json({ error: "User is not active" });
     }
 
@@ -640,8 +727,13 @@ router.post("/reset-password", async (req, res, next) => {
       [resetRow.user_id]
     );
 
+    log("info", "auth_reset_password_succeeded", {
+      requestId: req.requestId,
+      userId: resetRow.user_id,
+    });
     return res.json({ ok: true });
   } catch (error) {
+    logAuthRouteError(req, "auth_reset_password_error", error, "high");
     return next(error);
   }
 });
@@ -743,8 +835,29 @@ router.post("/logout", requireAuth, async (req, res, next) => {
       );
     }
 
+    log("info", "auth_logout_succeeded", {
+      requestId: req.requestId,
+      userId: req.auth.userId,
+    });
     return res.json({ ok: true });
   } catch (error) {
+    if (error?.name === "ZodError") {
+      log("info", "auth_logout_error", {
+        requestId: req.requestId,
+        userId: req.auth?.userId || null,
+        error: serializeError(error),
+      });
+    } else {
+      logAlert("auth_logout_error", {
+        requestId: req.requestId,
+        userId: req.auth?.userId || null,
+        error: serializeError(error),
+      }, {
+        category: "auth",
+        severity: "medium",
+        code: "auth_logout_error",
+      });
+    }
     return next(error);
   }
 });
@@ -893,11 +1006,21 @@ router.post("/change-password", requireAuth, async (req, res, next) => {
 
     const user = userResult.rows[0];
     if (!user) {
+      log("info", "auth_change_password_failed", {
+        requestId: req.requestId,
+        reason: "user_not_found",
+        userId: req.auth.userId,
+      });
       return res.status(404).json({ error: "User not found" });
     }
 
     const ok = await bcrypt.compare(currentPassword, user.password_hash);
     if (!ok) {
+      log("info", "auth_change_password_failed", {
+        requestId: req.requestId,
+        reason: "invalid_current_password",
+        userId: req.auth.userId,
+      });
       return res.status(400).json({ error: "Current password is incorrect" });
     }
 
@@ -911,8 +1034,29 @@ router.post("/change-password", requireAuth, async (req, res, next) => {
       [nextHash, req.auth.userId]
     );
 
+    log("info", "auth_change_password_succeeded", {
+      requestId: req.requestId,
+      userId: req.auth.userId,
+    });
     return res.json({ ok: true });
   } catch (error) {
+    if (error?.name === "ZodError") {
+      log("info", "auth_change_password_error", {
+        requestId: req.requestId,
+        userId: req.auth?.userId || null,
+        error: serializeError(error),
+      });
+    } else {
+      logAlert("auth_change_password_error", {
+        requestId: req.requestId,
+        userId: req.auth?.userId || null,
+        error: serializeError(error),
+      }, {
+        category: "auth",
+        severity: "high",
+        code: "auth_change_password_error",
+      });
+    }
     return next(error);
   }
 });

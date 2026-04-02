@@ -533,6 +533,16 @@ body.bus-myciti header .logo .logo-text {
     transform: translateY(-2px);
 }
 
+body.bus-myciti #booking-btn {
+    background: var(--myciti-blue) !important;
+    color: #ffffff !important;
+}
+
+body.bus-myciti #timetable-btn {
+    background: var(--myciti-red) !important;
+    color: #ffffff !important;
+}
+
 /* Specific style for View Timetables button (golden orange) */
 #timetable-btn {
     background: #FFB300 !important;
@@ -1423,4 +1433,47 @@ input:focus {
     .main-content {
         padding-top: 40px;
     }
+}
+
+body.login-page {
+    background:
+        linear-gradient(rgba(10, 18, 32, 0.42), rgba(10, 18, 32, 0.42)),
+        url("../ChatGPT Image Mar 17, 2026, 09_31_29 AM.png") center center / cover no-repeat fixed;
+    min-height: 100vh;
+}
+
+body.login-page .main-content {
+    min-height: 100vh;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.login-page .card {
+    background: rgba(15, 23, 42, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(6px);
+}
+
+body.login-page .card-title,
+body.login-page .form-group label,
+body.login-page .auth-links a {
+    color: #ffffff;
+}
+
+
+body.login-page .input-wrapper {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body.login-page .input-wrapper input,
+body.login-page .input-wrapper i,
+body.login-page .pw-toggle {
+    color: #0f172a;
+}
+
+body.signup-page .card {
+    max-width: 560px;
 }

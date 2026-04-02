@@ -1,5 +1,6 @@
 (function () {
   const TICKET_KEY = "ccTickets_v1";
+  const storage = window.sessionStorage;
 
   function parseJson(value, fallback) {
     try {
@@ -10,21 +11,24 @@
   }
 
   function storageGet(key, fallback) {
-    const raw = localStorage.getItem(key);
+    const raw = storage.getItem(key);
     if (raw === null || raw === undefined || raw === "") return fallback;
     return parseJson(raw, fallback);
   }
 
   function storageSet(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+    storage.setItem(key, JSON.stringify(value));
   }
 
   function storageRemove(key) {
-    localStorage.removeItem(key);
+    storage.removeItem(key);
   }
 
   function getCurrentUser() {
-    return storageGet("currentUser", null);
+    if (window.App && window.App.storage && typeof window.App.storage.get === "function") {
+      return window.App.storage.get("currentUser") || null;
+    }
+    return storageGet("ccUserSnapshot", null);
   }
 
   function getCurrentUserKey() {
@@ -43,16 +47,29 @@
     if (!normalized) return null;
 
     const operatorRaw = String(normalized.operator || normalized.service || "").toLowerCase();
-    const operator = operatorRaw.includes("golden") ? "GoldenArrow" : "MyCiTi";
-    const productType = String(normalized.type || "single").toLowerCase();
-    const productName = String(normalized.type || normalized.ticketType || "Ticket");
-    const parts = String(normalized.route || "").split("-").map((s) => s.trim()).filter(Boolean);
+    const operator = operatorRaw.includes("golden") ? "Golden Arrow" : "MyCiTi";
+    const productType = String(normalized.productType || normalized.type || normalized.ticketType || "single").trim().toLowerCase();
+    const productName = String(
+      normalized.productName ||
+      normalized.purchaseTitle ||
+      normalized.ticketType ||
+      normalized.type ||
+      normalized.route ||
+      "Ticket"
+    ).trim();
+    const routeText = String(normalized.route || "").trim();
+    const parts = productType === "topup"
+      ? []
+      : routeText.split("-").map((s) => s.trim()).filter(Boolean);
+    const directAmountCents = Number(normalized.amountCents);
     const amountNumber = Number(
       String(normalized.total || "")
         .replace(/[^\d.-]/g, "")
         .trim()
     );
-    const amountCents = Number.isFinite(amountNumber) ? Math.round(amountNumber * 100) : 0;
+    const amountCents = Number.isFinite(directAmountCents) && directAmountCents > 0
+      ? Math.round(directAmountCents)
+      : (Number.isFinite(amountNumber) ? Math.round(amountNumber * 100) : 0);
 
     return {
       operator,
@@ -65,7 +82,7 @@
       currency: "ZAR",
       validFrom: normalized.validFrom || null,
       validUntil: normalized.expiresAt || null,
-      paymentMethod: "card",
+      paymentMethod: String(normalized.paymentMethod || "card").trim() || "card",
       cardAlias: normalized.cardAlias || null,
       meta: {
         legacyTicketId: normalized.id || null,
@@ -96,7 +113,12 @@
         row.journeys_included && Number.isFinite(Number(row.journeys_used))
           ? Math.max(0, Number(row.journeys_included) - Number(row.journeys_used))
           : null,
-      status: String(row.status || "").toUpperCase() === "PAID" ? "Active" : "Used",
+      status: (() => {
+        const status = String(row.status || "").toUpperCase();
+        if (status === "EXPIRED") return "Expired";
+        if (status === "USED" || status === "CANCELLED" || status === "REFUNDED") return "Used";
+        return "Active";
+      })(),
       meta: row.meta || null,
       _api: true,
     };
@@ -122,10 +144,14 @@
     return new Date(base.getTime() + Number(days || 0) * 24 * 60 * 60 * 1000).toISOString();
   }
 
+  function formatClock(dateValue) {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue || nowIso());
+    return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  }
+
   function inferExpiryDays(ticket) {
     const type = String(ticket?.type || ticket?.ticketType || "").toLowerCase();
     const operator = String(ticket?.operator || ticket?.service || "").toLowerCase();
-    if (type.includes("day1")) return 1;
     if (type.includes("day3")) return 3;
     if (type.includes("day7")) return 7;
     if (type.includes("monthly")) return 30;
@@ -188,6 +214,102 @@
     };
   }
 
+  function buildIssuedTicket(input) {
+    const source = input && typeof input === "object" ? input : {};
+    const now = source.now instanceof Date ? source.now : new Date(source.now || nowIso());
+    const operatorRaw = String(source.operator || source.service || "MyCiTi").toLowerCase();
+    const operator = operatorRaw.includes("golden") ? "GoldenArrow" : "MyCiTi";
+    const id = String(source.id || `${operator === "GoldenArrow" ? "GA" : "TCK"}-${Date.now()}`);
+    const amount = Number(source.amount || 0);
+    const route = String(source.route || source.productName || "Ticket");
+    const type = String(source.type || "single");
+    const purchasedAt = now.toISOString();
+    const validFrom = source.validFrom || purchasedAt;
+    const expiresAt =
+      source.expiresAt ||
+      addDaysIso(validFrom, source.expiryDays || inferExpiryDays({ type, operator }));
+    const journeysIncluded = Number(source.journeysIncluded || 0) || null;
+    const remainingUses =
+      source.remainingUses !== undefined && source.remainingUses !== null
+        ? Number(source.remainingUses)
+        : journeysIncluded;
+    return normalizeTicket({
+      id,
+      operator,
+      service: source.service || (operator === "GoldenArrow" ? "Golden Arrow" : "MyCiTi"),
+      route,
+      date: source.date || String(validFrom).slice(0, 10),
+      time: source.time || formatClock(now),
+      type,
+      passengers: Number(source.passengers || 1),
+      total: source.total || formatZarFromCents(Math.round(amount * 100)),
+      status: source.status || "Active",
+      purchasedAt,
+      validFrom,
+      expiresAt,
+      journeysIncluded,
+      remainingUses,
+      cardAlias: source.cardAlias || null,
+      qrData:
+        source.qrData ||
+        JSON.stringify({
+          id,
+          route,
+          amount,
+          type,
+        }),
+      meta: source.meta || null,
+    });
+  }
+
+  function buildMycitiBookingSummary(state, options) {
+    const booking = state && typeof state === "object" ? state : {};
+    const passPrices = options?.passPrices || {};
+    const passLabels = options?.passLabels || {};
+    const fare = String(booking.fare || "topup");
+    const estimate = booking.estimate && typeof booking.estimate === "object" ? booking.estimate : null;
+    if (fare !== "topup") {
+      const amount = Number(passPrices[fare] || 0);
+      const label = String(passLabels[fare] || "Pass");
+      return {
+        fare,
+        amount,
+        amountCents: Math.round(amount * 100),
+        purchaseTitle: label,
+        routeLabel: label,
+        pointsLabel: `${Math.round(amount)} points`,
+        period: "Pass",
+        bandLabel: "-",
+        distanceLabel: "-",
+        timeLabel: "-",
+        estimate: {
+          routeLabel: label,
+          amount,
+          period: "Pass",
+          bandLabel: "-",
+          distanceKm: 0,
+          travelMinutes: 0,
+        },
+      };
+    }
+
+    const topupPoints = Math.max(1, Number(booking.topupPoints || 50));
+    const routeLabel = estimate?.routeLabel || `Top Up - ${topupPoints} Points`;
+    return {
+      fare: "topup",
+      amount: topupPoints,
+      amountCents: topupPoints * 100,
+      purchaseTitle: `Top Up - ${topupPoints} Points`,
+      routeLabel,
+      pointsLabel: `${topupPoints} points`,
+      period: estimate?.period || "-",
+      bandLabel: estimate?.bandLabel || "-",
+      distanceLabel: estimate?.distanceKm ? `${Number(estimate.distanceKm).toFixed(1)} km` : "-",
+      timeLabel: estimate?.travelMinutes ? `${estimate.travelMinutes} min` : "-",
+      estimate: estimate || null,
+    };
+  }
+
   function getTickets() {
     const list = storageGet(TICKET_KEY, []);
     const all = Array.isArray(list) ? list : [];
@@ -196,35 +318,23 @@
     return all.filter((t) => t && String(t.ownerKey || "").toLowerCase() === ownerKey);
   }
 
+  function migrateLegacyTickets() {
+    return getTickets();
+  }
+
   async function syncTicketsFromApi() {
     if (!hasApiAuth() || !window.CCApi || typeof window.CCApi.getTickets !== "function") {
       return getTickets();
     }
     try {
       const resp = await window.CCApi.getTickets();
-      let rows = Array.isArray(resp?.tickets) ? resp.tickets : [];
-      if (!rows.length) {
-        const localList = getTickets().map(normalizeTicket).filter(Boolean);
-        for (let i = 0; i < Math.min(localList.length, 20); i += 1) {
-          const payload = mapTicketToApiPayload(localList[i]);
-          if (!payload || Number(payload.amountCents || 0) <= 0) continue;
-          try {
-            // eslint-disable-next-line no-await-in-loop
-            await window.CCApi.createTicket(payload);
-          } catch (_uploadErr) {
-            // Continue best-effort migration.
-          }
-        }
-        const refreshed = await window.CCApi.getTickets();
-        rows = Array.isArray(refreshed?.tickets) ? refreshed.tickets : [];
-      }
-      const mapped = rows
-        .map(mapApiTicketToLocal)
-        .filter(Boolean);
+      const rows = Array.isArray(resp?.tickets) ? resp.tickets : [];
+      const mapped = rows.map(mapApiTicketToLocal).filter(Boolean);
       saveTickets(mapped);
       return mapped;
     } catch (_err) {
-      return getTickets();
+      saveTickets([]);
+      return [];
     }
   }
 
@@ -244,20 +354,36 @@
     return scoped;
   }
 
-  function addTicket(ticket) {
-    const list = getTickets();
-    list.unshift(ticket);
-    const saved = saveTickets(list);
-    if (hasApiAuth() && window.CCApi && typeof window.CCApi.createTicket === "function") {
-      const payload = mapTicketToApiPayload(ticket);
-      if (payload && Number(payload.amountCents || 0) > 0) {
-        window.CCApi
-          .createTicket(payload)
-          .then(() => syncTicketsFromApi())
-          .catch(() => null);
-      }
+  function upsertTicket(list, ticket) {
+    const normalized = normalizeTicket(ticket);
+    if (!normalized) return Array.isArray(list) ? list : [];
+    const next = Array.isArray(list) ? list.slice() : [];
+    const index = next.findIndex((row) => String(row?.id || "") === String(normalized.id || ""));
+    if (index >= 0) {
+      next[index] = normalized;
+      return next;
     }
-    return saved;
+    next.unshift(normalized);
+    return next;
+  }
+
+  async function addTicket(ticket) {
+    const normalized = normalizeTicket(ticket);
+    if (!normalized) throw new Error("ticket is required");
+
+    if (hasApiAuth() && window.CCApi && typeof window.CCApi.createTicket === "function") {
+      const payload = mapTicketToApiPayload(normalized);
+      if (!payload || Number(payload.amountCents || 0) <= 0) {
+        throw new Error("Ticket amount is invalid");
+      }
+      const resp = await window.CCApi.createTicket(payload);
+      const created = mapApiTicketToLocal(resp?.ticket) || normalized;
+      const saved = saveTickets(upsertTicket(getTickets(), created));
+      return saved[0] || created;
+    }
+
+    const saved = saveTickets(upsertTicket(getTickets(), normalized));
+    return saved[0] || normalized;
   }
 
   async function useTicket(ticketId) {
@@ -273,6 +399,7 @@
         saveTickets(next);
         return mapped;
       }
+      throw new Error("Ticket update failed");
     }
 
     const ownerList = getTickets();
@@ -330,6 +457,9 @@
     inferExpiryDays,
     deriveLifecycle,
     normalizeTicket,
+    buildIssuedTicket,
+    buildMycitiBookingSummary,
+    migrateLegacyTickets,
     getTickets,
     syncTicketsFromApi,
     saveTickets,

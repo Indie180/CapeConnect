@@ -1,30 +1,32 @@
-// CapeConnect - Main Application
-(function() {
-  // Initialize app when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+// CapeConnect compatibility bootstrap for the current static frontend.
+(function () {
+  function wireBackButtons() {
+    document.querySelectorAll(".back-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+
+        window.location.href = "login.html";
+      });
+    });
+  }
+
+  function init() {
+    const body = document.body;
+    if (!body) return;
+
+    if (!body.dataset.appReady) {
+      body.dataset.appReady = "true";
+    }
+
+    wireBackButtons();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
   } else {
     init();
-  }
-  
-  function init() {
-    console.log('🚌 CapeConnect initializing...');
-    
-    // Initialize router
-    window.CCRouter.init();
-    
-    // Check authentication status
-    checkAuth();
-    
-    console.log('✅ CapeConnect ready');
-  }
-  
-  async function checkAuth() {
-    if (window.CCAuth.isAuthenticated()) {
-      const isValid = await window.CCAuth.verifyToken();
-      if (!isValid) {
-        window.CCAuth.logout();
-      }
-    }
   }
 })();

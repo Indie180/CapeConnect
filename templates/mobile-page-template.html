@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CapeConnect - Mobile-First Transit App">
+    <meta name="theme-color" content="#007bff">
+    
+    <title>CapeConnect - Mobile Transit</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/css/mobile-responsive.css" as="style">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/mobile-responsive.css">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+        
+        <!-- Desktop Navigation (Hidden on Mobile) -->
+        <nav class="desktop-nav" id="desktopNav">
+            <div class="container">
+                <a href="/" class="nav-brand">CapeConnect</a>
+                
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-link active" data-page="home">Home</a></li>
+                    <li><a href="/tickets" class="nav-link" data-page="tickets">My Tickets</a></li>
+                    <li><a href="/wallet" class="nav-link" data-page="wallet">Wallet</a></li>
+                    <li><a href="/timetables" class="nav-link" data-page="timetables">Timetables</a></li>
+                    <li><a href="/profile" class="nav-link" data-page="profile">Profile</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="container">
+                <h1 class="page-title">Welcome to CapeConnect</h1>
+                <p class="page-subtitle">Your mobile transit companion</p>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="page-content">
+            <div class="container">
+                
+                <!-- Service Cards Section -->
+                <section class="services-section mb-4">
+                    <h2 class="text-center mb-3">Choose Your Service</h2>
+                    
+                    <div class="row">
+                        <div class="col-12 col-6">
+                            <!-- MyCiTi Service Card -->
+                            <div class="card service-card myciti-card" data-service="myciti">
+                                <div class="card-header">
+                                    <img src="/pictures/myciti-removebg-preview.png" alt="MyCiTi" class="service-logo" width="40" height="40">
+                                    <div>
+                                        <h3 class="card-title">MyCiTi Bus Service</h3>
+                                        <p class="card-subtitle">City of Cape Town</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <p class="card-text">Fast, reliable bus service covering major routes across Cape Town.</p>
+                                    
+                                    <div class="service-actions">
+                                        <button class="btn btn-primary btn-full-width mb-2" onclick="planJourney('myciti')">
+                                            <span class="btn-icon">🗺️</span>
+                                            Plan Journey
+                                        </button>
+                                        <button class="btn btn-outline btn-full-width" onclick="viewTimetable('myciti')">
+                                            <span class="btn-icon">📅</span>
+                                            View Timetable
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-6">
+                            <!-- Golden Arrow Service Card -->
+                            <div class="card service-card golden-arrow-card" data-service="golden-arrow">
+                                <div class="card-header">
+                                    <img src="/pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow" class="service-logo" width="40" height="40">
+                                    <div>
+                                        <h3 class="card-title">Golden Arrow Bus Service</h3>
+                                        <p class="card-subtitle">Regional Transport</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <p class="card-text">Extensive network serving Cape Town and surrounding areas.</p>
+                                    
+                                    <div class="service-actions">
+                                        <button class="btn btn-primary btn-full-width mb-2" onclick="planJourney('golden-arrow')">
+                                            <span class="btn-icon">🗺️</span>
+                                            Plan Journey
+                                        </button>
+                                        <button class="btn btn-outline btn-full-width" onclick="viewTimetable('golden-arrow')">
+                                            <span class="btn-icon">📅</span>
+                                            View Timetable
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Journey Planning Form -->
+                <section class="journey-section mb-4">
+                    <form class="mobile-form journey-form" id="journeyForm">
+                        <div class="form-header">
+                            <h2 class="form-title">Plan Your Journey</h2>
+                            <p class="form-subtitle">Find the best route for your trip</p>
+                        </div>
+                        
+                        <div class="form-body">
+                            <div class="form-group">
+                                <label for="fromLocation" class="form-label">From</label>
+                                <div class="input-group">
+                                    <span class="input-icon">📍</span>
+                                    <input 
+                                        type="text" 
+                                        id="fromLocation" 
+                                        class="form-input" 
+                                        placeholder="Enter departure location"
+                                        autocomplete="off"
+                                        required
+                                    >
+                                    <button type="button" class="input-action" onclick="getCurrentLocation('from')" aria-label="Use current location">
+                                        🎯
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="toLocation" class="form-label">To</label>
+                                <div class="input-group">
+                                    <span class="input-icon">📍</span>
+                                    <input 
+                                        type="text" 
+                                        id="toLocation" 
+                                        class="form-input" 
+                                        placeholder="Enter destination"
+                                        autocomplete="off"
+                                        required
+                                    >
+                                    <button type="button" class="input-action" onclick="swapLocations()" aria-label="Swap locations">
+                                        🔄
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-6">
+                                    <label for="travelDate" class="form-label">Travel Date</label>
+                                    <input 
+                                        type="date" 
+                                        id="travelDate" 
+                                        class="form-input"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group col-6">
+                                    <label for="travelTime" class="form-label">Time</label>
+                                    <input 
+                                        type="time" 
+                                        id="travelTime" 
+                                        class="form-input"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="serviceType" class="form-label">Service</label>
+                                <select id="serviceType" class="form-select" required>
+                                    <option value="">Select service</option>
+                                    <option value="myciti">MyCiTi Bus</option>
+                                    <option value="golden-arrow">Golden Arrow</option>
+                                    <option value="both">Both Services</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary btn-full-width btn-lg">
+                                <span class="btn-icon">🔍</span>
+                                Search Routes
+                                <span class="loading" id="searchLoading" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+                
+                <!-- Quick Actions -->
+                <section class="quick-actions mb-4">
+                    <h2 class="text-center mb-3">Quick Actions</h2>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <button class="btn btn-outline btn-full-width btn-lg">
+                                <span class="btn-icon">🎫</span>
+                                My Tickets
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline btn-full-width btn-lg">
+                                <span class="btn-icon">💳</span>
+                                Top Up Wallet
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Recent Journeys -->
+                <section class="recent-journeys">
+                    <h2 class="text-center mb-3">Recent Journeys</h2>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="card-title m-0">Cape Town Station → Bellville</h4>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                            <p class="card-text text-secondary">MyCiTi Bus • R12.50</p>
+                            <button class="btn btn-sm btn-primary">Book Again</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="card-title m-0">Wynberg → Claremont</h4>
+                                <small class="text-muted">Yesterday</small>
+                            </div>
+                            <p class="card-text text-secondary">Golden Arrow • R8.00</p>
+                            <button class="btn btn-sm btn-primary">Book Again</button>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+        
+        <!-- Mobile Navigation (Hidden on Desktop) -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="/" class="nav-item active" data-page="home">
+                <div class="nav-icon">🏠</div>
+                <span>Home</span>
+            </a>
+            
+            <a href="/tickets" class="nav-item" data-page="tickets">
+                <div class="nav-icon">🎫</div>
+                <span>Tickets</span>
+            </a>
+            
+            <a href="/wallet" class="nav-item" data-page="wallet">
+                <div class="nav-icon">💳</div>
+                <span>Wallet</span>
+            </a>
+            
+            <a href="/profile" class="nav-item" data-page="profile">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+            </a>
+            
+            <a href="/menu" class="nav-item" data-page="menu">
+                <div class="nav-icon">☰</div>
+                <span>Menu</span>
+            </a>
+        </nav>
+        
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // Mobile Page Template JavaScript
+        (function() {
+            'use strict';
+            
+            // Initialize page
+            function initializePage() {
+                setActiveNavItem();
+                addTouchFeedback();
+                initializeForms();
+                setupServiceCards();
+            }
+            
+            // Set active navigation item
+            function setActiveNavItem() {
+                const currentPath = window.location.pathname;
+                const navItems = document.querySelectorAll('.nav-item, .nav-link');
+                
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    
+                    const href = item.getAttribute('href');
+                    if (href === currentPath || (currentPath === '/' && href === '/')) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            
+            // Add touch feedback
+            function addTouchFeedback() {
+                const touchElements = document.querySelectorAll('.nav-item, .service-card, .btn');
+                
+                touchElements.forEach(element => {
+                    element.addEventListener('touchstart', function() {
+                        this.style.opacity = '0.8';
+                    });
+                    
+                    element.addEventListener('touchend', function() {
+                        setTimeout(() => {
+                            this.style.opacity = '';
+                        }, 150);
+                    });
+                });
+            }
+            
+            // Initialize forms
+            function initializeForms() {
+                const journeyForm = document.getElementById('journeyForm');
+                if (journeyForm) {
+                    journeyForm.addEventListener('submit', handleJourneySubmit);
+                    
+                    // Set default date and time
+                    const now = new Date();
+                    document.getElementById('travelDate').value = now.toISOString().split('T')[0];
+                    document.getElementById('travelTime').value = now.toTimeString().slice(0, 5);
+                }
+            }
+            
+            // Setup service cards
+            function setupServiceCards() {
+                const serviceCards = document.querySelectorAll('.service-card');
+                
+                serviceCards.forEach(card => {
+                    card.addEventListener('click', function() {
+                        const service = this.dataset.service;
+                        if (service) {
+                            planJourney(service);
+                        }
+                    });
+                });
+            }
+            
+            // Journey form submission
+            function handleJourneySubmit(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                
+                // Show loading state
+                const button = e.target.querySelector('button[type="submit"]');
+                const loading = document.getElementById('searchLoading');
+                
+                button.disabled = true;
+                loading.style.display = 'inline-block';
+                
+                // Simulate API call
+                setTimeout(() => {
+                    console.log('Journey search:', data);
+                    // Navigate to results page
+                    window.location.href = '/results.html';
+                }, 1500);
+            }
+            
+            // Service card actions
+            function planJourney(service) {
+                const urls = {
+                    'myciti': '/choose-fare.html',
+                    'golden-arrow': '/ga-choose-fare.html'
+                };
+                
+                if (urls[service]) {
+                    window.location.href = urls[service];
+                }
+            }
+            
+            function viewTimetable(service) {
+                const urls = {
+                    'myciti': '/myciti-timetable.html',
+                    'golden-arrow': '/golden-arrow-timetable.html'
+                };
+                
+                if (urls[service]) {
+                    window.location.href = urls[service];
+                }
+            }
+            
+            // Location functions
+            function getCurrentLocation(field) {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            
+                            const input = document.getElementById(field + 'Location');
+                            input.value = `Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                        },
+                        function(error) {
+                            alert('Unable to get your location. Please enter manually.');
+                        }
+                    );
+                } else {
+                    alert('Geolocation is not supported by this browser.');
+                }
+            }
+            
+            function swapLocations() {
+                const fromInput = document.getElementById('fromLocation');
+                const toInput = document.getElementById('toLocation');
+                
+                const temp = fromInput.value;
+                fromInput.value = toInput.value;
+                toInput.value = temp;
+            }
+            
+            // Initialize on DOM ready
+            document.addEventListener('DOMContentLoaded', initializePage);
+            
+            // Make functions globally available
+            window.planJourney = planJourney;
+            window.viewTimetable = viewTimetable;
+            window.getCurrentLocation = getCurrentLocation;
+            window.swapLocations = swapLocations;
+        })();
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed');
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

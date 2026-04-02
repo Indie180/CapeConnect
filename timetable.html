@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
   <title>Download Network Timetables</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
@@ -573,7 +574,7 @@
 <body>
   <header>
     <div class="nav-container">
-      <a href="dashboard.html" class="logo">
+        <a href="dashboard.html" class="logo">
         <img class="logo-img" id="nav-logo-img" src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
         <span class="logo-text" id="nav-logo-text">CapeConnect</span>
       </a>
@@ -582,13 +583,7 @@
         <a href="timetable.html" data-link="timetable">Timetable & Routes</a>
         <a href="#" data-link="calculator" id="calc-link">Calculator</a>
         <a href="#" data-link="booking" id="booking-link">Book Ticket</a>
-        <a href="#" data-link="help">Help</a>
       </nav>
-      <div class="nav-btns">
-        <button class="theme-toggle" aria-label="Toggle theme" onclick="App.toggleTheme()" title="Toggle Theme">
-          <i class="fas fa-sun" aria-hidden="true"></i>
-        </button>
-      </div>
     </div>
   </header>
 
@@ -752,7 +747,7 @@
       <div class="footer-column">
         <h4>Services</h4>
         <ul class="footer-links">
-          <li><a href="#">MyCiTi Bus</a></li>
+          <li><a href="#">MyCiTi</a></li>
           <li><a href="#">Golden Arrow</a></li>
           <li><a href="#">School Transport</a></li>
           <li><a href="#">Tourist Passes</a></li>
@@ -783,17 +778,15 @@
   <script>
   (function(){
     function getSelectedBus(){
-      try { return JSON.parse(localStorage.getItem('selectedBus')); } catch { return null; }
+      const raw = String(localStorage.getItem('selectedBus') || '').toLowerCase().trim();
+      if (raw === 'ga' || raw === 'golden-arrow' || raw === 'goldenarrow') return 'ga';
+      if (raw === 'myciti') return 'myciti';
+      return null;
     }
     const selectedBus = getSelectedBus();
     if(selectedBus){
       document.body.classList.remove('bus-ga','bus-myciti');
       document.body.classList.add(`bus-${selectedBus}`);
-      if (selectedBus === 'ga') {
-        document.body.classList.add('light-mode');
-      } else {
-        document.body.classList.remove('light-mode');
-      }
     }
 
     const chipOrder = ['All', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W'];
@@ -6998,6 +6991,8 @@ Timetable Number - ${item.timetable}
     init();
   })();
   </script>
+  <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
   <script src="js/app.js"></script>
   <script>
     if (window.App) {
@@ -7057,5 +7052,7 @@ Timetable Number - ${item.timetable}
   </script>
 </body>
 </html>
+
+
 
 

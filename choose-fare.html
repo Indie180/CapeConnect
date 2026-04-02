@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyCiTi Booking - Choose Fare</title>
   <link rel="stylesheet" href="css/flow-components.css" />
   <style>
@@ -69,16 +69,7 @@
           <input type="radio" name="fare" value="topup" checked aria-label="Top up pay as you go" />
           <div>
             <div class="fare-title">Top Up (Pay-As-You-Go - Mover)</div>
-            <div class="fare-desc">Uses distance-based fares. 1 point = R1. Fare is deducted when you tap in and tap out.</div>
-          </div>
-        </label>
-
-        <label class="fare-card">
-          <input type="radio" name="fare" value="day1" aria-label="1-day pass" />
-          <div>
-            <div class="fare-title">1-Day Pass</div>
-            <div class="fare-desc">Unlimited travel for one day.</div>
-            <div class="fare-price">R90</div>
+            <div class="fare-desc">Choose how many MyCiTi points you want to load. 1 point = R1.</div>
           </div>
         </label>
 
@@ -110,6 +101,20 @@
         </label>
       </div>
 
+      <div id="topup-points-wrap" class="banner" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div>
+          <div style="font-weight:900;">Top Up Points</div>
+          <div style="font-size:13px; color:var(--muted);">Select points to load onto the card.</div>
+        </div>
+        <select id="topupPoints" style="min-width:170px; padding:10px 12px; border-radius:12px; border:1px solid var(--line);">
+          <option value="20">20 points - R20</option>
+          <option value="50" selected>50 points - R50</option>
+          <option value="100">100 points - R100</option>
+          <option value="200">200 points - R200</option>
+          <option value="500">500 points - R500</option>
+        </select>
+      </div>
+
       <div class="btn-row">
         <button class="btn ghost" type="button" id="btnBack">Back: Plan Trip</button>
         <button class="btn primary" type="button" id="btnNext">Next: Results</button>
@@ -118,17 +123,29 @@
   </div>
 
   <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
 <script src="js/cc-utils.js"></script>
   <script>
     const fareRadios = document.querySelectorAll('input[name="fare"]');
+    const topupPoints = document.getElementById('topupPoints');
+    const topupWrap = document.getElementById('topup-points-wrap');
+
+    function syncTopupVisibility(){
+      const selected = document.querySelector('input[name="fare"]:checked')?.value || 'topup';
+      topupWrap.style.display = selected === 'topup' ? 'flex' : 'none';
+    }
+
     function saveFare(){
       const selected = document.querySelector('input[name="fare"]:checked')?.value || 'topup';
       const state = window.CCUtils.storageGet('mycitiBooking', {});
       state.fare = selected;
+      state.topupPoints = Math.max(1, Number(topupPoints.value || 50));
       window.CCUtils.storageSet('mycitiBooking', state);
+      syncTopupVisibility();
       return selected;
     }
     fareRadios.forEach(r => r.addEventListener('change', saveFare));
+    topupPoints.addEventListener('change', saveFare);
 
     document.getElementById('btnBack').addEventListener('click', () => {
       window.location.href = 'route-calculator.html';
@@ -144,10 +161,13 @@
       const current = state.fare || 'topup';
       const input = document.querySelector(`input[name="fare"][value="${current}"]`);
       if (input) input.checked = true;
+      topupPoints.value = String(state.topupPoints || 50);
+      syncTopupVisibility();
     })();
   </script>
 </body>
 </html>
+
 
 
 

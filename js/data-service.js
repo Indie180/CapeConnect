@@ -18,7 +18,7 @@
         { name: "Atlantis", lat: -33.5667, lon: 18.4833 },
         { name: "Hout Bay", lat: -34.0436, lon: 18.3489 }
       ],
-      passPrices: { day1: 90, day3: 210, day7: 300, monthly: 1000 },
+      passPrices: { day3: 210, day7: 300, monthly: 1000 },
       moverFareBands: [
         { min: 0, max: 5, peak: 13.5, saver: 10.5 },
         { min: 5, max: 10, peak: 18.5, saver: 13.5 },
@@ -79,7 +79,7 @@
 
   function buildMycitiPassPrices(globalProducts, fallbackPassPrices) {
     const fallback = fallbackPassPrices || FALLBACK_DATA.myciti.passPrices;
-    const keyMap = { day1: "day1", day3: "day3", day7: "day7", monthly: "monthly" };
+    const keyMap = { day3: "day3", day7: "day7", monthly: "monthly" };
     const out = { ...fallback };
     (Array.isArray(globalProducts) ? globalProducts : []).forEach((p) => {
       const raw = String(p?.product_key || "").toLowerCase();

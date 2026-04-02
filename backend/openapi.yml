@@ -1,82 +1,412 @@
 openapi: 3.0.3
 info:
   title: CapeConnect API
-  version: 1.0.0
-  description: Transit ticketing and wallet management API for Cape Town operators
+  version: 1.1.0
+  description: >
+    Live backend contract for the current CapeConnect static frontend and
+    supporting admin tools. Authentication uses opaque bearer session tokens,
+    not JWTs.
 
 servers:
   - url: http://localhost:4000
     description: Development server
+
+tags:
+  - name: Health
+  - name: Auth
+  - name: Tickets
+  - name: Wallets
+  - name: Routes
+  - name: Timetables
+  - name: Prices
+  - name: Payments
+  - name: Admin
 
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: SessionToken
 
   schemas:
     Error:
       type: object
+      required: [error]
       properties:
         error:
           type: string
+
+    Health:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        service:
+          type: string
+        env:
+          type: string
+        time:
+          type: string
+          format: date-time
+        database:
+          type: string
+
+    BankDetails:
+      type: object
+      properties:
+        bankName:
+          type: string
+        branchName:
+          type: string
+        branchCode:
+          type: string
+        country:
+          type: string
+        accountNumber:
+          type: string
+        accountType:
+          type: string
+        currency:
+          type: string
+        accountHolderConfirmed:
+          type: boolean
 
     User:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        phone:
           type: string
         role:
           type: string
-          enum: [USER, ADMIN]
+          enum: [passenger, operator_admin, super_admin]
+        status:
+          type: string
+          enum: [ACTIVE, BLOCKED, SUSPENDED]
         operator:
           type: string
-          enum: [MYCITI, GOLDEN_ARROW]
+          nullable: true
+          enum: [myciti, ga, null]
+        buses:
+          type: array
+          items:
+            type: string
+            enum: [myciti, ga]
+        bankDetails:
+          $ref: '#/components/schemas/BankDetails'
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        refreshToken:
+          type: string
+        refreshExpiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+
+    Wallet:
+      type: object
+      properties:
+        user_id:
+          type: string
+        balance_cents:
+          type: integer
+        currency:
+          type: string
+        operator:
+          type: string
+
+    WalletTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        type:
+          type: string
+        amount_cents:
+          type: integer
+        ref_ticket_id:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
 
     Ticket:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         user_id:
+          type: string
+        operator:
+          type: string
+        product_type:
+          type: string
+        product_name:
+          type: string
+        journeys_included:
           type: integer
-        route_id:
+          nullable: true
+        journeys_used:
           type: integer
+        route_from:
+          type: string
+          nullable: true
+        route_to:
+          type: string
+          nullable: true
+        amount_cents:
+          type: integer
+        currency:
+          type: string
         status:
           type: string
-          enum: [PAID, USED, EXPIRED]
-        price:
-          type: number
+          enum: [PAID, USED, EXPIRED, REFUNDED]
         purchased_at:
           type: string
           format: date-time
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+          nullable: true
+        payment_method:
+          type: string
+        card_alias:
+          type: string
+          nullable: true
+        meta:
+          type: object
+        qrCode:
+          type: string
+          nullable: true
+        qrCodeSVG:
+          type: string
+          nullable: true
 
-    Wallet:
+    Route:
       type: object
       properties:
         id:
-          type: integer
-        user_id:
-          type: integer
-        balance:
-          type: number
+          type: string
         operator:
           type: string
+        route_code:
+          type: string
+          nullable: true
+        route_name:
+          type: string
+        from_stop_name:
+          type: string
+          nullable: true
+        to_stop_name:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+
+    Stop:
+      type: object
+      properties:
+        id:
+          type: string
+        operator:
+          type: string
+        name:
+          type: string
+        code:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          nullable: true
+        lon:
+          type: number
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Timetable:
+      type: object
+      properties:
+        id:
+          type: string
+        route_id:
+          type: string
+        route_name:
+          type: string
+        route_code:
+          type: string
+          nullable: true
+        direction:
+          type: string
+        day_type:
+          type: string
+        stops_json:
+          type: array
+          items:
+            type: object
+        times_json:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        effective_from:
+          type: string
+          format: date-time
+          nullable: true
+
+    FareProduct:
+      type: object
+      properties:
+        id:
+          type: string
+        operator:
+          type: string
+        product_key:
+          type: string
+        label:
+          type: string
+        journeys:
+          type: integer
+          nullable: true
+        price_cents:
+          type: integer
+        active:
+          type: boolean
+
+    RoutePrice:
+      type: object
+      properties:
+        id:
+          type: string
+        operator:
+          type: string
+        from_stop_id:
+          type: string
+        to_stop_id:
+          type: string
+        from_stop_name:
+          type: string
+        to_stop_name:
+          type: string
+        product_key:
+          type: string
+        price_cents:
+          type: integer
+
+    PaymentStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, FAILED, CANCELLED]
+        description:
+          type: string
+        reference:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
 
 paths:
   /health:
     get:
+      tags: [Health]
       summary: Health check
       responses:
         '200':
           description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /readyz:
+    get:
+      tags: [Health]
+      summary: Readiness check
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a passenger account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password]
+              properties:
+                fullName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Account already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /api/auth/login:
     post:
-      summary: User login
+      tags: [Auth]
+      summary: Sign in with email and password
       requestBody:
         required: true
         content:
@@ -87,57 +417,124 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
                 password:
                   type: string
       responses:
         '200':
-          description: Login successful
+          description: Authenticated session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '423':
+          description: Account locked
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Start password reset flow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic success response
+
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Complete password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password reset completed
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotate refresh token and issue a new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: New session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out and revoke current session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Logged out
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
-                    type: string
                   user:
                     $ref: '#/components/schemas/User'
-
-  /api/auth/me:
-    get:
-      summary: Get current user
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-  /api/tickets:
-    get:
-      summary: Get user tickets
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [PAID, USED, EXPIRED]
-      responses:
-        '200':
-          description: List of tickets
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Ticket'
-
-    post:
-      summary: Purchase ticket
+    patch:
+      tags: [Auth]
+      summary: Update current user profile
       security:
         - bearerAuth: []
       requestBody:
@@ -146,29 +543,519 @@ paths:
           application/json:
             schema:
               type: object
-              required: [route_id, price]
               properties:
-                route_id:
-                  type: integer
-                price:
-                  type: number
+                fullName:
+                  type: string
+                phone:
+                  type: string
+                operator:
+                  type: string
+                  enum: [myciti, ga]
+                buses:
+                  type: array
+                  items:
+                    type: string
+                    enum: [myciti, ga]
+                linkedServices:
+                  type: array
+                  items:
+                    type: string
+                    enum: [myciti, ga]
+                bankDetails:
+                  $ref: '#/components/schemas/BankDetails'
       responses:
-        '201':
-          description: Ticket purchased
+        '200':
+          description: Updated user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ticket'
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /api/auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change current user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password changed
+
+  /api/tickets:
+    get:
+      tags: [Tickets]
+      summary: List authenticated user tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: operator
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+    post:
+      tags: [Tickets]
+      summary: Create a paid ticket after fare validation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [operator, productType, productName, amountCents, paymentMethod]
+              properties:
+                operator:
+                  type: string
+                productType:
+                  type: string
+                productName:
+                  type: string
+                journeysIncluded:
+                  type: integer
+                routeFrom:
+                  type: string
+                routeTo:
+                  type: string
+                amountCents:
+                  type: integer
+                currency:
+                  type: string
+                validFrom:
+                  type: string
+                  format: date-time
+                validUntil:
+                  type: string
+                  format: date-time
+                paymentMethod:
+                  type: string
+                cardAlias:
+                  type: string
+                meta:
+                  type: object
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/{id}/use:
+    post:
+      tags: [Tickets]
+      summary: Mark a ticket as used or consume one journey
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated ticket
+
+  /api/tickets/verify-qr:
+    post:
+      tags: [Tickets]
+      summary: Verify a ticket QR payload
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [qrData]
+              properties:
+                qrData:
+                  type: string
+      responses:
+        '200':
+          description: Verification result
 
   /api/wallets/me:
     get:
-      summary: Get user wallet
+      tags: [Wallets]
+      summary: Get current wallet and recent transactions
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Wallet details
+          description: Wallet payload
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Wallet'
+                type: object
+                properties:
+                  wallet:
+                    $ref: '#/components/schemas/Wallet'
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WalletTransaction'
+
+  /api/wallets/topup:
+    post:
+      tags: [Wallets]
+      summary: Directly top up the wallet balance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amountCents]
+              properties:
+                amountCents:
+                  type: integer
+                operator:
+                  type: string
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Updated wallet
+
+  /api/wallets/spend:
+    post:
+      tags: [Wallets]
+      summary: Debit wallet balance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amountCents]
+              properties:
+                amountCents:
+                  type: integer
+                operator:
+                  type: string
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Updated wallet
+        '400':
+          description: Insufficient balance
+
+  /api/routes:
+    get:
+      tags: [Routes]
+      summary: List active routes
+      parameters:
+        - name: operator
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Route list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  routes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Route'
+
+  /api/routes/stops:
+    get:
+      tags: [Routes]
+      summary: List stops
+      parameters:
+        - name: operator
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stop list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stops:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Stop'
+
+  /api/timetables:
+    get:
+      tags: [Timetables]
+      summary: List published timetables
+      parameters:
+        - name: operator
+          in: query
+          schema:
+            type: string
+        - name: routeId
+          in: query
+          schema:
+            type: string
+        - name: dayType
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Timetable list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timetables:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Timetable'
+
+  /api/prices:
+    get:
+      tags: [Prices]
+      summary: List fare products and route prices
+      parameters:
+        - name: operator
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Price data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  globalProducts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FareProduct'
+                  routePrices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RoutePrice'
+
+  /api/payments/topup/initiate:
+    post:
+      tags: [Payments]
+      summary: Create a PayFast wallet top-up payment session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount:
+                  type: integer
+                  description: Amount in cents
+      responses:
+        '200':
+          description: PayFast payment form data
+
+  /api/payments/payfast/webhook:
+    post:
+      tags: [Payments]
+      summary: PayFast server-to-server webhook
+      responses:
+        '200':
+          description: Webhook processed
+        '400':
+          description: Validation rejected
+
+  /api/payments/status/{paymentId}:
+    get:
+      tags: [Payments]
+      summary: Get one payment status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+
+  /api/payments/history:
+    get:
+      tags: [Payments]
+      summary: Get payment history for current user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Payment history
+
+  /api/admin/bootstrap:
+    get:
+      tags: [Admin]
+      summary: Load admin bootstrap data for one operator
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: operator
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin bootstrap payload
+
+  /api/admin/users/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk update operator-scoped users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/tickets/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk replace operator-scoped tickets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/wallets/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk replace operator-scoped wallets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/prices/global/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk upsert operator fare products
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/prices/routes/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk replace operator route pricing
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/timetables/bulk:
+    post:
+      tags: [Admin]
+      summary: Bulk replace operator timetables
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Bulk update applied
+
+  /api/admin/audit:
+    get:
+      tags: [Admin]
+      summary: List audit entries for one operator
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: operator
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit log
+    post:
+      tags: [Admin]
+      summary: Write an audit entry for one operator
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Audit entry recorded

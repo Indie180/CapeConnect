@@ -2,13 +2,19 @@
 -- Demo seed data for local/staging setup
 
 -- Demo users (password for all: Demo#123)
-INSERT INTO users (id, full_name, email, phone, password_hash, role, status)
+INSERT INTO users (id, full_name, email, phone, password_hash, role, operator, status)
 VALUES
-  (gen_random_uuid(), 'MyCiTi Admin', 'myciti-admin@capeconnect.demo', '+27210000001', crypt('Demo#123', gen_salt('bf')), 'operator_admin', 'ACTIVE'),
-  (gen_random_uuid(), 'Golden Arrow Admin', 'ga-admin@capeconnect.demo', '+27210000002', crypt('Demo#123', gen_salt('bf')), 'operator_admin', 'ACTIVE'),
-  (gen_random_uuid(), 'William User', 'william@capeconnect.demo', '+27210000003', crypt('Demo#123', gen_salt('bf')), 'passenger', 'ACTIVE'),
-  (gen_random_uuid(), 'Sihle User', 'sihle@capeconnect.demo', '+27210000004', crypt('Demo#123', gen_salt('bf')), 'passenger', 'ACTIVE')
+  (gen_random_uuid(), 'MyCiTi Admin', 'myciti-admin@capeconnect.demo', '+27210000001', crypt('Demo#123', gen_salt('bf')), 'operator_admin', 'myciti', 'ACTIVE'),
+  (gen_random_uuid(), 'Golden Arrow Admin', 'ga-admin@capeconnect.demo', '+27210000002', crypt('Demo#123', gen_salt('bf')), 'operator_admin', 'ga', 'ACTIVE'),
+  (gen_random_uuid(), 'William User', 'william@capeconnect.demo', '+27210000003', crypt('Demo#123', gen_salt('bf')), 'passenger', 'myciti', 'ACTIVE'),
+  (gen_random_uuid(), 'Sihle User', 'sihle@capeconnect.demo', '+27210000004', crypt('Demo#123', gen_salt('bf')), 'passenger', 'ga', 'ACTIVE')
 ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO user_services (user_id, service_key)
+SELECT id, operator
+FROM users
+WHERE operator IS NOT NULL AND btrim(operator) <> ''
+ON CONFLICT (user_id, service_key) DO NOTHING;
 
 -- Wallet bootstrap
 INSERT INTO wallets (user_id, balance_cents, currency)

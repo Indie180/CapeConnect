@@ -1,0 +1,268 @@
+<!-- Service Card Component -->
+<!-- Mobile-optimized cards for transit services -->
+
+<!-- MyCiTi Service Card -->
+<div class="card service-card myciti-card" data-service="myciti">
+  <div class="card-header">
+    <img src="/pictures/myciti-removebg-preview.png" alt="MyCiTi" class="service-logo" width="40" height="40">
+    <div>
+      <h3 class="card-title">MyCiTi Bus Service</h3>
+      <p class="card-subtitle">City of Cape Town</p>
+    </div>
+  </div>
+  
+  <div class="card-body">
+    <p class="card-text">Fast, reliable bus service covering major routes across Cape Town.</p>
+    
+    <div class="service-actions">
+      <button class="btn btn-primary btn-full-width mb-2" onclick="planJourney('myciti')">
+        <span class="btn-icon">🗺️</span>
+        Plan Journey
+      </button>
+      <button class="btn btn-outline btn-full-width" onclick="viewTimetable('myciti')">
+        <span class="btn-icon">📅</span>
+        View Timetable
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Golden Arrow Service Card -->
+<div class="card service-card golden-arrow-card" data-service="golden-arrow">
+  <div class="card-header">
+    <img src="/pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow" class="service-logo" width="40" height="40">
+    <div>
+      <h3 class="card-title">Golden Arrow Bus Service</h3>
+      <p class="card-subtitle">Regional Transport</p>
+    </div>
+  </div>
+  
+  <div class="card-body">
+    <p class="card-text">Extensive network serving Cape Town and surrounding areas.</p>
+    
+    <div class="service-actions">
+      <button class="btn btn-primary btn-full-width mb-2" onclick="planJourney('golden-arrow')">
+        <span class="btn-icon">🗺️</span>
+        Plan Journey
+      </button>
+      <button class="btn btn-outline btn-full-width" onclick="viewTimetable('golden-arrow')">
+        <span class="btn-icon">📅</span>
+        View Timetable
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Service Card Template -->
+<template id="service-card-template">
+  <div class="card service-card">
+    <div class="card-header">
+      <img src="" alt="" class="service-logo" width="40" height="40">
+      <div>
+        <h3 class="card-title"></h3>
+        <p class="card-subtitle"></p>
+      </div>
+    </div>
+    
+    <div class="card-body">
+      <p class="card-text"></p>
+      
+      <div class="service-actions">
+        <button class="btn btn-primary btn-full-width mb-2">
+          <span class="btn-icon">🗺️</span>
+          Plan Journey
+        </button>
+        <button class="btn btn-outline btn-full-width">
+          <span class="btn-icon">📅</span>
+          View Timetable
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+// Service Card JavaScript
+(function() {
+  'use strict';
+  
+  // Service card interactions
+  function planJourney(service) {
+    // Navigate to journey planning page
+    const urls = {
+      'myciti': '/choose-fare.html',
+      'golden-arrow': '/ga-choose-fare.html'
+    };
+    
+    if (urls[service]) {
+      window.location.href = urls[service];
+    }
+  }
+  
+  function viewTimetable(service) {
+    // Navigate to timetable page
+    const urls = {
+      'myciti': '/myciti-timetable.html',
+      'golden-arrow': '/golden-arrow-timetable.html'
+    };
+    
+    if (urls[service]) {
+      window.location.href = urls[service];
+    }
+  }
+  
+  // Add touch feedback to service cards
+  function addCardTouchFeedback() {
+    const serviceCards = document.querySelectorAll('.service-card');
+    
+    serviceCards.forEach(card => {
+      card.addEventListener('touchstart', function() {
+        this.style.transform = 'translateY(-2px) scale(0.98)';
+      });
+      
+      card.addEventListener('touchend', function() {
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 150);
+      });
+    });
+  }
+  
+  // Create service card from data
+  function createServiceCard(serviceData) {
+    const template = document.getElementById('service-card-template');
+    const clone = template.content.cloneNode(true);
+    
+    // Populate card data
+    clone.querySelector('.service-logo').src = serviceData.logo;
+    clone.querySelector('.service-logo').alt = serviceData.name;
+    clone.querySelector('.card-title').textContent = serviceData.name;
+    clone.querySelector('.card-subtitle').textContent = serviceData.subtitle;
+    clone.querySelector('.card-text').textContent = serviceData.description;
+    
+    // Set up button actions
+    const planButton = clone.querySelector('.btn-primary');
+    const timetableButton = clone.querySelector('.btn-outline');
+    
+    planButton.addEventListener('click', () => planJourney(serviceData.id));
+    timetableButton.addEventListener('click', () => viewTimetable(serviceData.id));
+    
+    return clone;
+  }
+  
+  // Initialize service cards
+  document.addEventListener('DOMContentLoaded', function() {
+    addCardTouchFeedback();
+  });
+  
+  // Make functions globally available
+  window.planJourney = planJourney;
+  window.viewTimetable = viewTimetable;
+  window.createServiceCard = createServiceCard;
+})();
+</script>
+
+<style>
+/* Service Card Specific Styles */
+.service-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.service-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 123, 255, 0.15);
+}
+
+.service-card .service-logo {
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.service-card .card-header {
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
+}
+
+.service-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+/* Tablet and up: Side-by-side buttons */
+@media (min-width: 768px) {
+  .service-actions {
+    flex-direction: row;
+    gap: var(--space-md);
+  }
+  
+  .service-actions .btn {
+    flex: 1;
+  }
+  
+  .service-actions .btn-full-width {
+    width: auto;
+  }
+}
+
+/* Service-specific color themes */
+.myciti-card {
+  --service-color: #007bff;
+}
+
+.golden-arrow-card {
+  --service-color: #ffc107;
+}
+
+.myciti-card .card-header {
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
+}
+
+.golden-arrow-card .card-header {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%);
+}
+
+/* Loading state for service cards */
+.service-card.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.service-card.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+/* Accessibility improvements */
+.service-card:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.service-card[aria-pressed="true"] {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .service-card {
+    border: 2px solid var(--color-text-primary);
+  }
+  
+  .service-card:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+}
+</style>

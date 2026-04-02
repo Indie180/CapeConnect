@@ -10,37 +10,38 @@ function read(relativePath) {
 
 module.exports = [
   {
-    name: 'landing page contains the app mount point and project title',
+    name: 'login page contains the selected frontend design shell',
     run() {
-      const html = read('index.html');
+      const html = read('login.html');
 
-      assert.match(html, /<div id="app"><\/div>/);
-      assert.match(html, /<title>CapeConnect - Complete Transit System<\/title>/);
+      assert.match(html, /Welcome Back/);
+      assert.match(html, /class="login-page"/);
+      assert.match(html, /Sign In/);
+      assert.match(html, /js\/api-client\.js/);
     },
   },
   {
-    name: 'quickstart documents the key passenger flow pages',
+    name: 'signup page contains the same frontend design family',
     run() {
-      const quickstart = read('QUICKSTART.md');
+      const signup = read('signup.html');
 
-      assert.match(quickstart, /Route Calculator/);
-      assert.match(quickstart, /Choose Fare/);
-      assert.match(quickstart, /Results/);
-      assert.match(quickstart, /Payment/);
+      assert.match(signup, /Create Your Account/);
+      assert.match(signup, /class="login-page signup-page"/);
+      assert.match(signup, /password-requirements/);
+      assert.match(signup, /js\/api-client\.js/);
     },
   },
   {
-    name: 'core static pages for login and booking flows exist',
+    name: 'core static pages for the chosen frontend flow exist',
     run() {
       const expectedPages = [
         'login.html',
         'signup.html',
+        'choose-bus.html',
+        'dashboard.html',
         'booking.html',
-        'payment.html',
-        'results.html',
         'ga-booking.html',
-        'ga-payment.html',
-        'ga-results.html',
+        'profile.html',
       ];
 
       for (const page of expectedPages) {

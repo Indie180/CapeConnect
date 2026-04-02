@@ -1,8 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Dashboard</title>
+</head>
+<body>
+  <p>Redirecting to dashboard...</p>
+  <script>
+    const target = "golden-arrow-dashboard.html";
+    window.location.replace(target);
+  </script>
+</body>
+</html>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
   <title>Golden Arrow Journey Calculator</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
@@ -69,22 +82,16 @@
 <body class="bus-ga">
   <header>
     <div class="nav-container">
-      <a href="dashboard.html" class="logo">
+    <a href="golden-arrow-dashboard.html" class="logo">
         <img class="logo-img" src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
         <span class="logo-text">CapeConnect</span>
       </a>
       <nav class="nav-links" id="main-nav">
-        <a href="dashboard.html" data-link="dashboard">Dashboard</a>
-        <a href="timetable.html" data-link="timetable">Timetable & Routes</a>
+        <a href="golden-arrow-dashboard.html" data-link="dashboard">Dashboard</a>
+        <a href="golden-arrow-timetable.html" data-link="timetable">Timetable & Routes</a>
         <a href="ga-calculator.html" data-link="calculator">Calculator</a>
         <a href="ga-route-calculator.html" data-link="booking">Book Ticket</a>
-        <a href="#" data-link="help">Help</a>
       </nav>
-      <div class="nav-btns">
-        <button class="theme-toggle" aria-label="Toggle theme" onclick="App.toggleTheme()" title="Toggle Theme">
-          <i class="fas fa-sun" aria-hidden="true"></i>
-        </button>
-      </div>
     </div>
   </header>
 
@@ -129,6 +136,7 @@
   </div>
 
 <script src="js/api-client.js"></script>
+<script src="js/auth-pages.js"></script>
 <script src="js/cc-utils.js"></script>
 <script src="js/cc-validation.js"></script>
 <script src="js/data-service.js"></script>
@@ -267,6 +275,7 @@
 </script>
 </body>
 </html>
+
 
 
 

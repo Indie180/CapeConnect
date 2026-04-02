@@ -1,5 +1,48 @@
 # CapeConnect - Quick Start Guide
 
+Current note:
+- the canonical frontend is the repo-root static HTML app
+- the current entry point is `http://127.0.0.1:4173/login.html`
+- `frontend-react/` is not the publish target yet
+- use backend-backed auth, not the old demo-only flow below
+
+Current startup:
+
+```bash
+node scripts/static-server.js
+cd backend
+npm install
+npm start
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4173/login.html
+```
+
+Backend health:
+
+```text
+http://127.0.0.1:4000/health
+```
+
+Seeded backend users all use password:
+
+```text
+Demo#123
+```
+
+Canonical user accounts:
+- `william@capeconnect.demo`
+- `sihle@capeconnect.demo`
+- `myciti-admin@capeconnect.demo`
+- `ga-admin@capeconnect.demo`
+
+See `docs/FRONTEND_DECISION.md` for the formal publish-path decision.
+
+Legacy notes below are retained temporarily until the rest of this file is fully rewritten.
+
 Get up and running with CapeConnect in 5 minutes.
 
 ## Step 1: Open the Application

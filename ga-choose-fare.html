@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
   <title>Golden Arrow | Step 2 Choose Fare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,12 +13,12 @@
 <body class="ga-flow">
   <div class="ga-wrap">
     <div class="ga-topbar">
-      <a class="ga-brand" href="dashboard.html">
+      <a class="ga-brand" href="golden-arrow-dashboard.html">
         <img src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
         <strong>Golden Arrow Flow</strong>
       </a>
       <nav class="ga-nav">
-        <a href="dashboard.html">Dashboard</a>
+        <a href="golden-arrow-dashboard.html">Dashboard</a>
         <a href="ga-route-calculator.html">Step 1</a>
         <a class="active" href="ga-choose-fare.html">Step 2</a>
         <a href="ga-results.html">Step 3</a>
@@ -27,7 +28,7 @@
     <div class="ga-layout">
       <section class="ga-card">
         <h1 class="ga-title">Choose Your Fare</h1>
-        <p class="ga-sub">Step 2 of 4. Select fare type and quantity for your planned travel.</p>
+        <p class="ga-sub">Step 2 of 4. Select the fare type for your planned travel.</p>
 
         <div class="ga-steps">
           <div class="ga-step">1. Plan</div>
@@ -56,23 +57,9 @@
           </label>
         </div>
 
-        <div class="ga-grid two">
-          <label class="ga-field">
-            <span>Quantity</span>
-            <input id="qtyInput" type="number" min="1" step="1" value="1" />
-            <small>Buy multiple tickets in one checkout.</small>
-          </label>
-          <label class="ga-field">
-            <span>Planned trips</span>
-            <input id="plannedTripsInput" type="number" min="1" step="1" value="10" />
-            <small>Used to estimate journey coverage.</small>
-          </label>
-        </div>
-
         <div class="ga-results">
           <div class="ga-row"><span>Recommended fare</span><strong id="recommendedOut">-</strong></div>
-          <div class="ga-row"><span>Total journey capacity</span><strong id="capacityOut">-</strong></div>
-          <div class="ga-row"><span>Coverage after plan</span><strong id="coverageOut">-</strong></div>
+          <div class="ga-row"><span>Journeys included</span><strong id="capacityOut">-</strong></div>
         </div>
 
         <div class="ga-actions">
@@ -94,6 +81,8 @@
     </div>
   </div>
 
+  <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
   <script src="js/data-service.js"></script>
   <script src="js/ga-booking-state.js"></script>
   <script>
@@ -103,9 +92,6 @@
 
     const $ = (id) => document.getElementById(id);
     const alertBox = $("alertBox");
-    const qtyInput = $("qtyInput");
-    const plannedTripsInput = $("plannedTripsInput");
-
     function showError(message) {
       alertBox.className = "ga-alert error";
       alertBox.textContent = message;
@@ -135,21 +121,16 @@
 
     function updateCapacity() {
       const fare = selectedFare();
-      const qty = Math.max(1, Number(qtyInput.value || 1));
-      const planned = Math.max(1, Number(plannedTripsInput.value || 1));
-      const recommended = window.GABookingState.recommendFare(dataset, planned, qty);
+      const recommended = window.GABookingState.recommendFare(dataset, 1, 1);
       const recommendedLabel = window.GABookingState.fareLabel(dataset, recommended);
 
       $("recommendedOut").textContent = recommendedLabel;
       if (!fare) {
         $("capacityOut").textContent = "-";
-        $("coverageOut").textContent = "-";
         return;
       }
-      const journeys = window.GABookingState.fareJourneys(dataset, fare) * qty;
-      const left = journeys - planned;
+      const journeys = window.GABookingState.fareJourneys(dataset, fare);
       $("capacityOut").textContent = `${journeys} journeys`;
-      $("coverageOut").textContent = left >= 0 ? `${left} journeys left` : `${Math.abs(left)} short`;
     }
 
     function hydrate() {
@@ -161,33 +142,20 @@
         const radio = document.querySelector(`input[name="fare"][value="${state.fare}"]`);
         if (radio) radio.checked = true;
       }
-      qtyInput.value = state.quantity || 1;
-      plannedTripsInput.value = state.plannedTrips || 10;
       return true;
     }
 
     function persist() {
       window.GABookingState.patchState({
         fare: selectedFare() || null,
-        quantity: Math.max(1, Number(qtyInput.value || 1)),
-        plannedTrips: Math.max(1, Number(plannedTripsInput.value || 1))
+        quantity: 1,
+        plannedTrips: null
       });
       updateCapacity();
     }
 
     function bind() {
       document.querySelectorAll('input[name="fare"]').forEach((el) => {
-        el.addEventListener("change", () => {
-          clearAlert();
-          persist();
-        });
-      });
-
-      [qtyInput, plannedTripsInput].forEach((el) => {
-        el.addEventListener("input", () => {
-          clearAlert();
-          persist();
-        });
         el.addEventListener("change", () => {
           clearAlert();
           persist();

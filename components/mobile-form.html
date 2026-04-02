@@ -1,0 +1,630 @@
+<!-- Mobile Form Component -->
+<!-- Touch-optimized forms for mobile devices -->
+
+<!-- Journey Planning Form -->
+<form class="mobile-form journey-form" id="journeyForm">
+  <div class="form-header">
+    <h2 class="form-title">Plan Your Journey</h2>
+    <p class="form-subtitle">Find the best route for your trip</p>
+  </div>
+  
+  <div class="form-body">
+    <div class="form-group">
+      <label for="fromLocation" class="form-label">From</label>
+      <div class="input-group">
+        <span class="input-icon">📍</span>
+        <input 
+          type="text" 
+          id="fromLocation" 
+          class="form-input" 
+          placeholder="Enter departure location"
+          autocomplete="off"
+          required
+        >
+        <button type="button" class="input-action" onclick="getCurrentLocation('from')" aria-label="Use current location">
+          🎯
+        </button>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="toLocation" class="form-label">To</label>
+      <div class="input-group">
+        <span class="input-icon">📍</span>
+        <input 
+          type="text" 
+          id="toLocation" 
+          class="form-input" 
+          placeholder="Enter destination"
+          autocomplete="off"
+          required
+        >
+        <button type="button" class="input-action" onclick="swapLocations()" aria-label="Swap locations">
+          🔄
+        </button>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="travelDate" class="form-label">Travel Date</label>
+      <input 
+        type="date" 
+        id="travelDate" 
+        class="form-input"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="travelTime" class="form-label">Departure Time</label>
+      <input 
+        type="time" 
+        id="travelTime" 
+        class="form-input"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="serviceType" class="form-label">Service</label>
+      <select id="serviceType" class="form-select" required>
+        <option value="">Select service</option>
+        <option value="myciti">MyCiTi Bus</option>
+        <option value="golden-arrow">Golden Arrow</option>
+        <option value="both">Both Services</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="form-footer">
+    <button type="submit" class="btn btn-primary btn-full-width btn-lg">
+      <span class="btn-icon">🔍</span>
+      Search Routes
+      <span class="loading" id="searchLoading" style="display: none;"></span>
+    </button>
+  </div>
+</form>
+
+<!-- Login Form -->
+<form class="mobile-form login-form" id="loginForm" style="display: none;">
+  <div class="form-header">
+    <h2 class="form-title">Welcome Back</h2>
+    <p class="form-subtitle">Sign in to your CapeConnect account</p>
+  </div>
+  
+  <div class="form-body">
+    <div class="form-group">
+      <label for="email" class="form-label">Email Address</label>
+      <input 
+        type="email" 
+        id="email" 
+        class="form-input" 
+        placeholder="Enter your email"
+        autocomplete="email"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="password" class="form-label">Password</label>
+      <div class="input-group">
+        <input 
+          type="password" 
+          id="password" 
+          class="form-input" 
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        >
+        <button type="button" class="input-action" onclick="togglePassword()" aria-label="Toggle password visibility">
+          👁️
+        </button>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="rememberMe" class="form-checkbox">
+        <span class="checkbox-custom"></span>
+        Remember me
+      </label>
+    </div>
+  </div>
+  
+  <div class="form-footer">
+    <button type="submit" class="btn btn-primary btn-full-width btn-lg">
+      Sign In
+      <span class="loading" id="loginLoading" style="display: none;"></span>
+    </button>
+    
+    <div class="form-links">
+      <a href="/forgot-password.html" class="form-link">Forgot Password?</a>
+      <a href="/signup.html" class="form-link">Create Account</a>
+    </div>
+  </div>
+</form>
+
+<!-- Payment Form -->
+<form class="mobile-form payment-form" id="paymentForm" style="display: none;">
+  <div class="form-header">
+    <h2 class="form-title">Payment Details</h2>
+    <p class="form-subtitle">Secure payment processing</p>
+  </div>
+  
+  <div class="form-body">
+    <div class="form-group">
+      <label for="cardNumber" class="form-label">Card Number</label>
+      <input 
+        type="text" 
+        id="cardNumber" 
+        class="form-input" 
+        placeholder="1234 5678 9012 3456"
+        maxlength="19"
+        autocomplete="cc-number"
+        required
+      >
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group col-6">
+        <label for="expiryDate" class="form-label">Expiry Date</label>
+        <input 
+          type="text" 
+          id="expiryDate" 
+          class="form-input" 
+          placeholder="MM/YY"
+          maxlength="5"
+          autocomplete="cc-exp"
+          required
+        >
+      </div>
+      
+      <div class="form-group col-6">
+        <label for="cvv" class="form-label">CVV</label>
+        <input 
+          type="text" 
+          id="cvv" 
+          class="form-input" 
+          placeholder="123"
+          maxlength="4"
+          autocomplete="cc-csc"
+          required
+        >
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="cardName" class="form-label">Cardholder Name</label>
+      <input 
+        type="text" 
+        id="cardName" 
+        class="form-input" 
+        placeholder="John Doe"
+        autocomplete="cc-name"
+        required
+      >
+    </div>
+  </div>
+  
+  <div class="form-footer">
+    <div class="payment-summary">
+      <div class="summary-row">
+        <span>Amount:</span>
+        <span class="amount">R50.00</span>
+      </div>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-full-width btn-lg">
+      <span class="btn-icon">🔒</span>
+      Pay Securely
+      <span class="loading" id="paymentLoading" style="display: none;"></span>
+    </button>
+  </div>
+</form>
+
+<script>
+// Mobile Form JavaScript
+(function() {
+  'use strict';
+  
+  // Form validation and interaction
+  function initializeForms() {
+    // Journey form
+    const journeyForm = document.getElementById('journeyForm');
+    if (journeyForm) {
+      journeyForm.addEventListener('submit', handleJourneySubmit);
+      
+      // Set default date and time
+      const now = new Date();
+      document.getElementById('travelDate').value = now.toISOString().split('T')[0];
+      document.getElementById('travelTime').value = now.toTimeString().slice(0, 5);
+    }
+    
+    // Login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', handleLoginSubmit);
+    }
+    
+    // Payment form
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+      paymentForm.addEventListener('submit', handlePaymentSubmit);
+      initializePaymentForm();
+    }
+  }
+  
+  // Journey form submission
+  function handleJourneySubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Show loading state
+    const button = e.target.querySelector('button[type="submit"]');
+    const loading = document.getElementById('searchLoading');
+    
+    button.disabled = true;
+    loading.style.display = 'inline-block';
+    
+    // Simulate API call
+    setTimeout(() => {
+      console.log('Journey search:', data);
+      // Navigate to results page
+      window.location.href = '/results.html';
+    }, 1500);
+  }
+  
+  // Login form submission
+  function handleLoginSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Show loading state
+    const button = e.target.querySelector('button[type="submit"]');
+    const loading = document.getElementById('loginLoading');
+    
+    button.disabled = true;
+    loading.style.display = 'inline-block';
+    
+    // Simulate login
+    setTimeout(() => {
+      console.log('Login attempt:', data);
+      // Navigate to dashboard
+      window.location.href = '/dashboard.html';
+    }, 1500);
+  }
+  
+  // Payment form submission
+  function handlePaymentSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Show loading state
+    const button = e.target.querySelector('button[type="submit"]');
+    const loading = document.getElementById('paymentLoading');
+    
+    button.disabled = true;
+    loading.style.display = 'inline-block';
+    
+    // Simulate payment processing
+    setTimeout(() => {
+      console.log('Payment processing:', data);
+      // Navigate to success page
+      window.location.href = '/payment-success.html';
+    }, 2000);
+  }
+  
+  // Initialize payment form formatting
+  function initializePaymentForm() {
+    const cardNumber = document.getElementById('cardNumber');
+    const expiryDate = document.getElementById('expiryDate');
+    
+    if (cardNumber) {
+      cardNumber.addEventListener('input', formatCardNumber);
+    }
+    
+    if (expiryDate) {
+      expiryDate.addEventListener('input', formatExpiryDate);
+    }
+  }
+  
+  // Format card number input
+  function formatCardNumber(e) {
+    let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    e.target.value = formattedValue;
+  }
+  
+  // Format expiry date input
+  function formatExpiryDate(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+      value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    e.target.value = value;
+  }
+  
+  // Get current location
+  function getCurrentLocation(field) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          // In a real app, you'd reverse geocode these coordinates
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          const input = document.getElementById(field + 'Location');
+          input.value = `Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        },
+        function(error) {
+          alert('Unable to get your location. Please enter manually.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
+  }
+  
+  // Swap locations
+  function swapLocations() {
+    const fromInput = document.getElementById('fromLocation');
+    const toInput = document.getElementById('toLocation');
+    
+    const temp = fromInput.value;
+    fromInput.value = toInput.value;
+    toInput.value = temp;
+  }
+  
+  // Toggle password visibility
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const button = passwordInput.nextElementSibling;
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      button.textContent = '🙈';
+    } else {
+      passwordInput.type = 'password';
+      button.textContent = '👁️';
+    }
+  }
+  
+  // Initialize on DOM ready
+  document.addEventListener('DOMContentLoaded', initializeForms);
+  
+  // Make functions globally available
+  window.getCurrentLocation = getCurrentLocation;
+  window.swapLocations = swapLocations;
+  window.togglePassword = togglePassword;
+})();
+</script>
+
+<style>
+/* Mobile Form Specific Styles */
+.mobile-form {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.form-header {
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  text-align: center;
+}
+
+.form-title {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.form-subtitle {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.875rem;
+}
+
+.form-body {
+  padding: var(--space-lg);
+}
+
+.form-footer {
+  padding: var(--space-lg);
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Input Groups */
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  z-index: 2;
+  color: var(--color-text-secondary);
+  font-size: 1.125rem;
+}
+
+.input-group .form-input {
+  padding-left: 44px;
+  padding-right: 44px;
+}
+
+.input-action {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 1.125rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  min-height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-action:hover {
+  background-color: var(--color-surface);
+}
+
+.input-action:active {
+  transform: scale(0.95);
+}
+
+/* Form Row for side-by-side inputs */
+.form-row {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+/* Custom Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.form-checkbox {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.form-checkbox:checked + .checkbox-custom {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.form-checkbox:checked + .checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Form Links */
+.form-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+  gap: var(--space-md);
+}
+
+.form-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.form-link:hover {
+  text-decoration: underline;
+}
+
+/* Payment Summary */
+.payment-summary {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Loading States */
+.mobile-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.mobile-form .loading {
+  margin-left: var(--space-sm);
+}
+
+/* Form Validation States */
+.form-input:invalid {
+  border-color: var(--color-danger);
+}
+
+.form-input:valid {
+  border-color: var(--color-success);
+}
+
+/* Focus improvements for mobile */
+.form-input:focus,
+.form-select:focus {
+  border-width: 3px;
+  padding: 11px 15px; /* Adjust for thicker border */
+}
+
+.input-group .form-input:focus {
+  padding-left: 43px;
+  padding-right: 43px;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .input-action {
+    transition: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .form-header {
+    background: var(--color-text-primary);
+    color: var(--color-background);
+  }
+  
+  .checkbox-custom {
+    border-width: 3px;
+  }
+}
+</style>

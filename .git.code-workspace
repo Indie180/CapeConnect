@@ -1,0 +1,64 @@
+{
+	"folders": [
+		{
+			"path": ".git"
+		},
+		{
+			"path": ".github"
+		},
+		{
+			"path": ".kiro"
+		},
+		{
+			"path": ".vscode"
+		},
+		{
+			"path": "admin-common"
+		},
+		{
+			"path": "backend"
+		},
+		{
+			"path": "capetown-transit-api"
+		},
+		{
+			"path": "components"
+		},
+		{
+			"path": "css"
+		},
+		{
+			"path": "data"
+		},
+		{
+			"path": "docs"
+		},
+		{
+			"path": "e2e"
+		},
+		{
+			"path": "frontend-react"
+		},
+		{
+			"path": "js"
+		},
+		{
+			"path": "pictures"
+		},
+		{
+			"path": "scripts"
+		},
+		{
+			"path": "styles"
+		},
+		{
+			"path": "templates"
+		},
+		{
+			"path": "test"
+		},
+		{
+			"path": "test-results"
+		}
+	]
+}

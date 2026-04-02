@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
   <title>Golden Arrow | Step 4 Payment</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +13,7 @@
 <body class="ga-flow">
   <div class="ga-wrap">
     <div class="ga-topbar">
-      <a class="ga-brand" href="dashboard.html">
+      <a class="ga-brand" href="golden-arrow-dashboard.html">
         <img src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow">
         <strong>Golden Arrow Flow</strong>
       </a>
@@ -78,7 +79,6 @@
         <div class="ga-results">
           <div class="ga-row"><span>Route</span><strong id="routeOut">-</strong></div>
           <div class="ga-row"><span>Fare</span><strong id="fareOut">-</strong></div>
-          <div class="ga-row"><span>Quantity</span><strong id="qtyOut">-</strong></div>
           <div class="ga-row"><span>Total</span><strong id="totalOut">-</strong></div>
           <div class="ga-row"><span>Journeys included</span><strong id="journeysOut">-</strong></div>
         </div>
@@ -87,6 +87,7 @@
   </div>
 
   <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
   <script src="js/cc-utils.js"></script>
   <script src="js/data-service.js"></script>
   <script src="js/ga-booking-state.js"></script>
@@ -121,49 +122,30 @@
         return null;
       }
 
-      const fareLabel = window.GABookingState.fareLabel(dataset, state.fare);
-      const qty = Math.max(1, Number(state.quantity || 1));
-      const total = Number(state.totalFareCents || state.routeFareCents * qty);
-      const journeys = window.GABookingState.fareJourneys(dataset, state.fare) * qty;
-
-      $("routeOut").textContent = state.estimate.routeLabel || "-";
-      $("fareOut").textContent = fareLabel;
-      $("qtyOut").textContent = String(qty);
-      $("totalOut").textContent = window.GABookingState.formatZar(total);
-      $("journeysOut").textContent = `${journeys} journeys`;
-      return { state, fareLabel, qty, total, journeys };
+      const summary = window.GABookingState.summarizeSelection(dataset, state);
+      $("routeOut").textContent = summary.routeLabel;
+      $("fareOut").textContent = summary.fareLabel;
+      $("totalOut").textContent = window.GABookingState.formatZar(summary.totalCents);
+      $("journeysOut").textContent = summary.journeysLabel;
+      return { state, summary };
     }
 
-    function addTicket(payload) {
-      const now = new Date();
-      const ticketId = `GA-${Date.now()}`;
+    async function addTicket(payload) {
       const expiryDays = payload.state.fare === "weekly" ? 7 : 30;
-      const ticket = {
-        id: ticketId,
+      const ticket = window.CCUtils.buildIssuedTicket({
         operator: "GoldenArrow",
         service: "Golden Arrow",
-        route: payload.state.estimate.routeLabel,
-        date: now.toISOString().slice(0, 10),
-        time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+        route: payload.summary.routeLabel,
         type: payload.state.fare,
-        passengers: 1,
-        total: window.GABookingState.formatZar(payload.total),
-        status: "Active",
-        purchasedAt: now.toISOString(),
-        validFrom: now.toISOString(),
-        expiresAt: new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
-        journeysIncluded: payload.journeys,
-        remainingUses: payload.journeys,
-        qrData: JSON.stringify({ id: ticketId, route: payload.state.estimate.routeLabel, fare: payload.state.fare })
-      };
-      if (window.CCUtils?.addTicket) {
-        window.CCUtils.addTicket(ticket);
-      } else {
-        const key = "capeconnectTickets";
-        const prev = JSON.parse(localStorage.getItem(key) || "[]");
-        prev.unshift(ticket);
-        localStorage.setItem(key, JSON.stringify(prev));
+        amount: payload.summary.totalCents / 100,
+        expiryDays,
+        journeysIncluded: payload.summary.journeys,
+        remainingUses: payload.summary.journeys
+      });
+      if (!window.CCUtils?.addTicket) {
+        throw new Error("Ticket service is unavailable.");
       }
+      return window.CCUtils.addTicket(ticket);
     }
 
     function bind(payload) {
@@ -180,7 +162,7 @@
         }
         $("payBtn").disabled = true;
         $("payBtn").textContent = "Issuing Ticket...";
-        setTimeout(() => {
+        setTimeout(async () => {
           window.GABookingState.patchState({
             payment: {
               name: $("nameInput").value.trim(),
@@ -189,12 +171,18 @@
               reference: $("refInput").value.trim()
             }
           });
-          addTicket(payload);
-          showAlert("success", "Payment complete. Ticket issued and added to your dashboard.");
-          window.GABookingState.clearState();
-          setTimeout(() => {
-            window.location.href = "dashboard.html";
-          }, 800);
+          try {
+            await addTicket(payload);
+            showAlert("success", "Payment complete. Ticket issued and added to your dashboard.");
+            window.GABookingState.clearState();
+            setTimeout(() => {
+              window.location.href = "golden-arrow-dashboard.html";
+            }, 800);
+          } catch (err) {
+            $("payBtn").disabled = false;
+            $("payBtn").textContent = "Confirm and Issue Ticket";
+            showAlert("error", err?.message || "Could not issue the ticket.");
+          }
         }, 900);
       });
     }

@@ -10,9 +10,12 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'passenger', -- passenger | operator_admin | super_admin
+  operator TEXT,
   status TEXT NOT NULL DEFAULT 'ACTIVE', -- ACTIVE | DEACTIVATED | BLACKLISTED | DELETED
   blacklist_reason TEXT,
   blacklist_until TIMESTAMPTZ,
+  failed_attempts INTEGER DEFAULT 0,
+  locked_until TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -22,6 +25,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token_hash TEXT NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
+  last_activity TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -33,6 +37,14 @@ CREATE TABLE IF NOT EXISTS refresh_sessions (
   revoked_at TIMESTAMPTZ,
   replaced_by_hash TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_services (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  service_key TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, service_key)
 );
 
 CREATE TABLE IF NOT EXISTS wallets (
@@ -154,4 +166,5 @@ CREATE INDEX IF NOT EXISTS idx_timetables_route ON timetables(route_id, day_type
 CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_refresh_sessions_token_hash ON refresh_sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_refresh_sessions_user_id ON refresh_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_services_user_id ON user_services(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_operator_at ON audit_logs(operator, at DESC);

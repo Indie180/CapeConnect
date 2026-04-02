@@ -7,6 +7,9 @@
 /forgot-password /forgot-password.html 200
 /forgot-password.html /forgot-password 301
 
+/reset-password /reset-password.html 200
+/reset-password.html /reset-password 301
+
 /terms /terms.html 200
 /terms.html /terms 301
 
@@ -15,3 +18,7 @@
 
 /booking /dashboard.html 301
 /booking.html /dashboard.html 301
+
+# Optional production API proxy for Netlify -> Railway once the backend URL is known.
+# Uncomment and replace the host below during production setup.
+# /api/* https://your-backend.up.railway.app/api/:splat 200

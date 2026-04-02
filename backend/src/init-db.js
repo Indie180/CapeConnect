@@ -841,25 +841,51 @@ function seedReferenceData(db) {
   if (william) {
     const williamWallet = firstValue(db, `SELECT user_id FROM wallets WHERE user_id = ? LIMIT 1`, [william.id]);
     if (!williamWallet) {
-    db.run(
-      `
-      INSERT INTO wallets (user_id, balance, balance_cents, currency, operator, created_at, updated_at)
-      VALUES (?, 100.00, 10000, 'ZAR', 'MyCiTi', datetime('now'), datetime('now'))
-      `,
-      [william.id]
-    );
+      db.run(
+        `
+        INSERT INTO wallets (user_id, balance, balance_cents, currency, operator, created_at, updated_at)
+        VALUES (?, 100.00, 10000, 'ZAR', 'MyCiTi', datetime('now'), datetime('now'))
+        `,
+        [william.id]
+      );
+    } else {
+      db.run(
+        `
+        UPDATE wallets
+        SET balance = CASE WHEN coalesce(balance, 0) < 100 THEN 100.00 ELSE balance END,
+            balance_cents = CASE WHEN coalesce(balance_cents, 0) < 10000 THEN 10000 ELSE balance_cents END,
+            currency = coalesce(currency, 'ZAR'),
+            operator = coalesce(operator, 'MyCiTi'),
+            updated_at = datetime('now')
+        WHERE user_id = ?
+        `,
+        [william.id]
+      );
     }
   }
   if (sihle) {
     const sihleWallet = firstValue(db, `SELECT user_id FROM wallets WHERE user_id = ? LIMIT 1`, [sihle.id]);
     if (!sihleWallet) {
-    db.run(
-      `
-      INSERT INTO wallets (user_id, balance, balance_cents, currency, operator, created_at, updated_at)
-      VALUES (?, 150.00, 15000, 'ZAR', 'Golden Arrow', datetime('now'), datetime('now'))
-      `,
-      [sihle.id]
-    );
+      db.run(
+        `
+        INSERT INTO wallets (user_id, balance, balance_cents, currency, operator, created_at, updated_at)
+        VALUES (?, 150.00, 15000, 'ZAR', 'Golden Arrow', datetime('now'), datetime('now'))
+        `,
+        [sihle.id]
+      );
+    } else {
+      db.run(
+        `
+        UPDATE wallets
+        SET balance = CASE WHEN coalesce(balance, 0) < 150 THEN 150.00 ELSE balance END,
+            balance_cents = CASE WHEN coalesce(balance_cents, 0) < 15000 THEN 15000 ELSE balance_cents END,
+            currency = coalesce(currency, 'ZAR'),
+            operator = coalesce(operator, 'Golden Arrow'),
+            updated_at = datetime('now')
+        WHERE user_id = ?
+        `,
+        [sihle.id]
+      );
     }
   }
 }
@@ -877,7 +903,10 @@ export async function initializeDatabase() {
   const SQL = await initSqlJs();
   let db;
 
-  if (existsSync(dbPath)) {
+  if (config.env === "test") {
+    db = new SQL.Database();
+    log('info', 'SQLite test database initialized from scratch');
+  } else if (existsSync(dbPath)) {
     const buffer = readFileSync(dbPath);
     db = new SQL.Database(buffer);
     log('info', 'SQLite database loaded');

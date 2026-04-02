@@ -1,6 +1,16 @@
 import express from "express";
 import { query, withTransaction } from "../db.js";
 import { requireAuth, requireAdmin, requireAdminOperatorScope } from "../middleware/auth.js";
+import {
+  adminAuditEntrySchema,
+  adminPricesGlobalBulkSchema,
+  adminPricesRoutesBulkSchema,
+  adminTicketsBulkSchema,
+  adminTimetablesBulkSchema,
+  adminUsersBulkSchema,
+  adminWalletsBulkSchema,
+  parseOrThrow,
+} from "../utils/validation.js";
 
 const router = express.Router();
 
@@ -295,9 +305,9 @@ router.get("/bootstrap", requireAdminOperatorScope(resolveRequestedOperator), as
 
 router.post("/users/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const users = Array.isArray(req.body?.users) ? req.body.users : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminUsersBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const users = parsed.users;
     await withTransaction(async (client) => {
       for (const user of users) {
         if (!isUuid(user?.id)) continue;
@@ -339,9 +349,9 @@ router.post("/users/bulk", requireAdminOperatorScope(resolveRequestedOperator), 
 
 router.post("/tickets/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const tickets = Array.isArray(req.body?.tickets) ? req.body.tickets : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminTicketsBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const tickets = parsed.tickets;
     await withTransaction(async (client) => {
       await client.query("DELETE FROM tickets WHERE operator = $1", [operator]);
       for (const t of tickets) {
@@ -389,9 +399,9 @@ router.post("/tickets/bulk", requireAdminOperatorScope(resolveRequestedOperator)
 
 router.post("/wallets/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const wallets = Array.isArray(req.body?.wallets) ? req.body.wallets : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminWalletsBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const wallets = parsed.wallets;
     await withTransaction(async (client) => {
       for (const w of wallets) {
         if (!isUuid(w?.userId)) continue;
@@ -452,9 +462,9 @@ router.post("/wallets/bulk", requireAdminOperatorScope(resolveRequestedOperator)
 
 router.post("/prices/global/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const prices = Array.isArray(req.body?.pricesGlobal) ? req.body.pricesGlobal : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminPricesGlobalBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const prices = parsed.pricesGlobal;
     await withTransaction(async (client) => {
       for (const p of prices) {
         const key = String(p.key || "").trim();
@@ -488,9 +498,9 @@ router.post("/prices/global/bulk", requireAdminOperatorScope(resolveRequestedOpe
 
 router.post("/prices/routes/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const rows = Array.isArray(req.body?.pricesRoutes) ? req.body.pricesRoutes : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminPricesRoutesBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const rows = parsed.pricesRoutes;
     await withTransaction(async (client) => {
       await client.query("DELETE FROM route_prices WHERE operator = $1", [operator]);
       for (const row of rows) {
@@ -528,9 +538,9 @@ router.post("/prices/routes/bulk", requireAdminOperatorScope(resolveRequestedOpe
 
 router.post("/timetables/bulk", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    const timetables = Array.isArray(req.body?.timetables) ? req.body.timetables : [];
-    if (!operator) return res.status(400).json({ error: "operator is required" });
+    const parsed = parseOrThrow(adminTimetablesBulkSchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const timetables = parsed.timetables;
     await withTransaction(async (client) => {
       await client.query(
         `
@@ -615,9 +625,9 @@ router.get("/audit", requireAdminOperatorScope(resolveRequestedOperator), async 
 
 router.post("/audit", requireAdminOperatorScope(resolveRequestedOperator), async (req, res, next) => {
   try {
-    const operator = normalizeOperator(req.body?.operator);
-    if (!operator) return res.status(400).json({ error: "operator is required" });
-    const entry = req.body?.entry || {};
+    const parsed = parseOrThrow(adminAuditEntrySchema, req.body || {});
+    const operator = normalizeOperator(parsed.operator);
+    const entry = parsed.entry || {};
     await query(
       `
       INSERT INTO audit_logs (id, at, operator, admin_email, action, target_type, target_id, before_json, after_json)
@@ -631,7 +641,7 @@ router.post("/audit", requireAdminOperatorScope(resolveRequestedOperator), async
         isUuid(entry?.id) ? entry.id : null,
         entry?.at || null,
         operator,
-        String(entry?.adminEmail || req.auth.email || "admin@capeconnect.demo"),
+        String(req.auth.email || "admin@capeconnect.demo"),
         String(entry?.action || "ADMIN_ACTION"),
         String(entry?.targetType || "UNKNOWN"),
         String(entry?.targetId || ""),

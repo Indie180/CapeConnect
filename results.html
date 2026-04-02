@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyCiTi Booking - Results</title>
   <link rel="stylesheet" href="css/flow-components.css" />
   <style>
@@ -79,11 +79,12 @@
   </div>
 
   <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
 <script src="js/cc-utils.js"></script>
   <script src="js/data-service.js"></script>
   <script>
-    let PASS_PRICES = { day1: 90, day3: 210, day7: 300, monthly: 1000 };
-    const PASS_LABELS = { day1: "1-Day Pass", day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
+    let PASS_PRICES = { day3: 210, day7: 300, monthly: 1000 };
+    const PASS_LABELS = { day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
 
     const routeOut = document.getElementById("routeOut");
     const distanceOut = document.getElementById("distanceOut");
@@ -108,35 +109,25 @@
 
     function render(){
       const state = window.CCUtils.storageGet('mycitiBooking', {});
-      const fare = state.fare || 'topup';
-      if (fare !== 'topup') {
-        const price = PASS_PRICES[fare] || 0;
-        const label = PASS_LABELS[fare] || 'Pass';
-        routeOut.textContent = label;
-        distanceOut.textContent = '-';
-        timeOut.textContent = '-';
-        periodOut.textContent = 'Pass';
-        bandOut.textContent = '-';
-        amountOut.textContent = `R ${price.toFixed(2)}`;
-        pointsOut.textContent = `${Math.round(price)} points`;
-        state.estimate = { routeLabel: label, amount: price, period: 'Pass', bandLabel: '-', distanceKm: 0, travelMinutes: 0 };
-        window.CCUtils.storageSet('mycitiBooking', state);
-        return;
-      }
-
-      const estimate = state.estimate;
-      if (!estimate) {
+      const summary = window.CCUtils.buildMycitiBookingSummary(state, {
+        passPrices: PASS_PRICES,
+        passLabels: PASS_LABELS
+      });
+      if (summary.fare === 'topup' && !summary.estimate) {
         window.location.href = 'route-calculator.html';
         return;
       }
-
-      routeOut.textContent = estimate.routeLabel || '-';
-      distanceOut.textContent = estimate.distanceKm ? `${estimate.distanceKm.toFixed(1)} km` : '-';
-      timeOut.textContent = estimate.travelMinutes ? `${estimate.travelMinutes} min` : '-';
-      periodOut.textContent = estimate.period || '-';
-      bandOut.textContent = estimate.bandLabel || '-';
-      amountOut.textContent = estimate.amount ? `R ${estimate.amount.toFixed(2)}` : '-';
-      pointsOut.textContent = estimate.amount ? `${estimate.amount.toFixed(0)} points` : '-';
+      if (summary.fare !== 'topup') {
+        state.estimate = summary.estimate;
+        window.CCUtils.storageSet('mycitiBooking', state);
+      }
+      routeOut.textContent = summary.routeLabel || '-';
+      distanceOut.textContent = summary.distanceLabel;
+      timeOut.textContent = summary.timeLabel;
+      periodOut.textContent = summary.period || '-';
+      bandOut.textContent = summary.bandLabel || '-';
+      amountOut.textContent = `R ${summary.amount.toFixed(2)}`;
+      pointsOut.textContent = summary.pointsLabel;
     }
 
     document.getElementById('btnBack').addEventListener('click', () => {
@@ -154,6 +145,7 @@
   </script>
 </body>
 </html>
+
 
 
 

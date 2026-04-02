@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Dashboard</title>
+</head>
+<body>
+  <p>Redirecting to dashboard...</p>
+  <script>
+    const target = "myciti-dashboard.html";
+    window.location.replace(target);
+  </script>
+</body>
+</html>
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MyCiTi Booking - Plan Trip</title>
@@ -103,6 +116,7 @@
   </div>
 
   <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
 <script src="js/cc-utils.js"></script>
   <script src="js/data-service.js"></script>
   <script src="js/cc-components.js"></script>
@@ -287,7 +301,7 @@
     });
 
     document.getElementById('btnBack').addEventListener('click', () => {
-      window.location.href = 'dashboard.html';
+        window.location.href = 'myciti-dashboard.html';
     });
 
     document.getElementById('btnNext').addEventListener('click', () => {
@@ -317,6 +331,7 @@
   </script>
 </body>
 </html>
+
 
 
 

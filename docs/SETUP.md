@@ -78,6 +78,13 @@ The frontend will run on `http://localhost:5173`
 curl http://localhost:4000/health
 ```
 
+### Run Backend Integration Tests
+
+```bash
+cd backend
+npm test
+```
+
 Expected response:
 ```json
 {"ok":true,"service":"capeconnect-backend","env":"development"}

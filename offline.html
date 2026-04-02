@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#007bff">
+    <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
+    <title>Offline - CapeConnect</title>
+    
+    <!-- Mobile-First CSS Framework -->
+    <link rel="stylesheet" href="css/mobile-responsive.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+        
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="container">
+                <h1 class="page-title">You're Offline</h1>
+                <p class="page-subtitle">Check your internet connection</p>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="page-content">
+            <div class="container">
+                
+                <!-- Offline State -->
+                <section class="offline-section">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="offline-icon">📡</div>
+                            <h2 class="offline-title">No Internet Connection</h2>
+                            <p class="offline-desc">
+                                Don't worry! You can still access some features while offline.
+                                We'll sync your data when you're back online.
+                            </p>
+                            
+                            <div class="connection-status" id="connectionStatus">
+                                <div class="status-indicator offline">
+                                    <div class="status-dot"></div>
+                                    <span>Offline</span>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary" id="retryBtn" onclick="checkConnection()">
+                                <i class="fas fa-sync-alt"></i>
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Available Offline Features -->
+                <section class="offline-features-section mb-4">
+                    <h3 class="section-title">Available Offline</h3>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="feature-card" onclick="navigateOffline('dashboard.html')">
+                                <div class="feature-icon">🎫</div>
+                                <h4 class="feature-title">My Tickets</h4>
+                                <p class="feature-desc">View saved tickets</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="feature-card" onclick="navigateOffline('profile.html')">
+                                <div class="feature-icon">👤</div>
+                                <h4 class="feature-title">Profile</h4>
+                                <p class="feature-desc">View profile info</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="feature-card" onclick="showOfflineData()">
+                                <div class="feature-icon">📊</div>
+                                <h4 class="feature-title">Cached Data</h4>
+                                <p class="feature-desc">View saved routes</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="feature-card" onclick="showOfflineHelp()">
+                                <div class="feature-icon">❓</div>
+                                <h4 class="feature-title">Help</h4>
+                                <p class="feature-desc">Offline support</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Pending Actions -->
+                <section class="pending-actions-section mb-4" id="pendingSection" style="display: none;">
+                    <h3 class="section-title">Pending Actions</h3>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="pending-list" id="pendingList">
+                                <!-- Pending actions will be loaded here -->
+                            </div>
+                            
+                            <div class="sync-info">
+                                <i class="fas fa-info-circle"></i>
+                                <span>These actions will sync automatically when you're back online</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+        
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="dashboard.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <span>Home</span>
+            </a>
+            
+            <a href="dashboard.html" class="nav-item">
+                <div class="nav-icon">🎫</div>
+                <span>Tickets</span>
+            </a>
+            
+            <a href="profile.html" class="nav-item">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+            </a>
+            
+            <a href="#" class="nav-item" onclick="showOfflineMenu()">
+                <div class="nav-icon">☰</div>
+                <span>Menu</span>
+            </a>
+        </nav>
+        
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // Offline Page JavaScript
+        (function() {
+            'use strict';
+            
+            let connectionCheckInterval;
+            
+            // Initialize offline page
+            function initializeOffline() {
+                setupConnectionMonitoring();
+                loadPendingActions();
+                setupEventHandlers();
+            }
+            
+            // Setup connection monitoring
+            function setupConnectionMonitoring() {
+                // Check initial connection status
+                updateConnectionStatus();
+                
+                // Listen for online/offline events
+                window.addEventListener('online', handleOnline);
+                window.addEventListener('offline', handleOffline);
+                
+                // Periodic connection check
+                connectionCheckInterval = setInterval(checkConnection, 5000);
+            }
+            
+            // Handle online event
+            function handleOnline() {
+                console.log('Connection restored');
+                updateConnectionStatus();
+                showToast('Connection restored! Syncing data...');
+                
+                // Redirect to dashboard after a short delay
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            }
+            
+            // Handle offline event
+            function handleOffline() {
+                console.log('Connection lost');
+                updateConnectionStatus();
+            }
+            
+            // Update connection status display
+            function updateConnectionStatus() {
+                const statusElement = document.getElementById('connectionStatus');
+                const statusIndicator = statusElement.querySelector('.status-indicator');
+                const statusText = statusIndicator.querySelector('span');
+                
+                if (navigator.onLine) {
+                    statusIndicator.className = 'status-indicator online';
+                    statusText.textContent = 'Online';
+                } else {
+                    statusIndicator.className = 'status-indicator offline';
+                    statusText.textContent = 'Offline';
+                }
+            }
+            
+            // Check connection manually
+            window.checkConnection = function() {
+                const retryBtn = document.getElementById('retryBtn');
+                const icon = retryBtn.querySelector('i');
+                
+                icon.classList.add('fa-spin');
+                
+                // Try to fetch a small resource to test connection
+                fetch('/manifest.json', { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        handleOnline();
+                    } else {
+                        throw new Error('Network response not ok');
+                    }
+                })
+                .catch(() => {
+                    showToast('Still offline. Please check your connection.');
+                })
+                .finally(() => {
+                    icon.classList.remove('fa-spin');
+                });
+            };
+            
+            // Load pending actions from localStorage
+            function loadPendingActions() {
+                const pendingActions = getPendingActions();
+                const pendingSection = document.getElementById('pendingSection');
+                const pendingList = document.getElementById('pendingList');
+                
+                if (pendingActions.length > 0) {
+                    pendingSection.style.display = 'block';
+                    pendingList.innerHTML = pendingActions.map(action => `
+                        <div class="pending-item">
+                            <div class="pending-icon">${getActionIcon(action.type)}</div>
+                            <div class="pending-content">
+                                <h4 class="pending-title">${action.title}</h4>
+                                <p class="pending-desc">${action.description}</p>
+                                <small class="pending-time">${formatTime(action.timestamp)}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    pendingSection.style.display = 'none';
+                }
+            }
+            
+            // Get pending actions from storage
+            function getPendingActions() {
+                try {
+                    const pending = localStorage.getItem('pendingActions');
+                    return pending ? JSON.parse(pending) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            // Get icon for action type
+            function getActionIcon(type) {
+                const icons = {
+                    'ticket-purchase': '🎫',
+                    'wallet-topup': '💳',
+                    'profile-update': '👤',
+                    'default': '⏳'
+                };
+                return icons[type] || icons.default;
+            }
+            
+            // Format timestamp
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                return date.toLocaleString();
+            }
+            
+            // Setup event handlers
+            function setupEventHandlers() {
+                // Cleanup interval on page unload
+                window.addEventListener('beforeunload', () => {
+                    if (connectionCheckInterval) {
+                        clearInterval(connectionCheckInterval);
+                    }
+                });
+            }
+            
+            // Navigation functions
+            window.navigateOffline = function(url) {
+                // Check if page is cached
+                if ('caches' in window) {
+                    caches.match(url).then(response => {
+                        if (response) {
+                            window.location.href = url;
+                        } else {
+                            showToast('This page is not available offline');
+                        }
+                    });
+                } else {
+                    // Fallback - try to navigate anyway
+                    window.location.href = url;
+                }
+            };
+            
+            // Show offline data
+            window.showOfflineData = function() {
+                const cachedRoutes = getCachedRoutes();
+                if (cachedRoutes.length > 0) {
+                    alert('Cached Routes:\n' + cachedRoutes.map(route => `• ${route.name}`).join('\n'));
+                } else {
+                    alert('No cached route data available');
+                }
+            };
+            
+            // Get cached routes
+            function getCachedRoutes() {
+                try {
+                    const routes = localStorage.getItem('cachedRoutes');
+                    return routes ? JSON.parse(routes) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            // Show offline help
+            window.showOfflineHelp = function() {
+                const helpText = `
+Offline Help:
+
+• View your saved tickets
+• Check your profile information
+• See cached route data
+• Pending actions will sync when online
+
+For urgent assistance:
+📞 Call: +27 123 456 789
+📧 Email: support@capeconnect.co.za
+                `;
+                alert(helpText);
+            };
+            
+            // Show offline menu
+            window.showOfflineMenu = function() {
+                const menuItems = [
+                    'My Tickets (Offline)',
+                    'Profile (Offline)',
+                    'Cached Data',
+                    'Help & Support'
+                ];
+                
+                const choice = prompt('Offline Menu:\n' + menuItems.join('\n') + '\n\nEnter your choice:');
+                
+                if (choice) {
+                    if (choice.toLowerCase().includes('ticket')) {
+                        navigateOffline('dashboard.html');
+                    } else if (choice.toLowerCase().includes('profile')) {
+                        navigateOffline('profile.html');
+                    } else if (choice.toLowerCase().includes('data')) {
+                        showOfflineData();
+                    } else if (choice.toLowerCase().includes('help')) {
+                        showOfflineHelp();
+                    }
+                }
+            };
+            
+            // Toast message function
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-message';
+                toast.textContent = message;
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--color-info);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    z-index: 1001;
+                    box-shadow: var(--shadow-lg);
+                    max-width: 90%;
+                    text-align: center;
+                `;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 4000);
+            }
+            
+            // Initialize on DOM ready
+            document.addEventListener('DOMContentLoaded', initializeOffline);
+            
+        })();
+    </script>
+    
+    <style>
+        /* Offline Page Specific Styles */
+        .offline-section .card-body {
+            padding: 3rem 1rem;
+        }
+        
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+        
+        .offline-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--color-text-primary);
+        }
+        
+        .offline-desc {
+            color: var(--color-text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            margin-bottom: 2rem;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .status-indicator.online {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--color-success);
+        }
+        
+        .status-indicator.offline {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--color-danger);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Feature Cards */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--color-text-primary);
+        }
+        
+        .feature-card {
+            background-color: var(--color-background);
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .feature-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--color-text-primary);
+        }
+        
+        .feature-desc {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+        
+        /* Pending Actions */
+        .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pending-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--color-surface);
+            border-radius: var(--radius-md);
+        }
+        
+        .pending-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .pending-content {
+            flex: 1;
+        }
+        
+        .pending-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--color-text-primary);
+        }
+        
+        .pending-desc {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .pending-time {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        
+        .sync-info {
+            background-color: rgba(23, 162, 184, 0.1);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+            color: #0c5460;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Mobile Adjustments */
+        @media (max-width: 767px) {
+            .offline-section .card-body {
+                padding: 2rem 1rem;
+            }
+            
+            .offline-icon {
+                font-size: 3rem;
+            }
+            
+            .offline-title {
+                font-size: 1.25rem;
+            }
+        }
+        
+        /* Animation for retry button */
+        .btn .fa-sync-alt.fa-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

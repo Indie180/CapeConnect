@@ -1,6 +1,7 @@
 ﻿// Admin Portal - dual bus mode (Golden Arrow / MyCiTi)
 let currentAdminBus = 'ga';
 let adminBusLocked = false;
+let currentAdminUser = null;
 
 const BUS_META = {
   ga: {
@@ -16,8 +17,9 @@ const BUS_META = {
 };
 
 // Check Auth on Load
-window.addEventListener('DOMContentLoaded', function () {
-  checkAdminAuth();
+window.addEventListener('DOMContentLoaded', async function () {
+  const allowed = await checkAdminAuth();
+  if (!allowed) return;
   initBusMode();
   bindBusSwitch();
   bindTimetableImport();
@@ -26,15 +28,58 @@ window.addEventListener('DOMContentLoaded', function () {
   loadRoutes();
 });
 
-function checkAdminAuth() {
-  const user = JSON.parse(localStorage.getItem('capeConnectUser'));
-  if (!user || user.role !== 'admin') {
-    alert('Access Denied. Admins only.');
-    window.location.href = 'index.html';
-    return;
+async function checkAdminAuth() {
+  try {
+    if (!window.CCApi || typeof window.CCApi.me !== 'function') {
+      throw new Error('Admin session check is unavailable.');
+    }
+
+    const data = await window.CCApi.me();
+    const apiUser = data?.user || null;
+    const normalizedRole = String(apiUser?.role || '').toLowerCase();
+    const requestedBus = getRequestedAdminBus();
+    const scopedOperator = normalizeBus(apiUser?.operator || '');
+
+    if (!apiUser || !['admin', 'operator_admin', 'super_admin'].includes(normalizedRole)) {
+      throw new Error('Admin access required.');
+    }
+    if (requestedBus && scopedOperator && normalizedRole !== 'super_admin' && requestedBus !== scopedOperator) {
+      throw new Error('Operator scope violation.');
+    }
+
+    currentAdminUser = {
+      name: apiUser.fullName || apiUser.name || 'Admin',
+      email: apiUser.email || '',
+      role: normalizedRole,
+      operator: scopedOperator || '',
+    };
+
+    const legacyUser = {
+      ...(JSON.parse(localStorage.getItem('capeConnectUser') || 'null') || {}),
+      name: currentAdminUser.name,
+      email: currentAdminUser.email,
+      role: 'admin',
+      operator: currentAdminUser.operator || null,
+    };
+    localStorage.setItem('capeConnectUser', JSON.stringify(legacyUser));
+    localStorage.setItem('currentUser', JSON.stringify(legacyUser));
+
+    const el = document.getElementById('admin-name');
+    if (el) el.textContent = currentAdminUser.name || 'Admin';
+    return true;
+  } catch (error) {
+    alert(error?.message || 'Access Denied. Admins only.');
+    if (window.CCApi && typeof window.CCApi.clearAuthSession === 'function') {
+      window.CCApi.clearAuthSession();
+    }
+    window.location.href = 'login.html';
+    return false;
   }
-  const el = document.getElementById('admin-name');
-  if (el) el.textContent = user.name || 'Admin';
+}
+
+function getRequestedAdminBus() {
+  const params = new URLSearchParams(window.location.search);
+  return normalizeBus(params.get('bus') || document.body?.dataset?.adminBus || '');
 }
 
 function normalizeBus(value) {
@@ -47,14 +92,19 @@ function normalizeBus(value) {
 
 function initBusMode() {
   const params = new URLSearchParams(window.location.search);
-  const forcedBus = normalizeBus(params.get('bus'));
+  const forcedBus = getRequestedAdminBus();
   const lockFromQuery = params.get('lockBus') === '1';
   const lockFromBody = document.body?.dataset?.adminLockBus === '1';
   const bodyBus = normalizeBus(document.body?.dataset?.adminBus || '');
   const stored = normalizeBus(localStorage.getItem('adminSelectedBus')) || normalizeBus(localStorage.getItem('selectedBus'));
+  const scopedOperator = normalizeBus(currentAdminUser?.operator || '');
 
-  currentAdminBus = forcedBus || bodyBus || stored || 'ga';
+  currentAdminBus = forcedBus || scopedOperator || bodyBus || stored || 'ga';
   adminBusLocked = lockFromQuery || lockFromBody;
+  if (scopedOperator && currentAdminUser?.role !== 'super_admin') {
+    currentAdminBus = scopedOperator;
+    adminBusLocked = true;
+  }
   localStorage.setItem('adminSelectedBus', currentAdminBus);
   applyBusMode();
 }

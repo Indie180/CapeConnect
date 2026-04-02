@@ -4,9 +4,25 @@ import { query } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validateWalletTopup } from '../middleware/validation.js';
 import payfast from '../services/payfast.js';
-import { log, serializeError } from '../utils/logger.js';
+import { log, logAlert, serializeError } from '../utils/logger.js';
 
 const router = express.Router();
+
+function centsToRandsString(amountCents) {
+  return (Number(amountCents || 0) / 100).toFixed(2);
+}
+
+function amountsMatch(webhookAmountGross, paymentAmountCents) {
+  const webhookAmount = Number.parseFloat(String(webhookAmountGross || '').trim());
+  if (!Number.isFinite(webhookAmount)) {
+    return false;
+  }
+  return webhookAmount.toFixed(2) === centsToRandsString(paymentAmountCents);
+}
+
+function isTerminalStatus(status) {
+  return ['COMPLETED', 'FAILED', 'CANCELLED'].includes(String(status || '').toUpperCase());
+}
 
 // Initiate wallet top-up payment
 router.post('/topup/initiate', requireAuth, validateWalletTopup, async (req, res, next) => {
@@ -65,7 +81,11 @@ router.post('/topup/initiate', requireAuth, validateWalletTopup, async (req, res
     });
 
   } catch (error) {
-    log('error', 'Payment initiation error', { error: serializeError(error) });
+    log('error', 'payment_topup_initiate_error', {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      error: serializeError(error),
+    });
     next(error);
   }
 });
@@ -92,8 +112,34 @@ router.post('/payfast/webhook', async (req, res, next) => {
     `, [signatureValid ? 1 : 0, webhookId]);
 
     if (!signatureValid) {
-      log('error', 'Invalid PayFast webhook signature');
+      logAlert('payment_webhook_invalid_signature', {
+        requestId: req.requestId,
+        webhookId,
+      }, {
+        category: 'payments',
+        severity: 'high',
+        code: 'payment_webhook_invalid_signature',
+      });
       return res.status(400).send('Invalid signature');
+    }
+
+    const providerValidated = await payfast.validatePayment(webhookData);
+    if (!providerValidated) {
+      const errorMsg = 'PayFast server validation failed';
+      logAlert('payment_webhook_provider_validation_failed', {
+        requestId: req.requestId,
+        webhookId,
+      }, {
+        category: 'payments',
+        severity: 'high',
+        code: 'payment_webhook_provider_validation_failed',
+      });
+      await query(`
+        UPDATE payment_webhooks
+        SET error_message = $1
+        WHERE id = $2
+      `, [errorMsg, webhookId]);
+      return res.status(400).send('Validation failed');
     }
 
     const { 
@@ -113,7 +159,17 @@ router.post('/payfast/webhook', async (req, res, next) => {
 
     if (paymentResult.rows.length === 0) {
       const errorMsg = `Payment not found: ${m_payment_id}`;
-      log('error', errorMsg);
+      logAlert('payment_webhook_payment_not_found', {
+        requestId: req.requestId,
+        webhookId,
+        payfastPaymentId: m_payment_id,
+        paymentId,
+        userId,
+      }, {
+        category: 'payments',
+        severity: 'high',
+        code: 'payment_webhook_payment_not_found',
+      });
       
       await query(`
         UPDATE payment_webhooks 
@@ -125,7 +181,48 @@ router.post('/payfast/webhook', async (req, res, next) => {
     }
 
     const payment = paymentResult.rows[0];
+    const expectedAmount = centsToRandsString(payment.amount_cents);
+    if (!amountsMatch(amount_gross, payment.amount_cents)) {
+      const errorMsg = `Amount mismatch for payment ${payment.id}; expected ${expectedAmount}, got ${amount_gross}`;
+      logAlert('payment_webhook_amount_mismatch', {
+        requestId: req.requestId,
+        webhookId,
+        paymentId: payment.id,
+        expectedAmount,
+        receivedAmount: amount_gross,
+      }, {
+        category: 'payments',
+        severity: 'critical',
+        code: 'payment_webhook_amount_mismatch',
+      });
+
+      await query(`
+        UPDATE payment_webhooks
+        SET error_message = $1
+        WHERE id = $2
+      `, [errorMsg, webhookId]);
+
+      return res.status(400).send('Amount mismatch');
+    }
+
     const newStatus = payfast.getPaymentStatus(payment_status);
+    const currentStatus = String(payment.status || '').toUpperCase();
+
+    if (isTerminalStatus(currentStatus)) {
+      log('info', 'Ignoring duplicate terminal payment webhook', {
+        paymentId: payment.id,
+        currentStatus,
+        incomingStatus: newStatus,
+      });
+
+      await query(`
+        UPDATE payment_webhooks
+        SET processed = 1, payment_id = $1
+        WHERE id = $2
+      `, [payment.id, webhookId]);
+
+      return res.status(200).send('OK');
+    }
 
     // Start transaction for atomic updates
     await query('BEGIN');
@@ -183,9 +280,19 @@ router.post('/payfast/webhook', async (req, res, next) => {
           newBalance
         ]);
 
-        log('info', 'Payment completed', { paymentId: m_payment_id, amount: amount_gross, newBalance: (newBalance/100).toFixed(2) });
+        log('info', 'Payment completed', {
+          paymentId: m_payment_id,
+          internalPaymentId: payment.id,
+          userId,
+          amount: amount_gross,
+          newBalance: (newBalance/100).toFixed(2)
+        });
       } else {
-        log('info', `Payment ${newStatus.toLowerCase()}`, { paymentId: m_payment_id, status: payment_status });
+        log('info', `Payment ${newStatus.toLowerCase()}`, {
+          paymentId: m_payment_id,
+          internalPaymentId: payment.id,
+          status: payment_status
+        });
       }
 
       // Mark webhook as processed
@@ -212,7 +319,14 @@ router.post('/payfast/webhook', async (req, res, next) => {
     res.status(200).send('OK');
 
   } catch (error) {
-    log('error', 'Webhook processing error', { error: serializeError(error) });
+    logAlert('payment_webhook_processing_error', {
+      requestId: req.requestId,
+      error: serializeError(error),
+    }, {
+      category: 'payments',
+      severity: 'critical',
+      code: 'payment_webhook_processing_error',
+    });
     next(error);
   }
 });
@@ -244,6 +358,12 @@ router.get('/status/:paymentId', requireAuth, async (req, res, next) => {
 
     const payment = result.rows[0];
     
+    log('info', 'payment_status_checked', {
+      requestId: req.requestId,
+      userId,
+      paymentId: payment.id,
+      status: payment.status,
+    });
     res.json({
       id: payment.id,
       amount: payment.amount_cents,
@@ -256,7 +376,12 @@ router.get('/status/:paymentId', requireAuth, async (req, res, next) => {
     });
 
   } catch (error) {
-    log('error', 'Payment status check error', { error: serializeError(error) });
+    log('error', 'payment_status_check_error', {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      paymentId: req.params?.paymentId || null,
+      error: serializeError(error),
+    });
     next(error);
   }
 });
@@ -284,6 +409,13 @@ router.get('/history', requireAuth, async (req, res, next) => {
       LIMIT $2 OFFSET $3
     `, [userId, limit, offset]);
 
+    log('info', 'payment_history_checked', {
+      requestId: req.requestId,
+      userId,
+      count: result.rows.length,
+      limit,
+      offset,
+    });
     const payments = result.rows.map(payment => ({
       id: payment.id,
       amount: payment.amount_cents,
@@ -305,7 +437,11 @@ router.get('/history', requireAuth, async (req, res, next) => {
     });
 
   } catch (error) {
-    log('error', 'Payment history error', { error: serializeError(error) });
+    log('error', 'payment_history_error', {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      error: serializeError(error),
+    });
     next(error);
   }
 });

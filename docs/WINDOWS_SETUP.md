@@ -106,6 +106,17 @@ If you just want to test quickly without PostgreSQL, we can create a SQLite vers
 curl http://localhost:4000/health
 ```
 
+### Run Backend Tests
+
+```powershell
+cd backend
+npm.cmd test
+```
+
+Notes:
+- The backend test script now uses in-process Node test mode to avoid Windows `spawn EPERM` failures.
+- Playwright uses `npm.cmd --prefix backend start` automatically on Windows.
+
 ### Test Login
 
 ```powershell

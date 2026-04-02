@@ -10,38 +10,27 @@ function read(relativePath) {
 
 module.exports = [
   {
-    name: 'index.html includes the core static app assets',
+    name: 'index.html redirects to the screenshot-based login page',
     run() {
       const html = read('index.html');
-
-      const expectedAssets = [
-        'styles/main.css',
-        'js/config.js',
-        'js/router.js',
-        'js/auth.js',
-        'js/api.js',
-        'js/components.js',
-        'js/pages.js',
-        'js/app.js',
-      ];
-
-      for (const asset of expectedAssets) {
-        assert.match(html, new RegExp(asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-        assert.equal(fs.existsSync(path.join(rootDir, asset)), true, `${asset} should exist`);
-      }
+      assert.match(html, /http-equiv="refresh"/i);
+      assert.match(html, /url=login\.html/i);
     },
   },
   {
-    name: 'core browser scripts expose the globals required by app.js',
+    name: 'auth page scripts and styles exist',
     run() {
-      const routerScript = read('js/router.js');
-      const authScript = read('js/auth.js');
-      const appScript = read('js/app.js');
+      const loginHtml = read('login.html');
+      const signupHtml = read('signup.html');
+      const authPagesScript = read('js/auth-pages.js');
 
-      assert.match(routerScript, /window\.CCRouter\s*=/);
-      assert.match(authScript, /window\.CCAuth\s*=/);
-      assert.match(appScript, /window\.CCRouter\.init\(\)/);
-      assert.match(appScript, /window\.CCAuth\.isAuthenticated\(\)/);
+      assert.match(loginHtml, /css\/styles\.css/);
+      assert.match(signupHtml, /css\/styles\.css/);
+      assert.match(loginHtml, /js\/auth-pages\.js/);
+      assert.match(signupHtml, /js\/auth-pages\.js/);
+      assert.match(authPagesScript, /window\.App\s*=/);
+      assert.match(authPagesScript, /window\.handleLogin\s*=/);
+      assert.match(authPagesScript, /window\.handleSignup\s*=/);
     },
   },
 ];

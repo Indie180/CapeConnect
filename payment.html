@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
   <title>Payment + Wallet (Demo)</title>
   <style>
     :root{
@@ -181,6 +182,9 @@
             </div>
           </label>
         </div>
+        <div class="section-sub" id="paymentMethodNote" style="margin-top:10px;">
+          Saved cards are demo-only on this page.
+        </div>
 
         <div id="savedCardsSection" style="margin-top:14px; display:none;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -357,6 +361,7 @@
   </div>
 
   <script src="js/api-client.js"></script>
+  <script src="js/auth-pages.js"></script>
   <script src="js/cc-utils.js"></script>
   <script src="js/data-service.js"></script>
   <script>
@@ -365,14 +370,14 @@
     // =========================
     const CHECKOUT_CONFIG = {
       operator: "MyCiTi", // or "GoldenArrow"
-      purchaseTitle: "1 Day Pass",
-      amountCents: 9000,
+      purchaseTitle: "Top Up - 50 Points",
+      amountCents: 5000,
       currency: "ZAR",
       reference: "DEMO-ORDER-001"
     };
     // If booking flow stored data exists, prefer it for summary + ticket creation.
-    let PASS_PRICES = { day1: 90, day3: 210, day7: 300, monthly: 1000 };
-    const PASS_LABELS = { day1: "1-Day Pass", day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
+    let PASS_PRICES = { day3: 210, day7: 300, monthly: 1000 };
+    const PASS_LABELS = { day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
 
     function getBookingState(){
       return window.CCUtils.storageGet("mycitiBooking", {});
@@ -393,14 +398,27 @@
 
     function applyBookingToConfig(){
       const state = getBookingState();
-      const fare = state.fare || "topup";
-      if (fare === "topup" && state.estimate) {
-        CHECKOUT_CONFIG.purchaseTitle = "Top Up (Mover)";
-        CHECKOUT_CONFIG.amountCents = Math.round((state.estimate.amount || 0) * 100);
-      } else if (fare !== "topup") {
-        CHECKOUT_CONFIG.purchaseTitle = PASS_LABELS[fare] || "Pass";
-        CHECKOUT_CONFIG.amountCents = Math.round((PASS_PRICES[fare] || 0) * 100);
+      const summary = window.CCUtils.buildMycitiBookingSummary(state, {
+        passPrices: PASS_PRICES,
+        passLabels: PASS_LABELS
+      });
+      CHECKOUT_CONFIG.purchaseTitle = summary.purchaseTitle;
+      CHECKOUT_CONFIG.amountCents = Number(summary.amountCents);
+    }
+
+    function getCheckoutAmountCents() {
+      const configured = Number(CHECKOUT_CONFIG.amountCents);
+      if (Number.isFinite(configured) && configured > 0) {
+        return Math.round(configured);
       }
+      const summary = window.CCUtils.buildMycitiBookingSummary(getBookingState(), {
+        passPrices: PASS_PRICES,
+        passLabels: PASS_LABELS
+      });
+      const recomputed = Number(summary?.amountCents || 0);
+      CHECKOUT_CONFIG.purchaseTitle = summary?.purchaseTitle || CHECKOUT_CONFIG.purchaseTitle;
+      CHECKOUT_CONFIG.amountCents = Number.isFinite(recomputed) && recomputed > 0 ? Math.round(recomputed) : 0;
+      return CHECKOUT_CONFIG.amountCents;
     }
 
     // =========================
@@ -460,15 +478,12 @@
     // Storage
     // =========================
     const Storage = {
-      getWallet(){ return parseInt(localStorage.getItem("walletBalanceCents") || "0", 10); },
-      setWallet(cents){ localStorage.setItem("walletBalanceCents", String(cents)); },
-      getCards(){
-        try { return JSON.parse(localStorage.getItem("savedCards") || "[]"); }
-        catch { return []; }
-      },
-      setCards(list){ localStorage.setItem("savedCards", JSON.stringify(list)); },
-      getDefaultCardId(){ return localStorage.getItem("defaultCardId") || ""; },
-      setDefaultCardId(id){ localStorage.setItem("defaultCardId", id); }
+      getWallet(){ return 0; },
+      setWallet(){},
+      getCards(){ return []; },
+      setCards(){},
+      getDefaultCardId(){ return ""; },
+      setDefaultCardId(){}
     };
     const WalletState = { balanceCents: 0, source: "local" };
 
@@ -478,20 +493,19 @@
 
     async function loadWalletBalance(){
       if (!hasApiAuth() || !window.CCApi || typeof window.CCApi.getWalletMe !== "function") {
-        WalletState.balanceCents = Storage.getWallet();
-        WalletState.source = "local";
-        return WalletState.balanceCents;
+        WalletState.balanceCents = 0;
+        WalletState.source = "api-error";
+        throw new Error("Wallet service is unavailable.");
       }
       try {
         const resp = await window.CCApi.getWalletMe();
         WalletState.balanceCents = Number(resp?.wallet?.balance_cents || 0);
         WalletState.source = "api";
-        Storage.setWallet(WalletState.balanceCents);
         return WalletState.balanceCents;
-      } catch (_err) {
-        WalletState.balanceCents = Storage.getWallet();
-        WalletState.source = "local-fallback";
-        return WalletState.balanceCents;
+      } catch (err) {
+        WalletState.balanceCents = 0;
+        WalletState.source = "api-error";
+        throw err;
       }
     }
 
@@ -500,32 +514,22 @@
     }
 
     async function topupWallet(amountCents){
-      if (hasApiAuth() && window.CCApi && typeof window.CCApi.walletTopup === "function") {
-        const resp = await window.CCApi.walletTopup({ amountCents, note: "Checkout top up" });
-        WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
-        WalletState.source = "api";
-        Storage.setWallet(WalletState.balanceCents);
-        return WalletState.balanceCents;
+      if (!hasApiAuth() || !window.CCApi || typeof window.CCApi.walletTopup !== "function") {
+        throw new Error("Wallet top up is unavailable.");
       }
-      WalletState.balanceCents = getWalletBalance() + amountCents;
-      WalletState.source = "local";
-      Storage.setWallet(WalletState.balanceCents);
+      const resp = await window.CCApi.walletTopup({ amountCents, note: "Checkout top up" });
+      WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
+      WalletState.source = "api";
       return WalletState.balanceCents;
     }
 
     async function spendWallet(amountCents){
-      if (hasApiAuth() && window.CCApi && typeof window.CCApi.walletSpend === "function") {
-        const resp = await window.CCApi.walletSpend({ amountCents, note: "Ticket purchase" });
-        WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
-        WalletState.source = "api";
-        Storage.setWallet(WalletState.balanceCents);
-        return WalletState.balanceCents;
+      if (!hasApiAuth() || !window.CCApi || typeof window.CCApi.walletSpend !== "function") {
+        throw new Error("Wallet payment is unavailable.");
       }
-      const next = getWalletBalance() - amountCents;
-      if (next < 0) throw new Error("Insufficient wallet balance");
-      WalletState.balanceCents = next;
-      WalletState.source = "local";
-      Storage.setWallet(WalletState.balanceCents);
+      const resp = await window.CCApi.walletSpend({ amountCents, note: "Ticket purchase" });
+      WalletState.balanceCents = Number(resp?.wallet?.balance_cents || getWalletBalance());
+      WalletState.source = "api";
       return WalletState.balanceCents;
     }
 
@@ -599,17 +603,19 @@
     }
 
     function renderSummary(){
+      const amountCents = getCheckoutAmountCents();
       summaryOperator.textContent = CHECKOUT_CONFIG.operator;
       summaryTitle.textContent = CHECKOUT_CONFIG.purchaseTitle;
-      summaryAmount.textContent = fmtZar(CHECKOUT_CONFIG.amountCents);
+      summaryAmount.textContent = fmtZar(amountCents);
       summaryRef.textContent = CHECKOUT_CONFIG.reference;
     }
 
     function renderWallet(){
       const balance = getWalletBalance();
+      const amountCents = getCheckoutAmountCents();
       walletBalance.textContent = fmtZar(balance);
       walletAction.innerHTML = "";
-      if (balance >= CHECKOUT_CONFIG.amountCents) {
+      if (balance >= amountCents) {
         const btn = document.createElement("button");
         btn.className = "btn primary";
         btn.textContent = "Pay with Wallet";
@@ -624,100 +630,55 @@
     }
 
     function renderSavedCards(){
-      const cards = Storage.getCards();
       savedCardsList.innerHTML = "";
-      const defaultId = Storage.getDefaultCardId();
-      if (!cards.length) {
-        const empty = document.createElement("div");
-        empty.className = "section-sub";
-        empty.textContent = "No saved cards yet.";
-        savedCardsList.appendChild(empty);
-      } else {
-        cards.forEach(card => {
-          const row = document.createElement("label");
-          row.className = "card-row";
-          row.innerHTML = `
-            <div class="card-main">
-              <input type="radio" name="savedCardPick" value="${card.id}" ${card.id === defaultId ? "checked" : ""} aria-label="${card.brand} ending ${card.last4}" />
-              <div>
-                <div><strong>${card.brand}</strong> •••• ${card.last4} ${card.id === defaultId ? '<span class="tag-default">Default</span>' : ''}</div>
-                <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
-              </div>
-            </div>
-            <span class="card-pill">Saved</span>
-          `;
-          savedCardsList.appendChild(row);
-        });
-      }
-      const maxed = cards.length >= 3;
-      cardsLimitMsg.style.display = maxed ? "block" : "none";
-      saveCardCheckbox.disabled = maxed;
-      saveCardCheckbox.checked = maxed ? false : saveCardCheckbox.checked;
-      topupSave.disabled = maxed;
-      topupSave.checked = maxed ? false : topupSave.checked;
-      manageLimitMsg.style.display = maxed ? "block" : "none";
-      manageAddBtn.disabled = maxed;
+      const empty = document.createElement("div");
+      empty.className = "section-sub";
+      empty.textContent = "Saved cards are disabled in this build.";
+      savedCardsList.appendChild(empty);
+      cardsLimitMsg.style.display = "block";
+      saveCardCheckbox.disabled = true;
+      saveCardCheckbox.checked = false;
+      topupSave.disabled = true;
+      topupSave.checked = false;
+      manageLimitMsg.style.display = "block";
+      manageAddBtn.disabled = true;
     }
 
     function renderTopupSavedCards(){
-      const cards = Storage.getCards();
       topupSavedList.innerHTML = "";
-      if (!cards.length) {
-        const empty = document.createElement("div");
-        empty.className = "section-sub";
-        empty.textContent = "No saved cards available.";
-        topupSavedList.appendChild(empty);
-        return;
-      }
-      cards.forEach(card => {
-        const row = document.createElement("label");
-        row.className = "card-row";
-        row.innerHTML = `
-          <div class="card-main">
-            <input type="radio" name="topupCardPick" value="${card.id}" aria-label="${card.brand} ending ${card.last4}" />
-            <div>
-              <div><strong>${card.brand}</strong> •••• ${card.last4}</div>
-              <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
-            </div>
-          </div>
-        `;
-        topupSavedList.appendChild(row);
-      });
-      const first = topupSavedList.querySelector('input[name="topupCardPick"]');
-      if (first) first.checked = true;
+      const empty = document.createElement("div");
+      empty.className = "section-sub";
+      empty.textContent = "Saved cards are disabled in this build.";
+      topupSavedList.appendChild(empty);
     }
 
     function renderManageCards(){
-      const cards = Storage.getCards();
       manageList.innerHTML = "";
-      const defaultId = Storage.getDefaultCardId();
-      if (!cards.length) {
-        const empty = document.createElement("div");
-        empty.className = "section-sub";
-        empty.textContent = "No saved cards.";
-        manageList.appendChild(empty);
-      } else {
-        cards.forEach(card => {
-          const row = document.createElement("div");
-          row.className = "card-row";
-          row.innerHTML = `
-            <div class="card-main">
-              <div>
-                <div><strong>${card.brand}</strong> •••• ${card.last4} ${card.id === defaultId ? '<span class="tag-default">Default</span>' : ''}</div>
-                <div class="section-sub">Exp ${String(card.expMonth).padStart(2,'0')}/${String(card.expYear).slice(-2)}</div>
-              </div>
-            </div>
-            <div style="display:flex; gap:6px;">
-              <button class="btn ghost" data-action="default" data-id="${card.id}">Set default</button>
-              <button class="btn danger" data-action="remove" data-id="${card.id}">Remove</button>
-            </div>
-          `;
-          manageList.appendChild(row);
-        });
-      }
+      const empty = document.createElement("div");
+      empty.className = "section-sub";
+      empty.textContent = "Card management is disabled in this build.";
+      manageList.appendChild(empty);
     }
 
     function updateMethodVisibility(){
+      const authenticated = hasApiAuth();
+      const methodNote = document.getElementById("paymentMethodNote");
+      document.querySelectorAll('input[name="payMethod"]').forEach((input) => {
+        const item = input.closest('.radio-item');
+        if (!item) return;
+        const shouldHide = input.value === "saved" || (authenticated && input.value !== "wallet");
+        item.style.display = shouldHide ? "none" : "";
+        if (shouldHide) input.checked = false;
+      });
+      if (authenticated) {
+        const walletRadio = document.querySelector('input[name="payMethod"][value="wallet"]');
+        if (walletRadio) walletRadio.checked = true;
+        if (methodNote) {
+          methodNote.textContent = "Signed-in users pay through the backend wallet. Direct card checkout is disabled here.";
+        }
+      } else if (methodNote) {
+        methodNote.textContent = "Card saving is disabled. Use wallet or a one-time demo card entry.";
+      }
       const selected = document.querySelector('input[name="payMethod"]:checked')?.value || "wallet";
       savedCardsSection.style.display = selected === "saved" ? "block" : "none";
       newCardSection.style.display = selected === "new" ? "block" : "none";
@@ -729,71 +690,62 @@
       setTimeout(() => { toast.style.display = "none"; }, 1800);
     }
 
-    function storeTicket(ticket){
-      window.CCUtils.addTicket(ticket);
+    async function storeTicket(ticket){
+      return window.CCUtils.addTicket(ticket);
     }
 
     function createTicketFromBooking(){
       const state = getBookingState();
-      const fare = state.fare || "topup";
-      const now = new Date();
+      const summary = window.CCUtils.buildMycitiBookingSummary(state, {
+        passPrices: PASS_PRICES,
+        passLabels: PASS_LABELS
+      });
       const operatorRaw = (CHECKOUT_CONFIG.operator || "MyCiTi").toLowerCase();
       const operator = operatorRaw.includes("golden") ? "GoldenArrow" : "MyCiTi";
-      const routeLabel = fare === "topup"
-        ? (state.estimate?.routeLabel || "MyCiTi Route")
-        : `Pass - ${PASS_LABELS[fare] || "MyCiTi"}`;
-      const amount = fare === "topup"
-        ? (state.estimate?.amount || 0)
-        : (PASS_PRICES[fare] || 0);
-      const ticketId = `TCK-${Date.now()}`;
-      const expiryDays = fare === "day1" ? 1 : fare === "day3" ? 3 : fare === "day7" ? 7 : fare === "monthly" ? 30 : 365;
-      return {
-        id: ticketId,
+      const expiryDays = summary.fare === "day3" ? 3 : summary.fare === "day7" ? 7 : summary.fare === "monthly" ? 30 : 365;
+      return window.CCUtils.buildIssuedTicket({
         operator,
-        service: operator === "GoldenArrow" ? "Golden Arrow" : "MyCiTi Bus",
-        route: routeLabel,
-        date: now.toISOString().slice(0,10),
-        time: `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`,
-        type: fare,
-        passengers: 1,
-        total: `R ${amount.toFixed(2)}`,
-        status: "Active",
-        purchasedAt: now.toISOString(),
-        validFrom: now.toISOString(),
-        expiresAt: new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
-        qrData: JSON.stringify({ id: ticketId, route: routeLabel, amount })
-      };
+        service: operator === "GoldenArrow" ? "Golden Arrow" : "MyCiTi",
+        route: summary.routeLabel,
+        type: summary.fare,
+        amount: summary.amount,
+        expiryDays
+      });
     }
 
-    function finishPayment(paidWithDisplay){
+    function getDashboardUrl(){
+      const operatorRaw = String(CHECKOUT_CONFIG.operator || "MyCiTi").toLowerCase();
+      return operatorRaw.includes("golden") ? "golden-arrow-dashboard.html" : "myciti-dashboard.html";
+    }
+
+    async function finishPayment(paidWithDisplay){
       const ticket = createTicketFromBooking();
-      storeTicket(ticket);
-      window.location.href = "dashboard.html";
+      await storeTicket(ticket);
+      window.location.href = getDashboardUrl();
     }
 
     async function payWithWallet(){
+      const amountCents = getCheckoutAmountCents();
+      if (!Number.isFinite(amountCents) || amountCents <= 0) {
+        alert("This booking amount is invalid. Please restart checkout.");
+        return;
+      }
       const balance = getWalletBalance();
-      if (balance < CHECKOUT_CONFIG.amountCents) {
+      if (balance < amountCents) {
         alert("Insufficient wallet balance. Top up first.");
         return;
       }
       try {
-        await spendWallet(CHECKOUT_CONFIG.amountCents);
+        await spendWallet(amountCents);
         renderWallet();
-        finishPayment("Wallet");
+        await finishPayment("Wallet");
       } catch (err) {
         alert(err?.message || "Could not pay with wallet.");
       }
     }
 
     function payWithSavedCard(){
-      const cardId = document.querySelector('input[name="savedCardPick"]:checked')?.value;
-      const card = Storage.getCards().find(c => c.id === cardId);
-      if (!card) {
-        alert("Select a saved card first.");
-        return;
-      }
-      finishPayment(`Saved Card (${card.brand} ****${card.last4})`);
+      alert("Saved cards are disabled in this build.");
     }
 
     function validateCardFields(nameValue, numberValue, expiryValue, cvvValue){
@@ -824,32 +776,21 @@
     }
 
     function saveNewCardIfNeeded(exp){
-      const cards = Storage.getCards();
-      if (cards.length >= 3) return null;
-      if (!saveCardCheckbox.checked) return null;
-      const digits = newNumber.value.replace(/\D/g, "") || "0000";
-      const card = {
-        id: `card_${Date.now()}`,
-        brand: cardBrand(digits),
-        last4: digits.slice(-4),
-        expMonth: exp.month,
-        expYear: exp.year,
-        createdAt: new Date().toISOString(),
-        fakeToken: makeToken()
-      };
-      const next = [card, ...cards];
-      Storage.setCards(next);
-      if (!Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
-      return card;
+      return null;
     }
 
-    function payWithNewCard(){
+    async function payWithNewCard(){
       const { valid, exp, digits } = validateNewCard();
       if (!valid) return;
       const savedCard = saveNewCardIfNeeded(exp);
       renderSavedCards();
       const brand = cardBrand(digits);
-      finishPayment(`New Card (${brand} ****${digits.slice(-4)})`);
+      try {
+        await finishPayment(`New Card (${brand} ****${digits.slice(-4)})`);
+      } catch (err) {
+        alert(err?.message || "Could not issue the ticket.");
+        return;
+      }
       if (savedCard) showToast("Card saved (demo)");
     }
 
@@ -859,7 +800,7 @@
         <div class="summary-row"><span>Status</span><strong>Payment successful (demo)</strong></div>
         <div class="summary-row"><span>Operator</span><strong>${CHECKOUT_CONFIG.operator}</strong></div>
         <div class="summary-row"><span>Purchase</span><strong>${CHECKOUT_CONFIG.purchaseTitle}</strong></div>
-        <div class="summary-row"><span>Amount</span><strong>${fmtZar(CHECKOUT_CONFIG.amountCents)}</strong></div>
+        <div class="summary-row"><span>Amount</span><strong>${fmtZar(getCheckoutAmountCents())}</strong></div>
         <div class="summary-row"><span>Paid with</span><strong>${paidWithDisplay}</strong></div>
         <div class="summary-row"><span>Timestamp</span><strong>${nowStamp()}</strong></div>
         <div style="margin-top:10px;">
@@ -940,7 +881,11 @@
     btnTopUp.addEventListener("click", () => {
       renderTopupSavedCards();
       topupAmount.value = "";
-      topupNewCard.style.display = "none";
+      const topupNewSource = document.querySelector('input[name="topupSource"][value="new"]');
+      if (topupNewSource) topupNewSource.checked = true;
+      topupNewCard.style.display = "block";
+      topupSave.checked = false;
+      topupSave.disabled = true;
       openModal(topupModal);
     });
 
@@ -981,23 +926,6 @@
           alert(check.errors.name || check.errors.number || check.errors.expiry || check.errors.cvv || "Enter valid card details.");
           return;
         }
-        const exp = check.exp;
-        if (topupSave.checked && Storage.getCards().length < 3) {
-          const digits = check.digits || "0000";
-          const card = {
-            id: `card_${Date.now()}`,
-            brand: cardBrand(digits),
-            last4: digits.slice(-4),
-            expMonth: exp.month,
-            expYear: exp.year,
-            createdAt: new Date().toISOString(),
-            fakeToken: makeToken()
-          };
-          const next = [card, ...Storage.getCards()];
-          Storage.setCards(next);
-          if (!Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
-          renderSavedCards();
-        }
       }
       try {
         await topupWallet(amount * 100);
@@ -1020,24 +948,7 @@
     });
 
     manageList.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      const id = btn.dataset.id;
-      const action = btn.dataset.action;
-      if (action === "default") {
-        Storage.setDefaultCardId(id);
-        renderSavedCards();
-        renderManageCards();
-      }
-      if (action === "remove") {
-        const ok = confirm("Remove this card?");
-        if (!ok) return;
-        const cards = Storage.getCards().filter(c => c.id !== id);
-        Storage.setCards(cards);
-        if (Storage.getDefaultCardId() === id) Storage.setDefaultCardId(cards[0]?.id || "");
-        renderSavedCards();
-        renderManageCards();
-      }
+      e.preventDefault();
     });
 
     manageNumber.addEventListener("input", () => {
@@ -1052,35 +963,7 @@
     });
 
     manageAddBtn.addEventListener("click", () => {
-      if (Storage.getCards().length >= 3) return;
-      const check = validateCardFields(manageName.value, manageNumber.value, manageExpiry.value, manageCvv.value);
-      if (!check.ok) {
-        alert(check.errors.name || check.errors.number || check.errors.expiry || check.errors.cvv || "Enter valid card details.");
-        return;
-      }
-      const exp = check.exp;
-      const digits = check.digits || "0000";
-      const card = {
-        id: `card_${Date.now()}`,
-        brand: cardBrand(digits),
-        last4: digits.slice(-4),
-        expMonth: exp.month,
-        expYear: exp.year,
-        createdAt: new Date().toISOString(),
-        fakeToken: makeToken()
-      };
-      const next = [card, ...Storage.getCards()];
-      Storage.setCards(next);
-      if (manageDefault.checked || !Storage.getDefaultCardId()) Storage.setDefaultCardId(card.id);
-
-      manageName.value = "";
-      manageNumber.value = "";
-      manageExpiry.value = "";
-      manageCvv.value = "";
-      manageDefault.checked = false;
-
-      renderSavedCards();
-      renderManageCards();
+      alert("Card management is disabled in this build.");
     });
 
     async function init(){
@@ -1088,7 +971,11 @@
       applyBookingToConfig();
       applyOperatorTheme();
       renderSummary();
-      await loadWalletBalance();
+      try {
+        await loadWalletBalance();
+      } catch (err) {
+        walletAction.textContent = err?.message || "Wallet service is unavailable.";
+      }
       renderWallet();
       renderSavedCards();
       updateMethodVisibility();

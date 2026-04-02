@@ -1,0 +1,1685 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="pictures/ChatGPT Image Feb 5, 2026, 10_08_28 AM.png">
+    <title>Dashboard - CapeConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        body { overflow-x: hidden; }
+        .tickets-content {
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .tickets-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+            width: 100%;
+        }
+        @media (max-width: 1400px) {
+            .tickets-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+        @media (max-width: 980px) {
+            .tickets-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+            .tickets-grid { grid-template-columns: 1fr; }
+        }
+        .myciti-booking {
+            margin: 40px auto 0;
+            padding: 0 24px 10px;
+        }
+        .myciti-booking .booking-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+        .myciti-booking .card {
+            background: rgba(255, 255, 255, .96);
+            border: 1px solid rgba(255, 255, 255, .55);
+            border-radius: 18px;
+            box-shadow: 0 16px 40px rgba(11, 31, 58, .18);
+            padding: 18px;
+        }
+        .myciti-booking .section-title {
+            margin: 0 0 4px;
+            font-size: 22px;
+            font-weight: 900;
+            color: #0b1f3a;
+        }
+        .myciti-booking .section-sub {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .myciti-booking .banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(0, 163, 224, .14);
+            border: 1px solid rgba(0, 163, 224, .35);
+            color: #0b1f3a;
+            font-weight: 700;
+            margin: 12px 0 0;
+        }
+        .myciti-booking .steps {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0 16px;
+            background: rgba(255, 255, 255, .5);
+            border: 1px solid rgba(15, 23, 42, .12);
+            padding: 10px;
+            border-radius: 14px;
+            flex-wrap: wrap;
+        }
+        .myciti-booking .step-pill {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+            border-radius: 12px;
+            padding: 8px 6px;
+            font-weight: 800;
+            font-size: 12px;
+            color: #0b1f3a;
+            border: 1px solid transparent;
+        }
+        .myciti-booking .step-pill.active {
+            background: #ffffff;
+            border-color: rgba(0, 163, 224, .35);
+            box-shadow: 0 10px 18px rgba(11, 31, 58, .10);
+        }
+        .myciti-booking .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .myciti-booking .fare-card {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, .12);
+            background: #f7fbff;
+            cursor: pointer;
+            transition: transform .08s ease, box-shadow .12s ease;
+        }
+        .myciti-booking .fare-card:hover {
+            transform: translateY(-1px);
+        }
+        .myciti-booking .fare-card input {
+            margin-top: 4px;
+        }
+        .myciti-booking .fare-title {
+            font-weight: 900;
+            color: #0b1f3a;
+        }
+        .myciti-booking .fare-desc {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .myciti-booking .fare-price {
+            font-weight: 900;
+            color: #0b1f3a;
+            margin-top: 6px;
+        }
+        .myciti-booking .helper {
+            font-size: 12px;
+            color: #64748b;
+            margin: 6px 0 0;
+        }
+        .myciti-booking .field span {
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            color: #0b1f3a;
+            margin-bottom: 6px;
+        }
+        .myciti-booking input,
+        .myciti-booking select {
+            width: 100%;
+            padding: 12px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(15, 23, 42, .12);
+            outline: none;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: inherit;
+        }
+        .myciti-booking .two {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .myciti-booking .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .myciti-booking .results {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(0, 163, 224, .10);
+            border: 1px solid rgba(0, 163, 224, .28);
+        }
+        .myciti-booking .results-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(15, 23, 42, .12);
+            font-size: 14px;
+        }
+        .myciti-booking .results-row:last-child {
+            border-bottom: none;
+        }
+        .myciti-booking .results strong {
+            color: #0b1f3a;
+        }
+        .myciti-booking .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .myciti-booking .btn {
+            border: 1px solid rgba(15, 23, 42, .12);
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            background: #ffffff;
+        }
+        .myciti-booking .btn.primary {
+            background: linear-gradient(180deg, #00a3e0, #008fc3);
+            color: #ffffff;
+            border-color: rgba(0, 163, 224, .40);
+        }
+        .myciti-booking .btn.ghost {
+            background: rgba(0, 163, 224, .10);
+            color: #0b1f3a;
+            border-color: rgba(0, 163, 224, .28);
+        }
+        .myciti-booking .disclaimer {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .myciti-booking .notice {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(245, 176, 0, .14);
+            border: 1px solid rgba(245, 176, 0, .35);
+            color: #7a5200;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .myciti-booking .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .myciti-booking .input-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .myciti-booking .stripe-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(0, 163, 224, .18);
+            border: 1px solid rgba(0, 163, 224, .32);
+            color: #0b1f3a;
+            font-weight: 800;
+            font-size: 12px;
+        }
+        .myciti-booking .ticket-preview {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 163, 224, .30);
+            background: rgba(230, 244, 255, .75);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .myciti-booking .ticket-left {
+            flex: 1;
+        }
+        .myciti-booking .ticket-title {
+            font-weight: 900;
+            color: #0b1f3a;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .myciti-booking .qr-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+        .myciti-booking .qr-canvas {
+            width: 110px;
+            height: 110px;
+            border-radius: 12px;
+            background: #fff;
+            border: 2px dashed rgba(0, 163, 224, .55);
+        }
+        .myciti-booking .alert {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .32);
+            color: #7f1d1d;
+            font-weight: 700;
+            font-size: 12px;
+            display: none;
+        }
+        .myciti-booking .success {
+            background: rgba(16, 185, 129, .12);
+            border: 1px solid rgba(16, 185, 129, .32);
+            color: #065f46;
+        }
+        @media (min-width: 700px) {
+            .myciti-booking .grid { grid-template-columns: 1fr 1fr; }
+            .myciti-booking .two { grid-template-columns: 1fr 1fr; }
+            .myciti-booking .controls { grid-template-columns: 1fr 1fr; }
+            .myciti-booking .payment-grid { grid-template-columns: 1fr 1fr; }
+            .myciti-booking .input-row { grid-template-columns: 1fr 1fr 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="golden-arrow-dashboard.html" class="logo" id="header-logo"><i class="fas fa-bus"></i> CapeConnect</a>
+            <nav class="nav-links" id="main-nav">
+                <a href="golden-arrow-dashboard.html">Dashboard</a>
+                <a href="golden-arrow-timetable.html">Timetable & Routes</a>
+                <a id="calc-link" href="myciti-calculator.html">Calculator</a>
+                <a id="booking-link" href="choose-fare.html">Book Ticket</a>
+            </nav>
+            <div class="nav-btns">
+                <div class="user-profile">
+                    <a href="profile.html" class="user-name" id="user-display-name">User Name</a>
+                </div>
+                <button id="logout-btn" class="header-btn btn-login" type="button">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Dynamic Hero Section -->
+        <section class="hero-section" id="bus-hero">
+            <div class="hero-angled-bg"></div>
+            <div class="hero-accent-lines">
+                <!-- GA waves -->
+                <svg class="hero-waves hero-waves-ga" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 130 C180 80, 360 80, 540 120 C720 160, 860 180, 1200 140" stroke="var(--ga-yellow)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+                    <path d="M0 150 C200 110, 420 110, 600 150 C800 200, 980 200, 1200 170" stroke="var(--ga-yellow)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+                    <path d="M0 360 C140 320, 300 300, 460 320 C620 340, 780 360, 1200 320" stroke="var(--ga-green)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+                    <path d="M0 388 C130 360, 300 350, 460 362 C640 375, 820 378, 1200 360" stroke="var(--ga-green)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+                </svg>
+
+                <!-- MyCiti waves -->
+                <svg class="hero-waves hero-waves-myciti" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 110 C180 60, 420 70, 620 120 C820 170, 980 190, 1200 150" stroke="var(--myciti-blue)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+                    <path d="M0 135 C200 95, 420 100, 620 140 C820 185, 980 205, 1200 175" stroke="var(--myciti-blue)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+                    <path d="M0 330 C160 300, 340 300, 520 330 C700 360, 880 370, 1200 340" stroke="var(--myciti-red)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+                    <path d="M0 360 C150 340, 340 340, 520 360 C720 390, 900 395, 1200 370" stroke="var(--myciti-red)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+                </svg>
+            </div>
+
+            <div class="new-user-badge" id="new-user-badge">New User</div>
+
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-title">Welcome to CapeConnect!</h1>
+                <p class="hero-subtitle" id="hero-subtitle">We're excited to have you on board. Start your journey with
+                    us today!</p>
+            </div>
+            <div class="hero-ctas" style="margin-top:20px;">
+                <button id="timetable-btn" class="btn btn-yellow">View All Timetables</button>
+                <button id="booking-btn" class="btn btn-yellow">Book a ticket</button>
+            </div>
+        </section>
+
+        <!-- Timetable Modal (iframe) -->
+        <div id="timetable-modal" class="modal" aria-hidden="true">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-label="Timetable" tabindex="-1">
+                <button class="modal-close" aria-label="Close timetable">×</button>
+                <iframe id="timetable-iframe" class="modal-iframe" src="" title="Timetable"></iframe>
+            </div>
+        </div>
+
+        <!-- Booking Modal (iframe) -->
+        <div id="booking-modal" class="modal" aria-hidden="true">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-label="Booking" tabindex="-1">
+                <button class="modal-close" aria-label="Close booking">×</button>
+                <iframe id="booking-iframe" class="modal-iframe" src="" title="Booking"></iframe>
+            </div>
+        </div>
+
+        <!-- Active Tickets Section -->
+        <section class="stats-section active-tickets-section" id="tickets-section" style="display: none;">
+            <div class="tickets-content">
+                <h2 class="section-title">Your Active Tickets</h2>
+                <p class="section-subtitle">View and manage your current bus tickets</p>
+                <div id="tickets-grid" class="tickets-grid">
+                    <!-- Tickets will be injected here -->
+                    <div id="no-tickets" style="grid-column: 1/-1; text-align: center; opacity: 0.3; padding: 40px;">
+                        <i class="fas fa-ticket-alt" style="font-size: 5rem; margin-bottom: 15px;"></i>
+                        <p>No active tickets found. Start your journey by buying a ticket!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Used Tickets Section -->
+        <section class="stats-section active-tickets-section" id="tickets-history-section" style="display: none;">
+            <div class="tickets-content">
+                <h2 class="section-title">Used Tickets</h2>
+                <p class="section-subtitle">Tickets you've already used</p>
+                <div id="tickets-history-grid" class="tickets-grid">
+                    <!-- Used tickets will be injected here -->
+                    <div id="no-history" style="grid-column: 1/-1; text-align: center; opacity: 0.3; padding: 40px;">
+                        <i class="fas fa-ticket-alt" style="font-size: 5rem; margin-bottom: 15px;"></i>
+                        <p>No used tickets yet.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <h2 class="section-title">Why Choose CapeConnect?</h2>
+            <p class="section-subtitle">We're committed to making your commute easier and more efficient</p>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">98%</span>
+                    <span class="stat-label">On-time Performance</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">250+</span>
+                    <span class="stat-label">Routes Covered</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50k+</span>
+                    <span class="stat-label">Daily Commuters</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Customer Support</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section (How It Works) -->
+        <section class="features-section">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Everything you need for stress-free bus travel in Cape Town</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-route feature-icon"></i>
+                    <h3 class="feature-title">Plan Your Journey</h3>
+                    <p class="feature-desc">Find the best routes and check real-time bus arrivals</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt feature-icon"></i>
+                    <h3 class="feature-title">Book & Pay</h3>
+                    <p class="feature-desc">Purchase tickets or top up your balance in seconds</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-ticket-alt feature-icon"></i>
+                    <h3 class="feature-title">Digital Tickets</h3>
+                    <p class="feature-desc">Access your tickets anytime, even offline</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bell feature-icon"></i>
+                    <h3 class="feature-title">Real-time Alerts</h3>
+                    <p class="feature-desc">Get notified about schedule changes and delays</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="index.html" class="logo"><i class="fas fa-bus" style="color: var(--ga-yellow);"></i> CapeConnect</a>
+                <p>Your reliable partner for bus transportation in Cape Town. Making commuting easier since 2023.</p>
+                <div class="social-links">
+                    <a href="https://facebook.com" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="fab fa-twitter"></i></a>
+                    <a href="https://instagram.com" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://linkedin.com" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">About Us</a></li>
+                    <li><a href="mailto:careers@capeconnect.co.za">Careers</a></li>
+                    <li><a href="mailto:media@capeconnect.co.za">Press</a></li>
+                    <li><a href="index.html">Blog</a></li>
+                    <li><a href="mailto:support@capeconnect.co.za">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Services</h4>
+                <ul class="footer-links">
+                    <li><a id="service-primary-link" href="choose-fare.html">MyCiTi</a></li>
+                    <li><a id="service-secondary-link" href="ga-route-calculator.html">Golden Arrow</a></li>
+                    <li><a id="service-third-link" href="golden-arrow-timetable.html">School Transport</a></li>
+                    <li><a id="service-fourth-link" href="golden-arrow-timetable.html">Tourist Passes</a></li>
+                    <li><a id="service-fifth-link" href="mailto:business@capeconnect.co.za">Corporate Solutions</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#helpline-column">FAQs</a></li>
+                    <li><a href="terms.html">Terms of Service</a></li>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="#helpline-column">Refund Policy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column" id="helpline-column">
+                <h4 id="helpline-title">Helpline</h4>
+                <ul class="footer-links" id="helpline-list"></ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2025 CapeConnect. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth-pages.js"></script>
+    <script src="js/app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="js/cc-utils.js"></script>
+    <script src="js/cc-components.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const hasApp = !!(window.App && App.storage);
+            const normalizeBus = (value) => {
+                if (value === null || value === undefined) return '';
+                let s = String(value).trim().toLowerCase();
+                // Handle serialized values like "\"ga\"" or "'myciti'"
+                s = s.replace(/^['"]+|['"]+$/g, '');
+                if (s === 'ga' || s === 'goldenarrow' || s === 'golden-arrow') return 'ga';
+                if (s === 'myciti' || s === 'mycitii') return 'myciti';
+                return '';
+            };
+            const getFallback = (key) => {
+                try {
+                    const raw = localStorage.getItem(key);
+                    return raw ? JSON.parse(raw) : null;
+                } catch (_) {
+                    return localStorage.getItem(key);
+                }
+            };
+            let user = (hasApp ? App.storage.get('currentUser') : getFallback('currentUser'))
+                || getFallback('capeConnectUser');
+            if (!user && hasApp && typeof App.hydrateUserSession === 'function') {
+                user = await App.hydrateUserSession();
+            }
+            const appBus = hasApp ? normalizeBus(App.storage.get('selectedBus')) : '';
+            const localBus = normalizeBus(localStorage.getItem('selectedBus'));
+            const bodyBus = document.body.classList.contains('bus-ga')
+                ? 'ga'
+                : (document.body.classList.contains('bus-myciti') ? 'myciti' : '');
+            const selectedBus = 'ga';
+
+            if (user) {
+                document.getElementById('user-display-name').textContent = user.name;
+
+                // New User Badge Logic
+                const usageKey = `usage_${user.email || user.phone}`;
+                const count = parseInt(localStorage.getItem(usageKey)) || 0;
+                if (count > 5) {
+                    const badge = document.getElementById('new-user-badge');
+                    if (badge) badge.style.display = 'none';
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+
+            if (!selectedBus) {
+                window.location.href = 'choose-bus.html';
+                return;
+            }
+
+            // Keep storage/class in sync so branding/nav don't split between buses.
+            document.body.classList.remove('bus-ga', 'bus-myciti');
+            document.body.classList.add(`bus-${selectedBus}`);
+            localStorage.setItem('selectedBus', selectedBus);
+            if (hasApp && App.storage && typeof App.storage.save === 'function') {
+                App.storage.save('selectedBus', selectedBus);
+            }
+
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (window.App && typeof App.confirmLogout === 'function') {
+                        App.confirmLogout();
+                        return;
+                    }
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('capeConnectUser');
+                    window.location.href = 'login.html';
+                });
+            }
+
+            const headerLogo = document.getElementById('header-logo');
+            if (headerLogo) {
+                headerLogo.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = 'golden-arrow-dashboard.html';
+                });
+            }
+
+            // Customize view based on bus
+            const heroTitle = document.getElementById('hero-title');
+            const heroSubtitle = document.getElementById('hero-subtitle');
+
+            if (selectedBus === 'ga') {
+                heroTitle.textContent = "Golden Arrow";
+                heroTitle.style.fontSize = '40px';
+                heroSubtitle.textContent = "Providing safe and reliable transport across Cape Town for over 160 years.";
+
+                // Replace nav logo with Golden Arrow
+                const logo = document.querySelector('.logo');
+                if(logo) logo.innerHTML = `<img class="logo-img" src="pictures/Golden_Arrow-removebg-preview.png" alt="Golden Arrow"><span class="logo-text">Golden Arrow</span>`;
+
+                // Ensure GA side has no MyCiTi service wording
+                const s1 = document.getElementById('service-primary-link');
+                const s2 = document.getElementById('service-secondary-link');
+                const s3 = document.getElementById('service-third-link');
+                const s4 = document.getElementById('service-fourth-link');
+                const s5 = document.getElementById('service-fifth-link');
+                if (s1) { s1.textContent = 'Golden Arrow Bus'; s1.href = 'ga-route-calculator.html'; }
+                if (s2) { s2.textContent = 'Route Calculator'; s2.href = 'ga-calculator.html'; }
+                if (s3) { s3.textContent = 'Timetable & Routes'; s3.href = 'golden-arrow-timetable.html'; }
+                if (s4) { s4.textContent = 'Fare Options'; s4.href = 'ga-choose-fare.html'; }
+                if (s5) { s5.textContent = 'Corporate Solutions'; s5.href = 'mailto:business@capeconnect.co.za'; }
+
+                const timetableBtn = document.getElementById('timetable-btn');
+                const bookingBtn = document.getElementById('booking-btn');
+
+                // Left: View Real-time Timetable (Filled)
+                timetableBtn.textContent = "Real-time Timetable";
+                timetableBtn.classList.add('btn-yellow');
+                timetableBtn.classList.remove('btn-outline'); // Changed from btn-outline to btn-outline-white
+                timetableBtn.style.background = ''; // Revert to class style
+                timetableBtn.style.borderColor = '';
+
+                // Right: Book Your Ticket (Outline)
+                bookingBtn.textContent = "Book Your Ticket";
+                bookingBtn.classList.add('btn-outline'); // Changed from btn-outline to btn-outline-white
+                bookingBtn.classList.remove('btn-yellow');
+                bookingBtn.style.display = 'inline-block';
+
+                // Order: Timetable first (left), then Booking
+                const ctaContainer = document.querySelector('.hero-ctas');
+                if (ctaContainer) {
+                    ctaContainer.insertBefore(timetableBtn, bookingBtn);
+                }
+
+                const calcLink = document.getElementById('calc-link');
+                if (calcLink) {
+                    calcLink.textContent = 'Journey Calculator';
+                    calcLink.href = 'ga-calculator.html';
+                }
+                const bookingLink = document.getElementById('booking-link');
+                if (bookingLink) bookingLink.href = 'ga-route-calculator.html';
+            } else {
+                heroTitle.textContent = "MyCiTi Rapid Transit";
+                heroTitle.classList.remove('hero-title-script');
+                heroSubtitle.textContent = "Cape Town's world-class rapid transport system.";
+                // Replace nav logo with MyCiTi
+                const logo = document.querySelector('.logo');
+                if(logo) logo.innerHTML = `<img class="logo-img" src="pictures/myciti-removebg-preview.png" alt="MyCiTi"><span class="logo-text">MyCiTi</span>`;
+
+                const timetableBtn = document.getElementById('timetable-btn');
+                const bookingBtn = document.getElementById('booking-btn');
+
+                timetableBtn.textContent = "Timetable and Routes";
+                bookingBtn.textContent = "Buy a Ticket";
+                bookingBtn.style.display = 'inline-block';
+
+                const calcLink = document.getElementById('calc-link');
+                if (calcLink) {
+                    calcLink.textContent = 'Points Calculator';
+                    calcLink.href = 'myciti-calculator.html';
+                }
+                const bookingLink = document.getElementById('booking-link');
+                if (bookingLink) bookingLink.href = 'choose-fare.html';
+
+                // Restore MyCiTi/default services wording on MyCiTi side
+                const s1 = document.getElementById('service-primary-link');
+                const s2 = document.getElementById('service-secondary-link');
+                const s3 = document.getElementById('service-third-link');
+                const s4 = document.getElementById('service-fourth-link');
+                const s5 = document.getElementById('service-fifth-link');
+                if (s1) { s1.textContent = 'MyCiTi'; s1.href = 'choose-fare.html'; }
+                if (s2) { s2.textContent = 'Golden Arrow'; s2.href = 'ga-route-calculator.html'; }
+                if (s3) { s3.textContent = 'School Transport'; s3.href = 'golden-arrow-timetable.html'; }
+                if (s4) { s4.textContent = 'Tourist Passes'; s4.href = 'golden-arrow-timetable.html'; }
+                if (s5) { s5.textContent = 'Corporate Solutions'; s5.href = 'mailto:business@capeconnect.co.za'; }
+            }
+
+            // Ensure CTA buttons navigate to the proper pages / anchors
+            const timetableBtnGlobal = document.getElementById('timetable-btn');
+            if (timetableBtnGlobal) {
+                timetableBtnGlobal.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const modal = document.getElementById('timetable-modal');
+                    openModal(modal);
+                    const iframe = document.getElementById('timetable-iframe');
+                    if (iframe) iframe.src = 'golden-arrow-timetable.html#timetable-grid';
+                });
+            }
+
+            const bookingBtnGlobal = document.getElementById('booking-btn');
+            if (bookingBtnGlobal) {
+                bookingBtnGlobal.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = selectedBus === 'ga' ? 'ga-route-calculator.html' : 'choose-fare.html';
+                });
+            }
+
+            // Active link highlight
+            const path = location.pathname.split('/').pop();
+            document.querySelectorAll('#main-nav a').forEach(a => {
+                const href = a.getAttribute('href');
+                if (href === path) a.classList.add('active');
+            });
+
+            // Modal state
+            let activeModal = null;
+
+            function openModal(modal) {
+                if (!modal) return;
+                if (window.CCComponents && window.CCComponents.modal) {
+                    window.CCComponents.modal.open(modal);
+                    activeModal = modal;
+                    return;
+                }
+                modal.classList.add('open');
+                modal.setAttribute('aria-hidden', 'false');
+                activeModal = modal;
+                const dialog = modal.querySelector('[role="dialog"]');
+                if (dialog) dialog.focus();
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal(modal) {
+                if (!modal) return;
+                if (window.CCComponents && window.CCComponents.modal) {
+                    window.CCComponents.modal.close(modal);
+                    activeModal = null;
+                    return;
+                }
+                modal.classList.remove('open');
+                modal.setAttribute('aria-hidden', 'true');
+                const iframe = modal.querySelector('iframe');
+                if (iframe) iframe.src = '';
+                activeModal = null;
+                document.body.style.overflow = '';
+            }
+
+            // Modal close handler
+            document.addEventListener('click', (ev) => {
+                if (ev.target.classList && ev.target.classList.contains('modal-close')) {
+                    const modal = ev.target.closest('.modal');
+                    closeModal(modal);
+                }
+                // close when clicking backdrop
+                if (ev.target.classList && ev.target.classList.contains('modal')) {
+                    closeModal(ev.target);
+                }
+            });
+
+            // Canonical ticket storage
+            const TICKET_KEY = 'ccTickets_v1';
+            const U = window.CCUtils;
+
+            function addDaysIso(iso, days) {
+                return U.addDaysIso(iso, days);
+            }
+
+            function inferExpiryDays(t) {
+                return U.inferExpiryDays(t);
+            }
+
+            function deriveLifecycle(ticket) {
+                return U.deriveLifecycle(ticket);
+            }
+
+            function normalizeTicket(t) {
+                const normalized = U.normalizeTicket(t);
+                if (!normalized) return null;
+                if (!normalized.qrData && normalized.route) {
+                    normalized.qrData = JSON.stringify({ id: normalized.id, route: normalized.route, amount: normalized.total || '' });
+                }
+                return normalized;
+            }
+
+            function migrateTickets() {
+                if (U && typeof U.migrateLegacyTickets === 'function') {
+                    U.migrateLegacyTickets();
+                }
+            }
+
+            function loadTickets() {
+                const list = U.getTickets();
+                return Array.isArray(list) ? list : [];
+            }
+
+            function saveTickets(list) {
+                U.saveTickets(list);
+            }
+
+            if (U && typeof U.syncTicketsFromApi === 'function') {
+                await U.syncTicketsFromApi();
+            }
+
+            migrateTickets();
+            let tickets = loadTickets().map(normalizeTicket).filter(Boolean);
+            saveTickets(tickets);
+            const ticketsGrid = document.getElementById('tickets-grid');
+            const ticketsSection = document.getElementById('tickets-section');
+            const historyGrid = document.getElementById('tickets-history-grid');
+            const historySection = document.getElementById('tickets-history-section');
+
+            const normalizedBus = (selectedBus || '').toLowerCase();
+            tickets = tickets.filter(t => {
+                if (!t) return false;
+                const operator = String(t.operator || '').toLowerCase();
+                const service = String(t.service || '').toLowerCase();
+                const isGA = operator.includes('golden') || service.includes('golden');
+                const isMyCiti = operator.includes('myciti') || service.includes('myciti');
+                if (normalizedBus === 'ga') {
+                    return isGA;
+                }
+                if (normalizedBus === 'myciti') {
+                    return isMyCiti || (!operator && !service);
+                }
+                return true;
+            });
+
+            const activeTickets = tickets.filter(t => t && t.status === 'Active');
+            const usedTickets = tickets.filter(t => t && (t.status === 'Used' || t.status === 'Expired'));
+
+            function titleCase(s){
+                return String(s||'')
+                    .toLowerCase()
+                    .split(' ')
+                    .map(w => w ? w[0].toUpperCase() + w.slice(1) : w)
+                    .join(' ');
+            }
+
+            if (activeTickets.length > 0) {
+                if (ticketsSection) ticketsSection.style.display = 'block';
+                const noTickets = document.getElementById('no-tickets');
+                if (noTickets) noTickets.style.display = 'none';
+
+                activeTickets.reverse().forEach(t => {
+                    const parts = String(t.route||'').split('-');
+                    const from = titleCase(parts[0] || '').trim();
+                    const to = titleCase(parts.slice(1).join('-')).trim();
+                    const fromLabel = from || 'Pass';
+                    const toLabel = to || (t.type ? titleCase(t.type) : 'Pass');
+                    const time = t.time || '-';
+                    const pax = t.passengers || 1;
+                    const total = t.total || '-';
+                    const qrPayload = t.qrData || JSON.stringify({
+                        id: t.id,
+                        route: `${fromLabel} to ${toLabel}`,
+                        date: t.date || '',
+                        time: time || '',
+                        total: total || ''
+                    });
+                    const card = (window.CCComponents && window.CCComponents.ticketCard)
+                        ? window.CCComponents.ticketCard.create({
+                            title: `${fromLabel} to ${toLabel}`,
+                            badge: t.status || 'Active',
+                            from: fromLabel,
+                            to: toLabel,
+                            date: t.date || '-',
+                            time: time,
+                            passengers: pax,
+                            withActions: true,
+                            actionLabel: 'View Details'
+                        })
+                        : (() => {
+                            const legacy = document.createElement('div');
+                            legacy.className = 'ticket-card';
+                            legacy.innerHTML = `
+                                <div class="ticket-head">
+                                    <div class="ticket-title">${fromLabel} to ${toLabel}</div>
+                                    <div class="ticket-badge">${t.status || 'Active'}</div>
+                                </div>
+                                <div class="ticket-body">
+                                    <div class="ticket-row"><span>From:</span><span>${fromLabel}</span></div>
+                                    <div class="ticket-row"><span>To:</span><span>${toLabel}</span></div>
+                                    <div class="ticket-row"><span>Date:</span><span>${t.date || '-'}</span></div>
+                                    <div class="ticket-row"><span>Time:</span><span>${time}</span></div>
+                                    <div class="ticket-row"><span>Passengers:</span><span>${pax}</span></div>
+                                </div>
+                                <div class="ticket-actions">
+                                    <button class="ticket-details-btn" type="button">View Details</button>
+                                </div>
+                            `;
+                            return legacy;
+                        })();
+
+                    const btn = card.querySelector('button.ticket-details-btn');
+                    if (btn) {
+                        btn.addEventListener('click', ()=>{
+                            const overlay = document.createElement('div');
+                            overlay.className = 'ticket-modal';
+                            const box = document.createElement('div');
+                            box.className = 'ticket-modal-card';
+                            overlay.setAttribute('role', 'dialog');
+                            overlay.setAttribute('aria-modal', 'true');
+                            overlay.setAttribute('aria-label', 'Ticket details');
+                            box.setAttribute('tabindex', '-1');
+                            box.innerHTML = `
+                              <div class="ticket-modal-header">
+                                <h3 class="ticket-modal-title">Ticket Details</h3>
+                                <button class="ticket-modal-close" type="button" aria-label="Close" data-action="close-header">×</button>
+                              </div>
+                              <div class="ticket-modal-content">
+                                <div class="ticket-modal-list">
+                                  <div class="ticket-modal-row"><strong>Route:</strong><span>${fromLabel} to ${toLabel}</span></div>
+                                  <div class="ticket-modal-row"><strong>From:</strong><span>${fromLabel}</span></div>
+                                  <div class="ticket-modal-row"><strong>To:</strong><span>${toLabel}</span></div>
+                                  <div class="ticket-modal-row"><strong>Date:</strong><span>${t.date || '-'}</span></div>
+                                  <div class="ticket-modal-row"><strong>Time:</strong><span>${time}</span></div>
+                                  <div class="ticket-modal-row"><strong>Passengers:</strong><span>${pax}</span></div>
+                                  <div class="ticket-modal-row"><strong>Ticket Type:</strong><span>${String(t.type||'').toLowerCase()}</span></div>
+                                  <div class="ticket-modal-row"><strong>Price:</strong><span>${total}</span></div>
+                                  <div class="ticket-modal-row"><strong>Booking Date:</strong><span>${(t.purchasedAt || '').slice(0,10) || '-'}</span></div>
+                                  <div class="ticket-modal-row"><strong>Valid Until:</strong><span>${(t.expiresAt || '').slice(0,10) || '-'}</span></div>
+                                  <div class="ticket-modal-row"><strong>Uses Left:</strong><span data-field="uses-left">${Number.isFinite(Number(t.remainingUses)) ? Number(t.remainingUses) : 'Unlimited'}</span></div>
+                                  <div class="ticket-modal-row"><strong>Status:</strong><span data-field="ticket-status">${t.status || 'Active'}</span></div>
+                                </div>
+                                <div class="ticket-qr-wrap">
+                                  <div id="ticketQR" class="ticket-qr" aria-label="Ticket QR code"></div>
+                                  <div id="ticketQRTimer" class="ticket-qr-timer" aria-live="polite">Refreshing in 30s</div>
+                                </div>
+                                <div class="ticket-actions" style="margin-top:12px;">
+                                  <button class="ticket-details-btn" type="button" data-action="use">Use Ticket</button>
+                                  <button class="ticket-details-btn" type="button" data-action="close-ticket">Close Ticket</button>
+                                  <button class="ticket-details-btn" type="button" data-action="cancel">Cancel</button>
+                                </div>
+                              </div>
+                            `;
+                            if (normalizedBus === 'ga') {
+                                const closeTicketAction = box.querySelector('button[data-action="close-ticket"]');
+                                if (closeTicketAction) closeTicketAction.remove();
+                                const cancelAction = box.querySelector('button[data-action="cancel"]');
+                                if (cancelAction) cancelAction.textContent = 'Close';
+                            }
+                            overlay.appendChild(box);
+                            document.body.appendChild(overlay);
+                            const lastFocus = document.activeElement;
+                            document.body.style.overflow = 'hidden';
+                            box.focus();
+                            const releaseTicketTrap = (window.CCComponents && window.CCComponents.trapFocus)
+                                ? window.CCComponents.trapFocus(overlay, () => {
+                                    if (releaseTicketTrap) releaseTicketTrap();
+                                    overlay.remove();
+                                    document.body.style.overflow = '';
+                                    if (lastFocus) lastFocus.focus();
+                                })
+                                : (() => {});
+                            const qrBox = box.querySelector('#ticketQR');
+                            const qrTimer = box.querySelector('#ticketQRTimer');
+                            let qrTick = 30;
+                            let qrInterval = null;
+                            let modalTicket = normalizeTicket(t) || t;
+                            const renderFallbackQr = (target, text) => {
+                                if (!target) return;
+                                target.innerHTML = '';
+                                const canvas = document.createElement('canvas');
+                                canvas.width = 120;
+                                canvas.height = 120;
+                                target.appendChild(canvas);
+                                const ctx = canvas.getContext('2d');
+                                const size = 21;
+                                const cell = Math.floor(canvas.width / size);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                const hash = String(text || '').split('').reduce((a, ch) => ((a * 31) + ch.charCodeAt(0)) >>> 0, 7);
+                                const isFinder = (x, y) => {
+                                    const tl = x < 7 && y < 7;
+                                    const tr = x >= size - 7 && y < 7;
+                                    const bl = x < 7 && y >= size - 7;
+                                    return tl || tr || bl;
+                                };
+                                for (let y = 0; y < size; y++) {
+                                    for (let x = 0; x < size; x++) {
+                                        let on = false;
+                                        if (isFinder(x, y)) {
+                                            const inCore = (x % 7 >= 2 && x % 7 <= 4) && (y % 7 >= 2 && y % 7 <= 4);
+                                            const inBorder = (x % 7 === 0 || x % 7 === 6 || y % 7 === 0 || y % 7 === 6);
+                                            on = inCore || inBorder;
+                                        } else {
+                                            on = ((hash + (x * 17) + (y * 31) + (x * y)) % 2) === 0;
+                                        }
+                                        if (on) {
+                                            ctx.fillStyle = '#111827';
+                                            ctx.fillRect(x * cell, y * cell, cell, cell);
+                                        }
+                                    }
+                                }
+                            };
+                            const setModalMeta = (ticketData) => {
+                                const usesText = Number.isFinite(Number(ticketData.remainingUses))
+                                    ? Number(ticketData.remainingUses)
+                                    : 'Unlimited';
+                                const usesRow = box.querySelector('[data-field="uses-left"]');
+                                const statusRow = box.querySelector('[data-field="ticket-status"]');
+                                if (usesRow) usesRow.textContent = usesText;
+                                if (statusRow) statusRow.textContent = ticketData.status || 'Active';
+                            };
+                            const generateTicketQR = (ticketData) => {
+                                const payload = JSON.stringify({
+                                    ticketId: ticketData.id || '',
+                                    operator: (ticketData.operator || (normalizedBus === 'ga' ? 'Golden Arrow' : 'MyCiTi')),
+                                    from: fromLabel,
+                                    to: toLabel,
+                                    validUntil: ticketData.expiresAt || null,
+                                    usesLeft: Number.isFinite(Number(ticketData.remainingUses)) ? Number(ticketData.remainingUses) : null,
+                                    status: ticketData.status || 'Active',
+                                    refreshedAt: new Date().toISOString()
+                                });
+                                if (qrBox && window.QRCode) {
+                                    try {
+                                        qrBox.innerHTML = '';
+                                        new QRCode(qrBox, {
+                                            text: payload,
+                                            width: 120,
+                                            height: 120,
+                                            colorDark: '#111827',
+                                            colorLight: '#ffffff',
+                                            correctLevel: QRCode.CorrectLevel.M
+                                        });
+                                    } catch (qrErr) {
+                                        renderFallbackQr(qrBox, payload);
+                                    }
+                                } else if (qrBox) {
+                                    renderFallbackQr(qrBox, payload);
+                                }
+                            };
+                            generateTicketQR(modalTicket);
+                            setModalMeta(modalTicket);
+                            qrInterval = setInterval(() => {
+                                qrTick -= 1;
+                                if (qrTimer) qrTimer.textContent = `Refreshing in ${qrTick}s`;
+                                if (qrTick <= 0) {
+                                    qrTick = 30;
+                                    generateTicketQR(modalTicket);
+                                    if (qrTimer) qrTimer.textContent = `Refreshing in ${qrTick}s`;
+                                }
+                            }, 1000);
+                            const closeOverlay = () => {
+                                if (qrInterval) clearInterval(qrInterval);
+                                if (releaseTicketTrap) releaseTicketTrap();
+                                overlay.remove();
+                                document.body.style.overflow = '';
+                                if (lastFocus) lastFocus.focus();
+                            };
+                            const useBtn = box.querySelector('button[data-action="use"]');
+                            const cancelBtn = box.querySelector('button[data-action="cancel"]');
+                            const closeTicketBtn = box.querySelector('button[data-action="close-ticket"]');
+                            const closeHeaderBtn = box.querySelector('button[data-action="close-header"]');
+                            if (useBtn) {
+                                const isExpired = t.expiresAt ? (new Date(t.expiresAt).getTime() <= Date.now()) : false;
+                                if (isExpired) {
+                                    useBtn.disabled = true;
+                                    useBtn.textContent = 'Expired';
+                                }
+                                useBtn.addEventListener('click', async ()=>{
+                                    useBtn.disabled = true;
+                                    const defaultLabel = useBtn.textContent;
+                                    useBtn.textContent = 'Using...';
+                                    try {
+                                        let nextTicket = null;
+                                        if (U && typeof U.useTicket === 'function') {
+                                            nextTicket = await U.useTicket(t.id);
+                                        }
+                                        if (!nextTicket) {
+                                            const allTickets = loadTickets();
+                                            const updated = allTickets.map(x => {
+                                                if (x && x.id === t.id) {
+                                                    const normalized = normalizeTicket(x);
+                                                    if (!normalized) return x;
+                                                    const uses = Number(normalized.remainingUses);
+                                                    if (Number.isFinite(uses)) {
+                                                        const nextUses = Math.max(0, uses - 1);
+                                                        return {
+                                                            ...normalized,
+                                                            remainingUses: nextUses,
+                                                            status: nextUses <= 0 ? 'Used' : 'Active',
+                                                            usedAt: nextUses <= 0 ? new Date().toISOString() : normalized.usedAt || null,
+                                                            lastUsedAt: new Date().toISOString()
+                                                        };
+                                                    }
+                                                    return {
+                                                        ...normalized,
+                                                        status: 'Active',
+                                                        lastUsedAt: new Date().toISOString()
+                                                    };
+                                                }
+                                                return x;
+                                            });
+                                            saveTickets(updated);
+                                            nextTicket = updated.find(x => x && x.id === t.id) || null;
+                                        }
+                                        if (nextTicket) {
+                                            modalTicket = normalizeTicket(nextTicket) || nextTicket;
+                                            generateTicketQR(modalTicket);
+                                            setModalMeta(modalTicket);
+                                            qrTick = 30;
+                                            if (qrTimer) qrTimer.textContent = `Refreshing in ${qrTick}s`;
+                                            const usesNow = Number(modalTicket.remainingUses);
+                                            if (Number.isFinite(usesNow) && usesNow <= 0) {
+                                                useBtn.disabled = true;
+                                                useBtn.textContent = 'Used';
+                                            } else {
+                                                useBtn.disabled = false;
+                                                useBtn.textContent = defaultLabel;
+                                            }
+                                        } else {
+                                            useBtn.disabled = false;
+                                            useBtn.textContent = defaultLabel;
+                                        }
+                                    } catch (_err) {
+                                        useBtn.disabled = false;
+                                        useBtn.textContent = defaultLabel;
+                                    }
+                                });
+                            }
+                            if (cancelBtn) cancelBtn.addEventListener('click', closeOverlay);
+                            if (closeTicketBtn) {
+                                closeTicketBtn.addEventListener('click', ()=>{
+                                    const allTickets = loadTickets();
+                                    const updated = allTickets.map(x => {
+                                        if (x && x.id === t.id) {
+                                            const normalized = normalizeTicket(x);
+                                            if (!normalized) return x;
+                                            return {
+                                                ...normalized,
+                                                status: 'Closed',
+                                                remainingUses: 0,
+                                                usedAt: new Date().toISOString()
+                                            };
+                                        }
+                                        return x;
+                                    });
+                                    saveTickets(updated);
+                                    closeOverlay();
+                                    window.location.reload();
+                                });
+                            }
+                            if (closeHeaderBtn) closeHeaderBtn.addEventListener('click', closeOverlay);
+                            // Delegated close handling keeps the X button functional even if listeners miss binding.
+                            overlay.addEventListener('click', (e)=>{
+                                const actionEl = e.target.closest('[data-action]');
+                                if (actionEl) {
+                                    e.preventDefault();
+                                    const action = actionEl.getAttribute('data-action');
+                                    if (action === 'close-header' || action === 'cancel') {
+                                        closeOverlay();
+                                        return;
+                                    }
+                                    return;
+                                }
+                                if(e.target === overlay) closeOverlay();
+                            });
+                        });
+                    }
+                    ticketsGrid.appendChild(card);
+                });
+            }
+
+            if (usedTickets.length > 0) {
+                if (historySection) historySection.style.display = 'block';
+                const noHistory = document.getElementById('no-history');
+                if (noHistory) noHistory.style.display = 'none';
+
+                usedTickets.reverse().forEach(t => {
+                    const parts = String(t.route||'').split('-');
+                    const from = titleCase(parts[0] || '');
+                    const to = titleCase(parts.slice(1).join('-'));
+                    const time = t.time || '-';
+                    const pax = t.passengers || 1;
+                    const total = t.total || '-';
+                    const card = (window.CCComponents && window.CCComponents.ticketCard)
+                        ? window.CCComponents.ticketCard.create({
+                            title: `${from} to ${to}`,
+                            badge: t.status || 'Used',
+                            from: from,
+                            to: to,
+                            date: t.date || '-',
+                            time: time,
+                            passengers: pax,
+                            extraRows: [{ label: 'Total:', value: total }],
+                            withActions: false
+                        })
+                        : (() => {
+                            const legacy = document.createElement('div');
+                            legacy.className = 'ticket-card';
+                            legacy.innerHTML = `
+                                <div class="ticket-head">
+                                    <div class="ticket-title">${from} to ${to}</div>
+                                    <div class="ticket-badge">${t.status || 'Used'}</div>
+                                </div>
+                                <div class="ticket-body">
+                                    <div class="ticket-row"><span>From:</span><span>${from}</span></div>
+                                    <div class="ticket-row"><span>To:</span><span>${to}</span></div>
+                                    <div class="ticket-row"><span>Date:</span><span>${t.date || '-'}</span></div>
+                                    <div class="ticket-row"><span>Time:</span><span>${time}</span></div>
+                                    <div class="ticket-row"><span>Passengers:</span><span>${pax}</span></div>
+                                    <div class="ticket-row"><span>Total:</span><span>${total}</span></div>
+                                </div>
+                            `;
+                            return legacy;
+                        })();
+                    historyGrid.appendChild(card);
+                });
+            }
+        });
+    </script>
+    <script>
+        (function(){
+            const STOPS = [
+                { name: "Civic Centre", lat: -33.917, lon: 18.429 },
+                { name: "Cape Town Station", lat: -33.925, lon: 18.424 },
+                { name: "Table View Station", lat: -33.828, lon: 18.503 },
+                { name: "Atlantis Station", lat: -33.566, lon: 18.483 },
+                { name: "Airport", lat: -33.969, lon: 18.600 },
+                { name: "Khayelitsha", lat: -34.038, lon: 18.675 },
+                { name: "Mitchells Plain", lat: -34.050, lon: 18.630 },
+                { name: "Sea Point", lat: -33.918, lon: 18.389 },
+                { name: "Hout Bay", lat: -34.043, lon: 18.341 },
+                { name: "Century City", lat: -33.892, lon: 18.516 }
+            ];
+
+            const FARE_BANDS = [
+                { max: 5,  peak: 13.50, saver: 10.50 },
+                { max: 10, peak: 18.50, saver: 13.50 },
+                { max: 20, peak: 23.50, saver: 18.50 },
+                { max: 30, peak: 25.50, saver: 21.50 },
+                { max: 40, peak: 27.50, saver: 23.50 },
+                { max: 50, peak: 31.50, saver: 28.50 },
+                { max: 60, peak: 36.50, saver: 31.50 },
+                { max: Infinity, peak: 39.50, saver: 33.50 }
+            ];
+
+            const PASS_PRICES = { day3: 210, day7: 300, monthly: 1000 };
+            const PASS_LABELS = { day3: "3-Day Pass", day7: "7-Day Pass", monthly: "Monthly Pass" };
+
+            const fareRadios = document.querySelectorAll('input[name="fare"]');
+            const routeStep = document.getElementById("route-step");
+            const fromStop = document.getElementById("fromStop");
+            const toStop = document.getElementById("toStop");
+            const routeOut = document.getElementById("routeOut");
+            const distanceOut = document.getElementById("distanceOut");
+            const timeOut = document.getElementById("timeOut");
+            const periodOut = document.getElementById("periodOut");
+            const bandOut = document.getElementById("bandOut");
+            const amountOut = document.getElementById("amountOut");
+            const pointsOut = document.getElementById("pointsOut");
+
+            const step1 = document.getElementById("step1");
+            const step2 = document.getElementById("step2");
+            const step3 = document.getElementById("step3");
+            const step4 = document.getElementById("step4");
+
+            const payName = document.getElementById("payName");
+            const payEmail = document.getElementById("payEmail");
+            const payCard = document.getElementById("payCard");
+            const payExpiry = document.getElementById("payExpiry");
+            const payCvc = document.getElementById("payCvc");
+            const payError = document.getElementById("payError");
+            const paySuccess = document.getElementById("paySuccess");
+            const btnPay = document.getElementById("btnPay");
+            const btnDashboard = document.getElementById("btnDashboard");
+
+            const ticketPreview = document.getElementById("ticketPreview");
+            const ticketTitle = document.getElementById("ticketTitle");
+            const ticketRoute = document.getElementById("ticketRoute");
+            const ticketDate = document.getElementById("ticketDate");
+            const ticketTime = document.getElementById("ticketTime");
+            const ticketAmount = document.getElementById("ticketAmount");
+            const qrCanvas = document.getElementById("qrCanvas");
+
+            let currentEstimate = null;
+
+            const datalist = document.getElementById("stopList");
+            if (datalist && !datalist.dataset.ready) {
+                STOPS.forEach(stop => {
+                    const opt = document.createElement("option");
+                    opt.value = stop.name;
+                    datalist.appendChild(opt);
+                });
+                datalist.dataset.ready = "true";
+            }
+
+            function setStepActive(step){
+                [step1, step2, step3, step4].forEach(s => s.classList.remove("active"));
+                if(step === 1) step1.classList.add("active");
+                if(step === 2) step2.classList.add("active");
+                if(step === 3) step3.classList.add("active");
+                if(step === 4) step4.classList.add("active");
+            }
+
+            function isTopUpSelected(){
+                return document.querySelector('input[name="fare"]:checked')?.value === "topup";
+            }
+
+            function getSelectedFare(){
+                return document.querySelector('input[name="fare"]:checked')?.value || "topup";
+            }
+
+            function getStopByName(name){
+                return STOPS.find(s => s.name.toLowerCase() === String(name || "").toLowerCase());
+            }
+
+            function toRadians(val){
+                return (val * Math.PI) / 180;
+            }
+
+            function haversineKm(a, b){
+                const R = 6371;
+                const dLat = toRadians(b.lat - a.lat);
+                const dLon = toRadians(b.lon - a.lon);
+                const lat1 = toRadians(a.lat);
+                const lat2 = toRadians(b.lat);
+
+                const h =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+                const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+                return R * c;
+            }
+
+            function isPeakTime(date = new Date()){
+                const day = date.getDay();
+                if(day === 0 || day === 6) return false;
+                const minutes = date.getHours() * 60 + date.getMinutes();
+                const morningStart = 6 * 60 + 45;
+                const morningEnd = 8 * 60;
+                const afternoonStart = 16 * 60 + 15;
+                const afternoonEnd = 17 * 60 + 30;
+                return (minutes >= morningStart && minutes <= morningEnd) ||
+                    (minutes >= afternoonStart && minutes <= afternoonEnd);
+            }
+
+            function getBand(distanceKm){
+                return FARE_BANDS.find(b => distanceKm <= b.max) || FARE_BANDS[FARE_BANDS.length - 1];
+            }
+
+            function setPassResults(fareKey){
+                const summary = U.buildMycitiBookingSummary({ fare: fareKey }, {
+                    passPrices: PASS_PRICES,
+                    passLabels: PASS_LABELS
+                });
+                routeOut.textContent = summary.routeLabel;
+                distanceOut.textContent = summary.distanceLabel;
+                timeOut.textContent = summary.timeLabel;
+                periodOut.textContent = summary.period;
+                bandOut.textContent = summary.bandLabel;
+                amountOut.textContent = `R ${summary.amount.toFixed(2)}`;
+                pointsOut.textContent = summary.pointsLabel;
+                currentEstimate = {
+                    type: fareKey,
+                    label: summary.routeLabel,
+                    amount: summary.amount,
+                    period: summary.period,
+                    distanceKm: 0,
+                    travelMinutes: 0,
+                    bandLabel: summary.bandLabel,
+                    routeLabel: summary.routeLabel
+                };
+                setStepActive(3);
+            }
+
+            function updateVisibility(){
+                const topup = isTopUpSelected();
+                routeStep.style.display = topup ? "block" : "none";
+                if(!topup){
+                    setStepActive(1);
+                    setPassResults(getSelectedFare());
+                } else {
+                    setStepActive(2);
+                    calculate();
+                }
+            }
+
+            function calculate(){
+                if(!isTopUpSelected()) return;
+
+                const from = getStopByName(fromStop.value);
+                const to = getStopByName(toStop.value);
+                const speed = 25;
+                const factor = 1.25;
+
+                if(!from || !to || from.name === to.name){
+                    routeOut.textContent = "Select different stops";
+                    distanceOut.textContent = "-";
+                    timeOut.textContent = "-";
+                    periodOut.textContent = "-";
+                    bandOut.textContent = "-";
+                    amountOut.textContent = "-";
+                    pointsOut.textContent = "-";
+                    currentEstimate = null;
+                    setStepActive(2);
+                    return;
+                }
+
+                const straightKm = haversineKm(from, to);
+                const distanceKm = straightKm * factor;
+                const travelHours = distanceKm / speed;
+                const travelMinutes = Math.round(travelHours * 60);
+                const peak = isPeakTime();
+                const band = getBand(distanceKm);
+                const fare = peak ? band.peak : band.saver;
+                const bandLabel = `${band.max === Infinity ? "60+" : `0-${band.max}`} km`;
+
+                routeOut.textContent = `${from.name} -> ${to.name}`;
+                distanceOut.textContent = `${distanceKm.toFixed(1)} km`;
+                timeOut.textContent = `${travelMinutes} min`;
+                periodOut.textContent = peak ? "Peak" : "Saver";
+                bandOut.textContent = bandLabel;
+                amountOut.textContent = `R ${fare.toFixed(2)}`;
+                pointsOut.textContent = `${fare.toFixed(0)} points`;
+                currentEstimate = {
+                    type: "topup",
+                    label: "Top Up (Mover)",
+                    amount: fare,
+                    period: peak ? "Peak" : "Saver",
+                    distanceKm,
+                    travelMinutes,
+                    bandLabel,
+                    routeLabel: `${from.name} - ${to.name}`,
+                    from,
+                    to
+                };
+                setStepActive(3);
+            }
+
+            function scrollToPayment(){
+                document.getElementById("payment-step").scrollIntoView({ behavior: "smooth", block: "start" });
+                setStepActive(4);
+            }
+
+            function formatDate(d){
+                return d.toISOString().slice(0,10);
+            }
+
+            function formatTime(d){
+                const hh = String(d.getHours()).padStart(2, "0");
+                const mm = String(d.getMinutes()).padStart(2, "0");
+                return `${hh}:${mm}`;
+            }
+
+            async function storeTicket(ticket){
+                return window.CCUtils.addTicket(ticket);
+            }
+
+            function drawDemoQR(canvas, text){
+                const size = 21;
+                const ctx = canvas.getContext("2d");
+                const cell = Math.floor(canvas.width / size);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const hash = Array.from(text).reduce((acc, ch) => ((acc * 31) + ch.charCodeAt(0)) >>> 0, 7);
+
+                function isFinder(x, y){
+                    const inTopLeft = x < 7 && y < 7;
+                    const inTopRight = x >= size - 7 && y < 7;
+                    const inBottomLeft = x < 7 && y >= size - 7;
+                    return inTopLeft || inTopRight || inBottomLeft;
+                }
+
+                for(let y = 0; y < size; y++){
+                    for(let x = 0; x < size; x++){
+                        let on = false;
+                        if(isFinder(x, y)){
+                            const inCore = (x % 7 >= 2 && x % 7 <= 4) && (y % 7 >= 2 && y % 7 <= 4);
+                            const inBorder = (x % 7 === 0 || x % 7 === 6 || y % 7 === 0 || y % 7 === 6);
+                            on = inCore || inBorder;
+                        } else {
+                            const mix = (hash + x * 17 + y * 31 + (x * y)) >>> 0;
+                            on = (mix % 2) === 0;
+                        }
+                        if(on){
+                            ctx.fillStyle = "#0b1f3a";
+                            ctx.fillRect(x * cell, y * cell, cell, cell);
+                        }
+                    }
+                }
+            }
+
+            function validatePayment(){
+                const nameOk = payName.value.trim().length >= 2;
+                const emailOk = /.+@.+\..+/.test(payEmail.value.trim());
+                const cardOk = payCard.value.replace(/\s+/g, "").length >= 12;
+                const expOk = /^(0[1-9]|1[0-2])\/(\d{2})$/.test(payExpiry.value.trim());
+                const cvcOk = payCvc.value.trim().length >= 3;
+
+                if(!nameOk || !emailOk || !cardOk || !expOk || !cvcOk){
+                    return "Please complete all payment fields correctly.";
+                }
+
+                if(isTopUpSelected()){
+                    if(!currentEstimate || !currentEstimate.from || !currentEstimate.to){
+                        return "Select your From and To stops before paying.";
+                    }
+                }
+
+                return "";
+            }
+
+            function createTicket(){
+                const fareKey = getSelectedFare();
+                const isTopup = isTopUpSelected();
+                const amount = currentEstimate ? currentEstimate.amount : (PASS_PRICES[fareKey] || 0);
+                const routeLabel = isTopup ? currentEstimate.routeLabel : `Pass - ${PASS_LABELS[fareKey] || "MyCiTi"}`;
+                const isGoldenArrow = normalizedBus === 'ga';
+                const ticket = U.buildIssuedTicket({
+                    operator: isGoldenArrow ? "GoldenArrow" : "MyCiTi",
+                    service: isGoldenArrow ? "Golden Arrow" : "MyCiTi",
+                    route: routeLabel,
+                    type: fareKey,
+                    amount,
+                    expiryDays: U.inferExpiryDays({ type: fareKey, operator: isGoldenArrow ? "GoldenArrow" : "MyCiTi" })
+                });
+                return ticket;
+            }
+
+            function showTicket(ticket){
+                ticketTitle.textContent = normalizedBus === 'ga' ? "Golden Arrow Ticket" : "MyCiTi Ticket";
+                ticketRoute.textContent = ticket.route;
+                ticketDate.textContent = ticket.date;
+                ticketTime.textContent = ticket.time;
+                ticketAmount.textContent = ticket.total;
+                ticketPreview.style.display = "flex";
+                drawDemoQR(qrCanvas, ticket.qrData);
+            }
+
+            fareRadios.forEach(radio => {
+                radio.addEventListener("change", updateVisibility);
+            });
+
+            [fromStop, toStop].forEach(input => {
+                input.addEventListener("input", calculate);
+                input.addEventListener("change", calculate);
+            });
+
+            payCard.addEventListener("input", () => {
+                payCard.value = payCard.value.replace(/[^\d]/g, "").slice(0, 16).replace(/(\d{4})/g, "$1 ").trim();
+            });
+
+            payExpiry.addEventListener("input", () => {
+                const raw = payExpiry.value.replace(/[^\d]/g, "").slice(0, 4);
+                payExpiry.value = raw.length >= 3 ? `${raw.slice(0,2)}/${raw.slice(2)}` : raw;
+            });
+
+            payCvc.addEventListener("input", () => {
+                payCvc.value = payCvc.value.replace(/[^\d]/g, "").slice(0, 4);
+            });
+
+            document.getElementById("btnReset").addEventListener("click", () => {
+                fromStop.value = "";
+                toStop.value = "";
+                calculate();
+            });
+
+            document.getElementById("btnContinue").addEventListener("click", () => {
+                scrollToPayment();
+            });
+
+            btnPay.addEventListener("click", () => {
+                payError.style.display = "none";
+                paySuccess.style.display = "none";
+
+                const error = validatePayment();
+                if(error){
+                    payError.textContent = error;
+                    payError.style.display = "block";
+                    return;
+                }
+
+                btnPay.disabled = true;
+                btnPay.textContent = "Processing...";
+                setStepActive(4);
+
+                setTimeout(async () => {
+                    try {
+                        const ticket = await storeTicket(createTicket());
+                        showTicket(ticket);
+                        paySuccess.style.display = "block";
+                        btnPay.textContent = "Payment Complete";
+                        btnDashboard.style.display = "inline-flex";
+                    } catch (err) {
+                        payError.textContent = err?.message || "Could not issue the ticket.";
+                        payError.style.display = "block";
+                        btnPay.disabled = false;
+                        btnPay.textContent = "Process Payment";
+                    }
+                }, 1200);
+            });
+
+            btnDashboard.addEventListener("click", () => {
+                window.location.hash = "tickets-section";
+                window.location.reload();
+            });
+
+            updateVisibility();
+        })();
+    </script>
+    <script>
+        (function(){
+            const list = document.getElementById('helpline-list');
+            const title = document.getElementById('helpline-title');
+            if (!list || !title) return;
+            const bus = (localStorage.getItem('selectedBus') || '').toLowerCase();
+            list.innerHTML = '';
+            if (bus === 'ga') {
+                title.textContent = 'Golden Arrow Helpline';
+                list.innerHTML = `
+                    <li><a href="tel:0800656463">0800 65 64 63 (Toll-free)</a></li>
+                    <li><a href="tel:+27215078800">+27 21 507 8800 (Weekdays 08:00â€“16:30)</a></li>
+                    <li><a href="tel:+27219378800">+27 21 937 8800 (Arrowgate)</a></li>
+                `;
+            } else {
+                title.textContent = 'MyCiTi Helpline';
+                list.innerHTML = `
+                    <li><a href="tel:0800656463">0800 65 64 63 (Toll-free)</a></li>
+                    <li><span>24/7 general enquiries</span></li>
+                `;
+            }
+        })();
+    </script>
+    <script src="js/api-client.js"></script>
+    <script src="js/fare-client.js"></script>
+    <script src="js/auth-pages.js"></script>
+    <script>
+        (function () {
+            // Hidden admin launchers:
+            // Ctrl+Shift+A -> Golden Arrow admin
+            // Ctrl+Shift+M -> MyCiTi admin
+            function getSession(key) {
+                try {
+                    return JSON.parse(localStorage.getItem(key) || 'null');
+                } catch (_) {
+                    return null;
+                }
+            }
+            function isSessionValid(session) {
+                if (!session || !session.expiresAt) return false;
+                const t = new Date(session.expiresAt).getTime();
+                return Number.isFinite(t) && t > Date.now();
+            }
+            window.addEventListener('keydown', function (ev) {
+                if (!(ev.ctrlKey && ev.shiftKey)) return;
+                const key = String(ev.key || '').toLowerCase();
+                if (key !== 'a' && key !== 'm') return;
+                ev.preventDefault();
+                const isGa = key === 'a';
+                const phrasePrompt = isGa ? 'Golden Arrow admin access phrase' : 'MyCiTi admin access phrase';
+                const expectedPhrase = isGa ? 'GOLDEN-ADMIN' : 'MYCITI-ADMIN';
+                const sessionKey = isGa ? 'GA_ADMIN_SESSION' : 'MC_ADMIN_SESSION';
+                const adminUrl = isGa ? 'admin.html?bus=ga&lockBus=1' : 'admin.html?bus=myciti&lockBus=1';
+                
+
+                const phrase = prompt(phrasePrompt);
+                if (phrase !== expectedPhrase) return;
+                const session = getSession(sessionKey);
+                window.location.href = isSessionValid(session) ? adminUrl : adminUrl;
+            });
+        })();
+    </script>
+</body>
+
+</html>
+
+

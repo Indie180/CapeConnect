@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Cancelled - CapeConnect</title>
+    <link rel="stylesheet" href="css/mobile-responsive.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .cancel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, #fff3e0, #fce4ec);
+        }
+
+        .cancel-icon {
+            width: 80px;
+            height: 80px;
+            background: #ff9800;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            animation: cancelPulse 2s ease-in-out infinite;
+        }
+
+        .cancel-icon::before {
+            content: '⚠';
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        @keyframes cancelPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .cancel-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ef6c00;
+            margin-bottom: 1rem;
+        }
+
+        .cancel-message {
+            font-size: 1.125rem;
+            color: #666;
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+
+        .info-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            max-width: 400px;
+            width: 100%;
+            border-left: 4px solid #ff9800;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-text {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .help-section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .help-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 480px) {
+            .cancel-container {
+                padding: 1rem;
+            }
+
+            .cancel-title {
+                font-size: 1.5rem;
+            }
+
+            .cancel-message {
+                font-size: 1rem;
+            }
+
+            .action-buttons {
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cancel-container">
+        <div class="cancel-icon"></div>
+        
+        <h1 class="cancel-title">Payment Cancelled</h1>
+        
+        <p class="cancel-message">
+            Your payment was cancelled and no charges were made to your account.
+        </p>
+
+        <div class="info-box">
+            <div class="info-title">What happened?</div>
+            <div class="info-text">
+                You chose to cancel the payment process or closed the payment window before completing the transaction. Your wallet balance remains unchanged.
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="payment.html" class="btn btn-warning">
+                Try Again
+            </a>
+            <a href="profile.html" class="btn btn-primary">
+                Back to Wallet
+            </a>
+            <a href="dashboard.html" class="btn btn-secondary">
+                Back to Dashboard
+            </a>
+        </div>
+
+        <div class="help-section">
+            <div class="help-title">Need Help?</div>
+            <div class="help-text">
+                If you're experiencing issues with payments, please check your internet connection and try again. For persistent problems, contact our support team.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { payFastService } from './js/payfast-service.js';
+
+        class PaymentCancelPage {
+            constructor() {
+                this.init();
+            }
+
+            async init() {
+                // Get payment data from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const paymentId = urlParams.get('payment_id') || urlParams.get('m_payment_id');
+                
+                if (paymentId) {
+                    await this.processPaymentCancellation(paymentId);
+                }
+
+                // Clear any current payment data
+                payFastService.clearCurrentPayment();
+            }
+
+            async processPaymentCancellation(paymentId) {
+                try {
+                    // Extract PayFast data from URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const paymentData = {
+                        payment_status: 'CANCELLED',
+                        payment_id: paymentId,
+                        reason: urlParams.get('reason') || 'User cancelled'
+                    };
+
+                    // Complete payment with PayFast service
+                    const result = await payFastService.handlePaymentCompletion('cancelled', paymentData);
+                    
+                    if (result.success) {
+                        console.log('Payment cancellation processed successfully');
+                    } else {
+                        console.warn('Failed to process payment cancellation:', result.error);
+                    }
+                } catch (error) {
+                    console.error('Payment cancellation processing error:', error);
+                }
+            }
+        }
+
+        // Initialize payment cancel page
+        new PaymentCancelPage();
+    </script>
+</body>
+</html>

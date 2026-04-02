@@ -1,11 +1,13 @@
 import express from "express";
+import crypto from "crypto";
 import { query } from "../db.js";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
 import qrCodeService from "../services/qrcode.js";
 import { validateTicketFare } from "../services/fare.js";
-import { log, serializeError } from "../utils/logger.js";
+import { log, logAlert, serializeError } from "../utils/logger.js";
 
 const router = express.Router();
+let qrValidationSchemaReady = null;
 
 function normalizeOperator(value) {
   const raw = String(value || "").trim().toLowerCase();
@@ -22,6 +24,84 @@ function normalizeTicketStatus(value) {
   if (raw === "USED" || raw === "EXPIRED" || raw === "REFUNDED") return raw;
   if (raw === "CANCELLED") return "USED";
   return "PAID";
+}
+
+function randomId() {
+  return crypto.randomBytes(16).toString("hex");
+}
+
+async function ensureQrValidationSchema() {
+  if (qrValidationSchemaReady) return qrValidationSchemaReady;
+
+  qrValidationSchemaReady = (async () => {
+    await query(`
+      CREATE TABLE IF NOT EXISTS qr_validation_events (
+        id TEXT PRIMARY KEY,
+        ticket_id TEXT,
+        validator_user_id TEXT NOT NULL,
+        validator_role TEXT NOT NULL,
+        validator_operator TEXT,
+        ticket_operator TEXT,
+        action TEXT NOT NULL,
+        valid INTEGER NOT NULL DEFAULT 0,
+        result_code TEXT NOT NULL,
+        scan_source TEXT,
+        device_id TEXT,
+        location_json TEXT,
+        scanned_at DATETIME NOT NULL DEFAULT (datetime('now')),
+        created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_qr_validation_events_ticket_scanned
+      ON qr_validation_events(ticket_id, scanned_at DESC)
+    `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_qr_validation_events_validator_scanned
+      ON qr_validation_events(validator_user_id, scanned_at DESC)
+    `);
+  })();
+
+  return qrValidationSchemaReady;
+}
+
+async function recordQrValidationEvent({
+  ticketId = null,
+  validatorUserId,
+  validatorRole,
+  validatorOperator = null,
+  ticketOperator = null,
+  action,
+  valid,
+  resultCode,
+  scanSource = null,
+  deviceId = null,
+  location = null,
+}) {
+  await ensureQrValidationSchema();
+  await query(
+    `
+    INSERT INTO qr_validation_events (
+      id, ticket_id, validator_user_id, validator_role, validator_operator,
+      ticket_operator, action, valid, result_code, scan_source, device_id, location_json, scanned_at, created_at
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+    `,
+    [
+      randomId(),
+      ticketId,
+      validatorUserId,
+      validatorRole,
+      validatorOperator,
+      ticketOperator,
+      action,
+      valid ? 1 : 0,
+      resultCode,
+      scanSource,
+      deviceId,
+      location ? JSON.stringify(location) : null,
+    ]
+  );
 }
 
 function inferExpiryDays(productType, productName, journeysIncluded) {
@@ -177,6 +257,14 @@ router.post("/", requireAuth, async (req, res, next) => {
     const operator = normalizeOperator(rawOperator);
 
     if (!operator || !productType || !productName || !amountCents || !paymentMethod) {
+      log("info", "ticket_create_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        reason: "missing_required_fields",
+        operator,
+        productType,
+        productName,
+      });
       return res.status(400).json({ error: "Missing required ticket fields" });
     }
 
@@ -190,6 +278,16 @@ router.post("/", requireAuth, async (req, res, next) => {
         amountCents,
       });
     } catch (validationError) {
+      log("info", "ticket_create_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        reason: "fare_validation_failed",
+        operator,
+        productType,
+        productName,
+        amountCents,
+        error: serializeError(validationError),
+      });
       return res.status(400).json({ error: validationError.message });
     }
 
@@ -253,8 +351,21 @@ router.post("/", requireAuth, async (req, res, next) => {
       log('error', 'QR generation failed for new ticket', { ticketId: createdTicket.id, error: serializeError(error) });
     }
 
+    log("info", "ticket_create_succeeded", {
+      requestId: req.requestId,
+      userId: req.auth.userId,
+      ticketId: createdTicket.id,
+      operator,
+      productType,
+      amountCents,
+    });
     return res.status(201).json({ ticket: createdTicket });
   } catch (error) {
+    log("error", "ticket_create_error", {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      error: serializeError(error),
+    });
     return next(error);
   }
 });
@@ -274,6 +385,12 @@ router.post("/:id/use", requireAuth, async (req, res, next) => {
     );
 
     if (!ticketResult.rows.length) {
+      log("info", "ticket_use_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId,
+        reason: "ticket_not_found",
+      });
       return res.status(404).json({ error: "Ticket not found" });
     }
 
@@ -288,9 +405,22 @@ router.post("/:id/use", requireAuth, async (req, res, next) => {
         `,
         [ticketId]
       );
+      log("info", "ticket_use_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId,
+        reason: "ticket_expired",
+      });
       return res.status(400).json({ error: "Ticket has expired" });
     }
     if (lifecycleStatus !== "PAID") {
+      log("info", "ticket_use_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId,
+        reason: "ticket_not_active",
+        status: lifecycleStatus,
+      });
       return res.status(400).json({ error: "Ticket is not active" });
     }
 
@@ -315,6 +445,13 @@ router.post("/:id/use", requireAuth, async (req, res, next) => {
       [nextUsed, nextStatus, ticketId]
     );
 
+    log("info", "ticket_use_succeeded", {
+      requestId: req.requestId,
+      userId: req.auth.userId,
+      ticketId,
+      journeysUsed: nextUsed,
+      status: nextStatus,
+    });
     return res.json({
       ticket: {
         ...updatedResult.rows[0],
@@ -322,16 +459,40 @@ router.post("/:id/use", requireAuth, async (req, res, next) => {
       },
     });
   } catch (error) {
+    log("error", "ticket_use_error", {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      ticketId: req.params?.id || null,
+      error: serializeError(error),
+    });
     return next(error);
   }
 });
 
 // QR Code verification endpoint for conductors/validators
-router.post("/verify-qr", requireAuth, requireRoles("user", "admin"), async (req, res, next) => {
+router.post("/verify-qr", requireAuth, requireRoles("admin"), async (req, res, next) => {
   try {
-    const { qrData } = req.body;
+    const { qrData, consume = false, scanSource = "manual", deviceId = null, location = null } = req.body || {};
+    const validatorRole = String(req.auth.role || "").toLowerCase();
+    const validatorOperator = normalizeOperator(req.auth.operator || null) || null;
     
     if (!qrData) {
+      await recordQrValidationEvent({
+        validatorUserId: req.auth.userId,
+        validatorRole,
+        validatorOperator,
+        action: consume ? "consume" : "verify",
+        valid: false,
+        resultCode: "missing_qr_data",
+        scanSource,
+        deviceId,
+        location,
+      });
+      log("info", "ticket_qr_verify_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        reason: "missing_qr_data",
+      });
       return res.status(400).json({ error: "QR data is required" });
     }
 
@@ -339,11 +500,46 @@ router.post("/verify-qr", requireAuth, requireRoles("user", "admin"), async (req
     try {
       qrPayload = JSON.parse(qrData);
     } catch (error) {
+      await recordQrValidationEvent({
+        validatorUserId: req.auth.userId,
+        validatorRole,
+        validatorOperator,
+        action: consume ? "consume" : "verify",
+        valid: false,
+        resultCode: "invalid_qr_format",
+        scanSource,
+        deviceId,
+        location,
+      });
+      log("info", "ticket_qr_verify_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        reason: "invalid_qr_format",
+      });
       return res.status(400).json({ error: "Invalid QR code format" });
     }
 
     // Verify QR code integrity
     if (!qrCodeService.verifyTicketQR(qrPayload)) {
+      await recordQrValidationEvent({
+        ticketId: qrPayload?.ticketId || null,
+        validatorUserId: req.auth.userId,
+        validatorRole,
+        validatorOperator,
+        ticketOperator: normalizeOperator(qrPayload?.operator || null) || null,
+        action: consume ? "consume" : "verify",
+        valid: false,
+        resultCode: "invalid_qr_signature",
+        scanSource,
+        deviceId,
+        location,
+      });
+      log("info", "ticket_qr_verify_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId: qrPayload?.ticketId || null,
+        reason: "invalid_qr_signature",
+      });
       return res.status(400).json({ error: "Invalid or tampered QR code" });
     }
 
@@ -359,15 +555,52 @@ router.post("/verify-qr", requireAuth, requireRoles("user", "admin"), async (req
     );
 
     if (!ticketResult.rows.length) {
+      await recordQrValidationEvent({
+        ticketId: qrPayload.ticketId,
+        validatorUserId: req.auth.userId,
+        validatorRole,
+        validatorOperator,
+        ticketOperator: normalizeOperator(qrPayload?.operator || null) || null,
+        action: consume ? "consume" : "verify",
+        valid: false,
+        resultCode: "ticket_not_found",
+        scanSource,
+        deviceId,
+        location,
+      });
+      log("info", "ticket_qr_verify_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId: qrPayload.ticketId,
+        reason: "ticket_not_found",
+      });
       return res.status(404).json({ error: "Ticket not found" });
     }
 
     const ticket = ticketResult.rows[0];
+    const ticketOperator = normalizeOperator(ticket.operator || null) || null;
 
-    // Enforce user boundary: passengers can verify only their own tickets
-    const currentRole = String(req.auth.role || "").toLowerCase();
-    if (currentRole === "passenger" && ticket.user_id !== req.auth.userId) {
-      return res.status(403).json({ error: "Access denied" });
+    if (validatorRole === "operator_admin" && validatorOperator && ticketOperator && validatorOperator !== ticketOperator) {
+      await recordQrValidationEvent({
+        ticketId: ticket.id,
+        validatorUserId: req.auth.userId,
+        validatorRole,
+        validatorOperator,
+        ticketOperator,
+        action: consume ? "consume" : "verify",
+        valid: false,
+        resultCode: "operator_scope_violation",
+        scanSource,
+        deviceId,
+        location,
+      });
+      log("info", "ticket_qr_verify_rejected", {
+        requestId: req.requestId,
+        userId: req.auth.userId,
+        ticketId: ticket.id,
+        reason: "operator_scope_violation",
+      });
+      return res.status(403).json({ error: "Operator scope violation" });
     }
 
     const currentStatus = deriveLifecycleStatus(ticket);
@@ -387,7 +620,8 @@ router.post("/verify-qr", requireAuth, requireRoles("user", "admin"), async (req
         journeysIncluded: ticket.journeys_included,
         journeysUsed: ticket.journeys_used
       },
-      message: ''
+      message: '',
+      action: consume ? 'consume' : 'verify'
     };
 
     if (currentStatus === 'EXPIRED') {
@@ -396,14 +630,89 @@ router.post("/verify-qr", requireAuth, requireRoles("user", "admin"), async (req
       validationResult.message = 'Ticket has been fully used';
     } else if (currentStatus === 'PAID') {
       validationResult.valid = true;
-      validationResult.message = 'Valid ticket - ready for use';
+      validationResult.message = consume ? 'Valid ticket - consumed for boarding' : 'Valid ticket - ready for use';
     } else {
       validationResult.message = 'Ticket is not active';
     }
 
+    if (validationResult.valid && consume) {
+      const included = Number(ticket.journeys_included || 0);
+      const used = Number(ticket.journeys_used || 0);
+      let nextStatus = "USED";
+      let nextUsed = used;
+
+      if (included > 0) {
+        nextUsed = Math.min(included, used + 1);
+        if (nextUsed < included) nextStatus = "PAID";
+      }
+
+      const updatedResult = await query(
+        `
+        UPDATE tickets
+        SET journeys_used = $1, status = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+        `,
+        [nextUsed, nextStatus, ticket.id]
+      );
+
+      const updatedTicket = updatedResult.rows[0] || {
+        ...ticket,
+        journeys_used: nextUsed,
+        status: nextStatus,
+      };
+
+      validationResult.ticket = {
+        id: updatedTicket.id,
+        operator: updatedTicket.operator,
+        productName: updatedTicket.product_name,
+        routeFrom: updatedTicket.route_from,
+        routeTo: updatedTicket.route_to,
+        status: deriveLifecycleStatus(updatedTicket),
+        validFrom: updatedTicket.valid_from,
+        validUntil: updatedTicket.valid_until,
+        journeysIncluded: updatedTicket.journeys_included,
+        journeysUsed: updatedTicket.journeys_used,
+      };
+      validationResult.consumed = true;
+    } else {
+      validationResult.consumed = false;
+    }
+
+    await recordQrValidationEvent({
+      ticketId: ticket.id,
+      validatorUserId: req.auth.userId,
+      validatorRole,
+      validatorOperator,
+      ticketOperator,
+      action: consume ? "consume" : "verify",
+      valid: validationResult.valid,
+      resultCode: validationResult.valid ? (consume ? "validated_and_consumed" : "validated") : String(currentStatus || "invalid").toLowerCase(),
+      scanSource,
+      deviceId,
+      location,
+    });
+
+    log("info", "ticket_qr_verify_completed", {
+      requestId: req.requestId,
+      userId: req.auth.userId,
+      ticketId: ticket.id,
+      valid: validationResult.valid,
+      status: currentStatus,
+      consumed: validationResult.consumed,
+    });
     return res.json(validationResult);
 
   } catch (error) {
+    logAlert("ticket_qr_verify_error", {
+      requestId: req.requestId,
+      userId: req.auth?.userId || null,
+      error: serializeError(error),
+    }, {
+      category: "tickets",
+      severity: "high",
+      code: "ticket_qr_verify_error",
+    });
     return next(error);
   }
 });

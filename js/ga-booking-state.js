@@ -14,6 +14,34 @@
     ]
   };
 
+  async function loadRoutePairsFromAPI() {
+    try {
+      if (!window.fareClient) return FALLBACK.routePairs;
+      const routePrices = await window.fareClient.getAllRoutePrices("Golden Arrow");
+      if (!routePrices || !routePrices.length) return FALLBACK.routePairs;
+      
+      // Convert route_prices format to routePairs format
+      const pairs = new Map();
+      routePrices.forEach(rp => {
+        const key = `${rp.from_stop_name}|${rp.to_stop_name}`;
+        if (!pairs.has(key)) {
+          pairs.set(key, {
+            from: rp.from_stop_name,
+            to: rp.to_stop_name,
+            faresCents: {}
+          });
+        }
+        const pair = pairs.get(key);
+        pair.faresCents[rp.product_key] = Number(rp.price_cents);
+      });
+      
+      return Array.from(pairs.values());
+    } catch (error) {
+      console.error("Failed to load route fares from API:", error);
+      return FALLBACK.routePairs;
+    }
+  }
+
   const FARE_ORDER = ["ride5", "weekly", "monthly"];
   const LEGACY_TO_DATA_KEY = { ride5: "five", weekly: "weekly", monthly: "monthly", five: "five" };
 
@@ -59,7 +87,13 @@
       const payload = await res.json();
       return normalizeDataset(payload);
     } catch (_err) {
-      return normalizeDataset(FALLBACK);
+      // Last resort: load from API if available
+      try {
+        const routePairs = await loadRoutePairsFromAPI();
+        return normalizeDataset({ products: FALLBACK.products, routePairs });
+      } catch (_apiErr) {
+        return normalizeDataset(FALLBACK);
+      }
     }
   }
 
@@ -149,6 +183,31 @@
     return scores.sort((a, b) => b.cap - a.cap)[0]?.fare || "monthly";
   }
 
+  function summarizeSelection(dataset, state) {
+    const booking = state && typeof state === "object" ? state : {};
+    const fare = String(booking.fare || "");
+    const routeFareCents = getRouteFare(dataset, booking.from, booking.to, fare);
+    const totalCents = Number(booking.totalFareCents || routeFareCents || 0);
+    const journeys = fare ? fareJourneys(dataset, fare) : 0;
+    const recommended = recommendFare(dataset, journeys || 1, 1);
+    return {
+      fare,
+      routeFareCents: routeFareCents || null,
+      totalCents,
+      fareLabel: fare ? fareLabel(dataset, fare) : "-",
+      journeys,
+      journeysLabel: journeys ? `${journeys} journeys` : "-",
+      routeLabel: booking?.estimate?.routeLabel || "-",
+      distanceLabel: booking?.estimate?.distanceKm ? `${Number(booking.estimate.distanceKm).toFixed(1)} km` : "-",
+      timeLabel: booking?.estimate?.travelMinutes ? `${booking.estimate.travelMinutes} min` : "-",
+      fromLabel: booking.from || "-",
+      toLabel: booking.to || "-",
+      totalLabel: routeFareCents ? formatZar(totalCents) : "No route fare",
+      recommendedFare: recommended,
+      recommendedLabel: fareLabel(dataset, recommended),
+    };
+  }
+
   window.GABookingState = {
     KEY,
     fares: FARE_ORDER,
@@ -163,6 +222,7 @@
     fareLabel,
     fareJourneys,
     recommendFare,
+    summarizeSelection,
     formatZar
   };
 })();

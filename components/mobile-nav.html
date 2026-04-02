@@ -1,0 +1,142 @@
+<!-- Mobile Navigation Component -->
+<!-- Bottom Tab Navigation for Mobile Devices -->
+
+<nav class="mobile-nav" id="mobileNav">
+  <a href="/" class="nav-item" data-page="home">
+    <div class="nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  
+  <a href="/tickets" class="nav-item" data-page="tickets">
+    <div class="nav-icon">🎫</div>
+    <span>Tickets</span>
+  </a>
+  
+  <a href="/wallet" class="nav-item" data-page="wallet">
+    <div class="nav-icon">💳</div>
+    <span>Wallet</span>
+  </a>
+  
+  <a href="/profile" class="nav-item" data-page="profile">
+    <div class="nav-icon">👤</div>
+    <span>Profile</span>
+  </a>
+  
+  <a href="/menu" class="nav-item" data-page="menu">
+    <div class="nav-icon">☰</div>
+    <span>Menu</span>
+  </a>
+</nav>
+
+<!-- Desktop Navigation Component -->
+<!-- Top Navigation Bar for Tablet/Desktop -->
+
+<nav class="desktop-nav" id="desktopNav">
+  <div class="container">
+    <a href="/" class="nav-brand">CapeConnect</a>
+    
+    <ul class="nav-menu">
+      <li><a href="/" class="nav-link" data-page="home">Home</a></li>
+      <li><a href="/tickets" class="nav-link" data-page="tickets">My Tickets</a></li>
+      <li><a href="/wallet" class="nav-link" data-page="wallet">Wallet</a></li>
+      <li><a href="/timetables" class="nav-link" data-page="timetables">Timetables</a></li>
+      <li><a href="/profile" class="nav-link" data-page="profile">Profile</a></li>
+    </ul>
+  </div>
+</nav>
+
+<script>
+// Mobile Navigation JavaScript
+(function() {
+  'use strict';
+  
+  // Set active navigation item based on current page
+  function setActiveNavItem() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.nav-item, .nav-link');
+    
+    navItems.forEach(item => {
+      item.classList.remove('active');
+      
+      const href = item.getAttribute('href');
+      if (href === currentPath || (currentPath === '/' && href === '/')) {
+        item.classList.add('active');
+      }
+    });
+  }
+  
+  // Add touch feedback for mobile nav items
+  function addTouchFeedback() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+      item.addEventListener('touchstart', function() {
+        this.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+      });
+      
+      item.addEventListener('touchend', function() {
+        setTimeout(() => {
+          this.style.backgroundColor = '';
+        }, 150);
+      });
+    });
+  }
+  
+  // Initialize navigation
+  document.addEventListener('DOMContentLoaded', function() {
+    setActiveNavItem();
+    addTouchFeedback();
+  });
+  
+  // Update active item on navigation
+  window.addEventListener('popstate', setActiveNavItem);
+})();
+</script>
+
+<style>
+/* Additional mobile navigation enhancements */
+.mobile-nav .nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-nav .nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--color-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.mobile-nav .nav-item.active::before {
+  width: 80%;
+}
+
+/* Ripple effect for touch feedback */
+.mobile-nav .nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-nav .nav-item::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background-color: rgba(0, 123, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.mobile-nav .nav-item:active::after {
+  width: 100px;
+  height: 100px;
+}
+</style>

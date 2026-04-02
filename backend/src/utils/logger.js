@@ -14,6 +14,20 @@ export function log(level, message, meta = {}) {
   console.log(line);
 }
 
+export function logAlert(message, meta = {}, options = {}) {
+  const severity = String(options.severity || "high").toLowerCase();
+  const level = severity === "critical" || severity === "high" ? "error" : "info";
+
+  return log(level, message, {
+    ...meta,
+    alert: true,
+    alertSeverity: severity,
+    alertCategory: options.category || "operations",
+    alertCode: options.code || message,
+    runbook: options.runbook || "backend/DEPLOYMENT.md",
+  });
+}
+
 export function createRequestId() {
   return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }

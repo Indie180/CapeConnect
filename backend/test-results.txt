@@ -1,0 +1,66 @@
+
+> capeconnect-backend@1.0.0 test
+> node --test
+
+SQLite database loaded
+SQLite database initialized
+📦 Using SQLite database (sql.js) with proper schema
+{"level":"error","message":"request_failed","time":"2026-03-30T10:15:35.516Z","requestId":"req_mnd18eae_fwhdoxu0","method":"POST","path":"/api/auth/login","userId":null,"error":{"name":"ZodError","message":"[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"email\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"password\"\n    ],\n    \"message\": \"Required\"\n  }\n]","stack":"ZodError: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"email\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"password\"\n    ],\n    \"message\": \"Required\"\n  }\n]\n    at get error (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:39:31)\n    at ZodObject.parse (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:114:22)\n    at parseOrThrow (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/utils/validation.js:158:17)\n    at file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/routes/auth.js:417:33\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)","statusCode":null}}
+[0mPOST /api/auth/login [33m400[0m 8.286 ms - 156[0m
+✔ auth login returns 400 for missing credentials (57.4034ms)
+[0mPOST /api/wallets/topup [32m200[0m 4.738 ms - 67[0m
+✔ wallet topup returns updated wallet for authenticated user (20.6898ms)
+{"level":"error","message":"request_failed","time":"2026-03-30T10:15:35.556Z","requestId":"req_mnd18ebn_ostzndqn","method":"POST","path":"/api/wallets/topup","userId":"u-1","error":{"name":"ZodError","message":"[\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 0,\n    \"type\": \"number\",\n    \"inclusive\": false,\n    \"exact\": false,\n    \"message\": \"amountCents must be > 0\",\n    \"path\": [\n      \"amountCents\"\n    ]\n  }\n]","stack":"ZodError: [\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 0,\n    \"type\": \"number\",\n    \"inclusive\": false,\n    \"exact\": false,\n    \"message\": \"amountCents must be > 0\",\n    \"path\": [\n      \"amountCents\"\n    ]\n  }\n]\n    at get error (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:39:31)\n    at ZodObject.parse (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:114:22)\n    at parseOrThrow (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/utils/validation.js:158:17)\n    at file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/routes/wallets.js:114:21\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)","statusCode":null}}
+[0mPOST /api/wallets/topup [33m400[0m 1.322 ms - 136[0m
+✔ wallet topup rejects invalid amountCents payload (9.2223ms)
+[0mPOST /api/tickets/verify-qr [33m401[0m 1.000 ms - 32[0m
+✔ verify-qr endpoint requires authentication (9.3425ms)
+[0mPOST /api/tickets/verify-qr [33m403[0m 0.768 ms - 25[0m
+✔ passenger cannot verify another user ticket via verify-qr (8.014ms)
+[0mPOST /api/tickets/verify-qr [32m200[0m 0.643 ms - 257[0m
+✔ operator_admin can verify another user ticket via verify-qr (6.1214ms)
+[0mPOST /api/tickets [32m201[0m 36.967 ms - 15752[0m
+✔ ticket creation validates fare product against fare_products (42.7303ms)
+[0mPOST /api/tickets [33m400[0m 0.524 ms - 48[0m
+✔ ticket creation rejects incorrect fare amount (6.959ms)
+[0mGET /api/admin/bootstrap?operator=Golden%20Arrow [33m403[0m 0.785 ms - 36[0m
+✔ admin scope blocks operator_admin from accessing different operator (7.2637ms)
+[0mGET /api/admin/bootstrap?operator=MyCiTi [33m403[0m 0.581 ms - 47[0m
+✔ admin scope rejects operator_admin without authenticated operator (6.6413ms)
+[0mPATCH /api/auth/me [32m200[0m 1.149 ms - 384[0m
+✔ profile update persists bank details through /api/auth/me (6.4521ms)
+[0mPOST /api/auth/change-password [33m400[0m 67.369 ms - 41[0m
+✔ change password rejects wrong current password (72.1013ms)
+[0mGET /api/admin/bootstrap?operator=Golden%20Arrow [32m200[0m 0.698 ms - 101[0m
+✔ admin scope uses authenticated operator instead of email naming (4.8026ms)
+{"level":"error","message":"request_failed","time":"2026-03-30T10:15:35.733Z","requestId":"req_mnd18egk_fksf7xyw","method":"POST","path":"/api/admin/users/bulk","userId":"admin-1","error":{"name":"ZodError","message":"[\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 1,\n    \"type\": \"string\",\n    \"inclusive\": true,\n    \"exact\": false,\n    \"message\": \"String must contain at least 1 character(s)\",\n    \"path\": [\n      \"users\",\n      0,\n      \"fullName\"\n    ]\n  },\n  {\n    \"validation\": \"email\",\n    \"code\": \"invalid_string\",\n    \"message\": \"Invalid email\",\n    \"path\": [\n      \"users\",\n      0,\n      \"email\"\n    ]\n  }\n]","stack":"ZodError: [\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 1,\n    \"type\": \"string\",\n    \"inclusive\": true,\n    \"exact\": false,\n    \"message\": \"String must contain at least 1 character(s)\",\n    \"path\": [\n      \"users\",\n      0,\n      \"fullName\"\n    ]\n  },\n  {\n    \"validation\": \"email\",\n    \"code\": \"invalid_string\",\n    \"message\": \"Invalid email\",\n    \"path\": [\n      \"users\",\n      0,\n      \"email\"\n    ]\n  }\n]\n    at get error (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:39:31)\n    at ZodObject.parse (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/node_modules/zod/v3/types.js:114:22)\n    at parseOrThrow (file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/utils/validation.js:158:17)\n    at file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/routes/admin.js:308:20\n    at Layer.handle [as handle_request] (c:\\Users\\Indie\\OneDrive\\CapeConnect\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (c:\\Users\\Indie\\OneDrive\\CapeConnect\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at file:///c:/Users/Indie/OneDrive/CapeConnect/backend/src/middleware/auth.js:110:12\n    at Layer.handle [as handle_request] (c:\\Users\\Indie\\OneDrive\\CapeConnect\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (c:\\Users\\Indie\\OneDrive\\CapeConnect\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (c:\\Users\\Indie\\OneDrive\\CapeConnect\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)","statusCode":null}}
+[0mPOST /api/admin/users/bulk [33m400[0m 1.340 ms - 212[0m
+✔ admin users bulk rejects malformed payload (4.8871ms)
+[0mPOST /api/admin/tickets/bulk [32m200[0m 0.966 ms - 11[0m
+✔ admin tickets bulk rewrites scoped tickets for the operator (6.6544ms)
+[0mPOST /api/admin/wallets/bulk [32m200[0m 0.791 ms - 11[0m
+✔ admin wallets bulk only updates users in the scoped operator (5.3362ms)
+[0mPOST /api/admin/prices/global/bulk [32m200[0m 0.598 ms - 11[0m
+✔ admin global prices bulk upserts scoped fare products (3.9835ms)
+[0mPOST /api/admin/prices/routes/bulk [32m200[0m 0.782 ms - 11[0m
+✔ admin route prices bulk rewrites scoped route fares (4.1106ms)
+[0mPOST /api/admin/timetables/bulk [32m200[0m 2.287 ms - 11[0m
+✔ admin timetables bulk rewrites scoped timetable entries (6.9785ms)
+[0mPOST /api/admin/audit [32m200[0m 0.583 ms - 11[0m
+✔ admin audit write ignores caller supplied adminEmail (4.2898ms)
+[0mPOST /api/tickets/t-1/use [32m200[0m 0.607 ms - 383[0m
+✔ ticket use marks a single-use ticket as USED (3.587ms)
+[0mGET /api/tickets [32m200[0m 0.683 ms - 395[0m
+✔ ticket list reconciles expired tickets before returning history (3.8069ms)
+[0mPOST /api/auth/forgot-password [32m200[0m 0.837 ms - 285[0m
+✔ forgot password returns a reset token in non-production flows (5.3794ms)
+[0mPOST /api/auth/reset-password [32m200[0m 61.998 ms - 11[0m
+✔ reset password updates the password and revokes sessions (66.8635ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1841.3844
