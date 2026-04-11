@@ -1,7 +1,7 @@
 import { log, serializeError } from "../utils/logger.js";
 import { config } from "../config.js";
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   log("error", "request_failed", {
     requestId: req?.requestId || null,
     method: req?.method || null,

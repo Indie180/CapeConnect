@@ -265,7 +265,6 @@ async function syncUserServices(userId, services, operator = null) {
 
   if (hasExplicitServices || normalizedOperator) {
     for (const serviceKey of nextServices) {
-      // eslint-disable-next-line no-await-in-loop
       await query(
         `
         INSERT INTO user_services (id, user_id, service_key)

@@ -499,7 +499,7 @@ router.post("/verify-qr", requireAuth, requireRoles("admin"), async (req, res, n
     let qrPayload;
     try {
       qrPayload = JSON.parse(qrData);
-    } catch (error) {
+    } catch {
       await recordQrValidationEvent({
         validatorUserId: req.auth.userId,
         validatorRole,
