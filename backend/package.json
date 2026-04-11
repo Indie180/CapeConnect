@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test --test-isolation=none --test-force-exit",
+    "test": "node --test",
     "lint": "eslint src/**/*.js",
     "check": "npm run lint && npm run test",
     "db:setup": "psql $DATABASE_URL -f sql/schema.sql && psql $DATABASE_URL -f sql/seed.sql",
