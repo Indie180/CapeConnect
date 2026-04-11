@@ -5,7 +5,6 @@
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build outputs
 dist/
@@ -30,3 +29,4 @@ Thumbs.db
 coverage/
 playwright-report/
 test-results/
+.pw-test-results/
