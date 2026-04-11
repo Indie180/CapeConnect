@@ -56,19 +56,11 @@ The backend will run on `http://localhost:4000`
 ### 4. Frontend Setup
 
 ```bash
-cd frontend-react
-
-# Install dependencies
-npm install
-
-# Create environment file
-cp .env.example .env
-
-# Start development server
-npm run dev
+cd ..
+node scripts/static-server.js
 ```
 
-The frontend will run on `http://localhost:5173`
+The frontend will run on `http://127.0.0.1:4173`
 
 ## Verification
 
@@ -100,7 +92,7 @@ curl -X POST http://localhost:4000/api/auth/login \
 
 ### Access Frontend
 
-Open browser to `http://localhost:5173` and login with:
+Open browser to `http://127.0.0.1:4173/login.html` and login with:
 - Email: `william@capeconnect.demo`
 - Password: `Demo#123`
 
@@ -130,16 +122,13 @@ docker run -p 4000:4000 --env-file .env capeconnect-api
 ### Port Already in Use
 
 - Backend: Change PORT in `backend/.env`
-- Frontend: Vite will auto-increment port
+- Frontend: change the `PORT` environment variable before running `node scripts/static-server.js` if needed
 
 ### Missing Dependencies
 
 ```bash
 # Backend
 cd backend && npm install
-
-# Frontend
-cd frontend-react && npm install
 ```
 
 ## Next Steps

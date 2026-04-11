@@ -3,6 +3,20 @@ import { z } from "zod";
 
 dotenv.config();
 
+function getDefaultFrontendOrigins(env) {
+  if (env === "production") {
+    return ["*"];
+  }
+
+  return ["http://localhost:4173", "http://127.0.0.1:4173"];
+}
+
+const inferredEnv = process.env.NODE_ENV || "development";
+const rawEnv = {
+  ...process.env,
+  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || getDefaultFrontendOrigins(inferredEnv).join(","),
+};
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -78,7 +92,7 @@ const envSchema = z
     }
   });
 
-const parsedEnv = envSchema.safeParse(process.env);
+const parsedEnv = envSchema.safeParse(rawEnv);
 
 if (!parsedEnv.success) {
   const details = parsedEnv.error.issues

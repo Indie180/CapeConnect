@@ -3,16 +3,13 @@
 Current note:
 - the canonical frontend is the repo-root static HTML app
 - the current entry point is `http://127.0.0.1:4173/login.html`
-- `frontend-react/` is not the publish target yet
 - use backend-backed auth, not the old demo-only flow below
 
 Current startup:
 
 ```bash
-node scripts/static-server.js
-cd backend
-npm install
-npm start
+npm run dev:frontend
+npm run dev:backend
 ```
 
 Then open:
@@ -41,28 +38,16 @@ Canonical user accounts:
 
 See `docs/FRONTEND_DECISION.md` for the formal publish-path decision.
 
-Legacy notes below are retained temporarily until the rest of this file is fully rewritten.
-
 Get up and running with CapeConnect in 5 minutes.
 
 ## Step 1: Open the Application
 
-### Option A: Direct File Access
-Simply double-click `index.html` to open in your browser.
-
-### Option B: Local Server (Recommended)
+### Local Server (Recommended)
 ```bash
-# Using Python 3
-python -m http.server 8000
-
-# Using Node.js
-npx serve
-
-# Using PHP
-php -S localhost:8000
+npm run dev:frontend
 ```
 
-Then open: `http://localhost:8000`
+Then open: `http://127.0.0.1:4173/login.html`
 
 ## Step 2: Select an Operator
 
@@ -74,12 +59,17 @@ Click on either card to continue.
 
 ## Step 3: Login
 
-### Demo Mode (Default)
-- Email: `demo@example.com` (or any email)
-- Password: `password` (or any value)
-- Choose **Passenger** or **Admin** tab
+Use one of the seeded backend accounts:
+- `william@capeconnect.demo`
+- `sihle@capeconnect.demo`
+- `myciti-admin@capeconnect.demo`
+- `ga-admin@capeconnect.demo`
 
-Click "Sign In" to enter the application.
+Password:
+
+```text
+Demo#123
+```
 
 ## Step 4: Explore Features
 
@@ -118,6 +108,20 @@ For Golden Arrow users, the booking process is:
 
 ## Testing the Application
 
+Automated test commands:
+
+```bash
+npm test
+npm run test:e2e
+cd backend
+npm test
+```
+
+Notes:
+- `npm run test:e2e` now starts the root static server and the backend automatically.
+- The E2E runner uses a direct Chromium script instead of the Playwright worker runner.
+- If Chromium launch is blocked with `spawn EPERM`, run the command in a normal local terminal outside restricted sandbox tooling.
+
 ### Test Ticket Purchase
 1. Login as passenger
 2. Navigate to booking
@@ -137,46 +141,45 @@ For Golden Arrow users, the booking process is:
 3. Click "Show QR Code"
 4. Modal displays ticket QR
 
-## Backend API (Optional)
-
-To use the real backend instead of demo mode:
+## Backend API
 
 ```bash
 cd backend
 npm install
-npm start
+npm run dev
 ```
 
 Backend runs on `http://localhost:4000`
 
-The frontend will automatically connect to the API.
+The backend allows both `http://localhost:4173` and `http://127.0.0.1:4173` by default in development.
+The frontend should connect to the backend automatically on either hostname.
 
 ## Troubleshooting
 
 ### Issue: Blank page
-**Solution**: Make sure you're serving the files (not just opening index.html directly), or check browser console for errors.
+**Solution**: Make sure you're using `node scripts/static-server.js`, or check browser console for errors.
 
 ### Issue: Login doesn't work
-**Solution**: In demo mode, any credentials work. Check that JavaScript is enabled.
+**Solution**: Verify the backend is running on `http://127.0.0.1:4000/health` or `http://localhost:4000/health`, then use a seeded account.
 
 ### Issue: Tickets not showing
-**Solution**: Check browser localStorage - tickets are stored there in demo mode.
+**Solution**: Check the backend is running, then reload the page so the frontend can re-resolve the API base.
 
 ### Issue: Styles not loading
 **Solution**: Ensure `styles/main.css` exists and the path is correct.
 
 ## File Structure Quick Reference
 
-```
-index.html          → Main entry point
-styles/main.css     → All styles
-js/config.js        → Configuration
-js/router.js        → Navigation
-js/auth.js          → Login/logout
-js/api.js           → Backend calls
-js/components.js    → UI components
-js/pages.js         → Page rendering
-js/app.js           → Initialization
+```text
+login.html          -> Main login entry
+signup.html         -> Signup flow
+choose-bus.html     -> Operator selection
+myciti-dashboard.html
+golden-arrow-dashboard.html
+admin.html          -> Admin portal
+js/                 -> Shared frontend logic
+css/                -> Shared frontend styles
+backend/            -> Node API
 ```
 
 ## Next Steps
@@ -192,15 +195,16 @@ js/app.js           → Initialization
 
 ## Demo Credentials
 
-### Passenger Account
-- Email: `passenger@example.com`
-- Password: `anything`
-- Role: Passenger
+- `william@capeconnect.demo`
+- `sihle@capeconnect.demo`
+- `myciti-admin@capeconnect.demo`
+- `ga-admin@capeconnect.demo`
 
-### Admin Account
-- Email: `admin@capeconnect.co.za`
-- Password: `anything`
-- Role: Admin
+Password:
+
+```text
+Demo#123
+```
 
 ## Support
 
@@ -212,4 +216,4 @@ Need help? Check:
 
 ---
 
-**Ready to go!** 🚌🚍 Start by opening `index.html` and selecting your operator.
+**Ready to go!** Start by opening `http://127.0.0.1:4173/login.html`.

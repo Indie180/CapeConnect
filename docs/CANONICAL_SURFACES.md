@@ -38,15 +38,13 @@ These pages make up the current live user journey:
 
 These are safe to keep temporarily but should not be treated as primary entry points:
 - `dashboard.html`
-- `booking.html`
-- `ga-booking.html`
-- `legacy-redirect.html`
 
-These compatibility pages now redirect directly to canonical non-mobile pages.
+`dashboard.html` remains as a compatibility page because existing code and old links may still route through it.
+The older booking and legacy shim pages have been removed from the repo root and are now preserved through Netlify `_redirects`.
 
 ## Legacy / Secondary Mobile Redirects
 
-These legacy entry points now redirect into the canonical publish path. They can be kept temporarily for compatibility, then removed once inbound links are no longer needed:
+These legacy entry points have been removed from the repo root. Their old URLs are now preserved through Netlify `_redirects` so they no longer need duplicate HTML files:
 - `choose-fare-mobile.html`
 - `forgot-password-mobile.html`
 - `golden-arrow-dashboard-mobile.html`
@@ -68,5 +66,5 @@ The standalone root HTML test/diagnostic pages have already been removed from th
 
 1. Keep the canonical publish path intact.
 2. Preserve compatibility redirects only where inbound links are still useful.
-3. Remove temporary mobile redirect pages once legacy links are no longer needed.
-4. Remove compatibility redirects entirely once analytics or support history show they are no longer used.
+3. Keep legacy URL handling in `_redirects` instead of duplicate HTML shims where possible.
+4. Remove `dashboard.html` entirely once analytics or support history show it is no longer needed.

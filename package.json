@@ -5,8 +5,10 @@
     "@playwright/test": "^1.54.2"
   },
   "scripts": {
+    "dev:frontend": "node scripts/static-server.js",
+    "dev:backend": "npm --prefix backend run dev",
     "test": "node test/run-tests.js",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e": "node scripts/run-e2e.js",
+    "test:e2e:headed": "node scripts/run-e2e.js --headed"
   }
 }

@@ -16,8 +16,27 @@
 /privacy /privacy.html 200
 /privacy.html /privacy 301
 
-/booking /dashboard.html 301
-/booking.html /dashboard.html 301
+/dashboard /dashboard.html 200
+/dashboard.html /dashboard 301
+
+/booking /choose-fare.html 301
+/booking.html /choose-fare.html 301
+/ga-booking /ga-route-calculator.html 301
+/ga-booking.html /ga-route-calculator.html 301
+/legacy-redirect.html /dashboard.html 301
+
+/login-mobile.html /login.html 301
+/login-mobile-integrated.html /login.html 301
+/signup-mobile.html /signup.html 301
+/forgot-password-mobile.html /forgot-password.html 301
+/choose-fare-mobile.html /choose-fare.html 301
+/myciti-dashboard-mobile.html /myciti-dashboard.html 301
+/golden-arrow-dashboard-mobile.html /golden-arrow-dashboard.html 301
+/payment-mobile.html /payment.html 301
+/profile-mobile.html /profile.html 301
+/wallet-mobile.html /profile.html 301
+/tickets-mobile.html /dashboard.html 301
+/timetables-mobile.html /timetable.html 301
 
 # Optional production API proxy for Netlify -> Railway once the backend URL is known.
 # Uncomment and replace the host below during production setup.

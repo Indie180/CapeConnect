@@ -40,30 +40,28 @@ CapeConnect/
 From the repo root:
 
 ```bash
-npx serve .
+npm run dev:frontend
 ```
 
-Open the URL printed by `serve`, then start at:
+Open:
 
 ```text
-/login.html
+http://127.0.0.1:4173/login.html
 ```
 
 ### Backend API
 
 ```bash
-cd backend
-npm install
-npm start
+npm run dev:backend
 ```
 
 The backend runs on `http://localhost:4000` by default.
+In development, the backend now allows both `http://localhost:4173` and `http://127.0.0.1:4173` by default.
 
 ## Current Architecture
 
 - The live frontend is the root static HTML flow, not the old SPA router stack.
 - Auth, wallet, tickets, profile updates, and admin access are backend-backed.
-- The React app in `frontend-react/` is separate from the current live static frontend path.
 - Frontend publish decision: see `docs/FRONTEND_DECISION.md`.
 
 ## Testing
@@ -80,6 +78,10 @@ End-to-end tests:
 npm run test:e2e
 ```
 
+This command starts the static frontend and test backend automatically, then runs the browser flow suite with a direct Playwright-driven Chromium script.
+The same root `test:e2e` path is used for local runs and CI.
+If Chromium launch is blocked by the local shell or sandbox, rerun it in a normal terminal session outside that restricted environment.
+
 Backend integration tests:
 
 ```bash
@@ -94,7 +96,6 @@ Before publish, the GitHub Actions workflow in `.github/workflows/ci.yml` should
 - root static tests pass
 - root Playwright tests pass
 - backend lint and tests pass
-- `frontend-react/` lint and build pass
 
 Local runs are useful, but they do not replace a verified remote CI pass.
 

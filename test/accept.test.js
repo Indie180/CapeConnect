@@ -39,8 +39,8 @@ module.exports = [
         'signup.html',
         'choose-bus.html',
         'dashboard.html',
-        'booking.html',
-        'ga-booking.html',
+        'choose-fare.html',
+        'ga-route-calculator.html',
         'profile.html',
       ];
 

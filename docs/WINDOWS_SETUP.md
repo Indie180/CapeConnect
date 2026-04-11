@@ -115,7 +115,7 @@ npm.cmd test
 
 Notes:
 - The backend test script now uses in-process Node test mode to avoid Windows `spawn EPERM` failures.
-- Playwright uses `npm.cmd --prefix backend start` automatically on Windows.
+- The local E2E path now uses the root server harness plus a direct Chromium runner.
 
 ### Test Login
 
@@ -128,12 +128,11 @@ curl -X POST http://localhost:4000/api/auth/login `
 ## Frontend Setup
 
 ```powershell
-cd frontend-react
-npm install
-npm run dev
+cd ..
+node scripts/static-server.js
 ```
 
-Open browser to: http://localhost:5173
+Open browser to: http://127.0.0.1:4173/login.html
 
 ## Troubleshooting
 

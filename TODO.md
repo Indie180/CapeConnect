@@ -17,21 +17,17 @@ Practical next steps to move the project from its current demo-heavy state towar
   - add explicit audit/error logging for payment reconciliation outcomes
 
 - [ ] Make backend and E2E test execution reliable on Windows and CI:
-  - review `npm` invocation in `playwright.config.js`
-  - document Windows-safe commands
-  - remove environment-specific runner failures like `spawn EPERM`
-  - confirm `backend` tests and Playwright can be started consistently       
+  - [x] document Windows-safe commands
+  - [x] replace the Playwright worker-based local E2E path with a Windows-safer direct browser runner
+  - [x] confirm `backend` tests and local E2E can be started consistently when browser launch is allowed by the environment
+  - [x] use the same root `npm run test:e2e` runner path in CI and local workflows
+  - [x] document the remaining environment-level `spawn EPERM` caveat for restricted shells/sandboxes
 
 ## P1
 
-- [ ] Decide the canonical frontend path:
-  - keep the static HTML frontend as the live app and trim React down
-  - or continue building `frontend-react/` into the real app path
-
-- [ ] If React stays, align it with the live backend:
-  - fix response-shape mismatches in `frontend-react/src/pages/TicketsPage.jsx`
-  - fix response-shape mismatches in `frontend-react/src/pages/WalletPage.jsx`
-  - remove remaining mock/demo assumptions from `frontend-react/src/App.jsx`
+- [x] Decide the canonical frontend path:
+  - keep the static HTML frontend as the live app
+  - remove the retired alternate frontend app path from the repo
 
 - [ ] Improve monitoring and operational visibility:
   - payment failure monitoring
@@ -44,6 +40,7 @@ Practical next steps to move the project from its current demo-heavy state towar
 - [ ] Clean up duplicate and legacy frontend surfaces in the repo root:
   - identify which HTML pages are still canonical
   - remove or archive obsolete variants
+  - keep URL compatibility in `_redirects` instead of duplicate HTML shims where possible
   - reduce parallel flows that describe the same journey
 
 - [ ] Strengthen deployment operations:

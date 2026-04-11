@@ -4,6 +4,11 @@
 (function() {
     'use strict';
 
+    function isLoopbackHostname(hostname) {
+        const value = String(hostname || '').toLowerCase().trim();
+        return value === 'localhost' || value === '127.0.0.1';
+    }
+
     function readApiBaseOverride() {
         const keys = ['ccApiBaseUrl', 'CC_API_BASE_URL'];
         try {
@@ -42,14 +47,28 @@
         return value.endsWith('/api') ? value : `${value}/api`;
     }
 
-    function resolveApiBaseUrl() {
-        const override = normalizeBaseUrl(readApiBaseOverride());
-        if (override) return override;
-        if (window.location.hostname === 'localhost') {
-            return 'http://localhost:4000/api';
+    function alignLoopbackHostname(rawBaseUrl) {
+        const value = String(rawBaseUrl || '').trim();
+        if (!value || !isLoopbackHostname(window.location.hostname)) return value;
+
+        try {
+            const parsed = new URL(value);
+            if (!isLoopbackHostname(parsed.hostname) || parsed.hostname === window.location.hostname) {
+                return value;
+            }
+
+            parsed.hostname = window.location.hostname;
+            return parsed.toString().replace(/\/+$/, '');
+        } catch (_error) {
+            return value;
         }
-        if (window.location.hostname === '127.0.0.1') {
-            return 'http://127.0.0.1:4000/api';
+    }
+
+    function resolveApiBaseUrl() {
+        const override = normalizeBaseUrl(alignLoopbackHostname(readApiBaseOverride()));
+        if (override) return override;
+        if (isLoopbackHostname(window.location.hostname)) {
+            return `${window.location.protocol}//${window.location.hostname}:4000/api`;
         }
         return `${window.location.origin}/api`;
     }
