@@ -70,7 +70,8 @@
         if (isLoopbackHostname(window.location.hostname)) {
             return `${window.location.protocol}//${window.location.hostname}:4000/api`;
         }
-        return `${window.location.origin}/api`;
+        // Production default: use Render backend
+        return 'https://capeconnect-backend.onrender.com/api';
     }
     
     // API Configuration
